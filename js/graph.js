@@ -27,7 +27,7 @@ $(function () {
           'content': 'data(id)',
           'text-valign': 'center',
           'text-halign': 'center',
-          'background-color': '#61bffc',
+          'background-color': '#ffffff',
           'line-color': 'red',
           'target-arrow-color': '#61bffc',
           'transition-property': 'background-color, line-color, target-arrow-color',
@@ -36,6 +36,8 @@ $(function () {
           'padding-right': '5px',
           'padding-bottom': '5px',
           'padding-left': '5px',
+          'border-width': 2,
+          'border-color': '#000000'
         }
       },
       {
@@ -81,14 +83,14 @@ $(function () {
         selector: 'node:selected',
         css: {
           'border-width': 5,
-          'border-color': '#4479A5'
+          'border-color': '#000000'
         }
       },
       {
         selector: 'edge:selected',
         css: {
-          'line-color': '#4479A5',
-          'target-arrow-color': '#4479A5'
+          'line-color': 'darkgray',
+          'target-arrow-color': 'darkgray'
         }
       },
       {
