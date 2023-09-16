@@ -144,7 +144,7 @@ $(function () {
 
 
   $('html').keyup(function (e) {
-    if (e.keyCode == 46) {
+    if (e.key == "Backspace" || e.key == "Delete") {
       cy.$(':selected').remove();
     }
   });
