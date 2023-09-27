@@ -1,5 +1,4 @@
 $(function () {
-
   function loop(count, callback, done) {
     var counter = 0;
     var next = function () {
@@ -19,108 +18,117 @@ $(function () {
   console.log("Starting...");
 
   var cy = cytoscape({
-    container: document.getElementById('cy'),
+    container: document.getElementById("cy"),
     style: [
       {
-        selector: 'node',
+        selector: "node",
         css: {
-          'content': 'data(id)',
-          'text-valign': 'center',
-          'text-halign': 'center',
-          'background-color': '#ffffff',
-          'line-color': 'red',
-          'target-arrow-color': '#61bffc',
-          'transition-property': 'background-color, line-color, target-arrow-color',
-          'transition-duration': '0.5s',
-          'padding-top': '5px',
-          'padding-right': '5px',
-          'padding-bottom': '5px',
-          'padding-left': '5px',
-          'border-width': 2,
-          'border-color': '#000000'
-        }
+          content: "data(id)",
+          "text-valign": "center",
+          "text-halign": "center",
+          "background-color": "white",
+          "line-color": "red",
+          "target-arrow-color": "#61bffc",
+          "transition-property":
+            "background-color, line-color, target-arrow-color",
+          "transition-duration": "0.5s",
+          "padding-top": "5px",
+          "padding-right": "5px",
+          "padding-bottom": "5px",
+          "padding-left": "5px",
+          "border-width": 2,
+          "border-color": "black",
+        },
       },
       {
-        selector: 'edge',
+        selector: "edge",
         css: {
-          'target-arrow-shape': 'triangle',
-          'width': 4,
-          'line-color': '#ddd',
-          'target-arrow-color': '#ddd',
-          'label': '4',
-          'text-valign': 'right'
-        }
+          "target-arrow-shape": "triangle",
+          width: 4,
+          "line-color": "lightgray",
+          "target-arrow-color": "lightgray",
+          label: "4",
+          "text-valign": "right",
+        },
       },
       {
-        selector: '.edgehandles-hover',
+        selector: ".edgehandles-hover",
         css: {
-          'background-color': 'red'
-        }
+          "border-width": 3,
+          "border-color": "black",
+        },
       },
       {
-        selector: '.edgehandles-source',
+        selector: ".edgehandles-source",
         css: {
-          'border-width': 2,
-          'border-color': 'red'
-        }
+          "border-width": 3,
+          "border-color": "black",
+        },
+      },
+      // {
+      //   selector: ".edgehandles-target",
+      //   css: {
+      //     "border-width": 3,
+      //     "border-color": "black",
+      //   },
+      // },
+      {
+        selector: ".edgehandles-preview",
+        css: {
+          "line-color": "darkgray",
+          "target-arrow-color": "darkgray",
+          "source-arrow-color": "darkgray",
+        },
       },
       {
-        selector: '.edgehandles-target',
+        selector: "node:selected",
         css: {
-          'border-width': 2,
-          'border-color': 'red'
-        }
+          "border-width": 3,
+          "border-color": "#000000",
+        },
       },
       {
-        selector: '.edgehandles-preview, .edgehandles-ghost-edge',
+        selector: "edge:selected",
         css: {
-          'line-color': 'red',
-          'target-arrow-color': 'red',
-          'source-arrow-color': 'red'
-        }
+          "line-color": "darkgray",
+          "target-arrow-color": "darkgray",
+        },
       },
       {
-        selector: 'node:selected',
+        selector: ".highlighted",
         css: {
-          'border-width': 5,
-          'border-color': '#000000'
-        }
+          "background-color": "#ad1a66",
+          "line-color": "#ad1a66",
+          "target-arrow-color": "#ad1a66",
+          "transition-property":
+            "background-color, line-color, target-arrow-color",
+          "transition-duration": "0.5s",
+        },
       },
-      {
-        selector: 'edge:selected',
-        css: {
-          'line-color': 'darkgray',
-          'target-arrow-color': 'darkgray'
-        }
-      },
-      {
-        selector: '.highlighted',
-        css: {
-          'background-color': '#ad1a66',
-          'line-color': '#ad1a66',
-          'target-arrow-color': '#ad1a66',
-          'transition-property': 'background-color, line-color, target-arrow-color',
-          'transition-duration': '0.5s'
-        }
-      }
     ],
     layout: {
-      name: 'preset',
+      name: "preset",
       directed: true,
-      roots: '#a',
-      padding: 10
+      roots: "#a",
+      padding: 10,
     },
     userPanningEnabled: false,
     zoomingEnabled: false,
     userZoomingEnabled: false,
-    selectionType: 'single'
+    selectionType: "single",
   });
 
   cy.edgehandles({
-    handleSize: 14,
+    handleColor: "grey",
+    handleSize: 15,
     handleLineWidth: 10,
-    handleNodes: 'node'
+    handleNodes: "node",
+    toggleOffOnLeave: true,
   });
+
+  function allowModify() {
+    return $("#state").text() === "State: Graph Creation";
+  }
 
   function getId() {
     var ids = cy.nodes().map(function (node) {
@@ -134,269 +142,332 @@ $(function () {
     return ids.length + 1;
   }
 
-  var $cy = $('#cy');
+  var $cy = $("#cy");
   $cy.dblclick(function (e) {
+    if (!allowModify()) {
+      return;
+    }
     var id = getId();
     var posX = e.pageX - $cy.offset().left;
     var posY = e.pageY - $cy.offset().top;
     addNode(cy, id, id, posX, posY);
-    if (id > 1) $('#sink').val(id);
-    if (id == 1) $('#source').val(id);
+    if (id > 1) $("#sink").val(id);
+    if (id == 1) $("#source").val(id);
   });
 
-
-  $('html').keyup(function (e) {
+  $("html").keyup(function (e) {
+    if (!allowModify()) {
+      return;
+    }
     if (e.key == "Backspace" || e.key == "Delete") {
-      cy.$(':selected').remove();
+      cy.$(":selected").remove();
     }
   });
 
-  $('#clear').on('click', function (event) {
+  $("#clear").on("click", function (event) {
     event.preventDefault();
     cy.nodes().remove();
     cy.edges().remove();
 
-    $('#sink').val('');
-    $('#source').val('');
+    $("#sink").val("");
+    $("#source").val("");
 
-    $('#status').text('');
-    $('.log').remove();
-    $('#label').val('');
+    $("#status").text("");
+    $(".log").remove();
+    $("#label").val("");
   });
 
-  $('#reset').on('click', function (event) {
+  $("#reset").on("click", function (event) {
     event.preventDefault();
     var edges = cy.edges();
     edges.forEach(function (edge) {
-      var l = edge.css('label').split("/");
+      var l = edge.css("label").split("/");
       if (l.length == 2) l = l[1];
       else l = l[0];
-      edge.css('label', l);
+      edge.css("label", l);
     });
-    $('#status').text('');
-    $('.log').remove();
-    $('#label').val('');
+    $("#status").text("");
+    $(".log").remove();
+    $("#label").val("");
+  });
+
+  $("#change-mode").on("click", function (event) {
+    event.preventDefault();
+    if ($(this).text() === "Start Practice") {
+      $(this).text("Modify Network Graph");
+      $("#state").text("State: Select Path");
+      $("#proceed-step").toggle();
+      $("#proceed-step").text("Confirm Path");
+    } else {
+      $(this).text("Start Practice");
+      $("#state").text("State: Graph Creation");
+      $("#proceed-step").toggle();
+    }
+    $(".modification").toggle();
   });
 
   function addNode(cy, id, name, posX, posY) {
-    cy.add(
-      {
-        group: "nodes",
-        data: {
-          id: id,
-          name: name
-        },
-        position: {
-          x: posX,
-          y: posY
-        },
-        selectable: true
-      }
-    );
+    if (!allowModify()) {
+      return;
+    }
+    cy.add({
+      group: "nodes",
+      data: {
+        id: id,
+        name: name,
+      },
+      position: {
+        x: posX,
+        y: posY,
+      },
+      selectable: true,
+    });
   }
 
   function addEdge(cy, id, label, source, target) {
-    cy.add(
-      {
-        group: "edges",
-        data: {
-          id: id,
-          source: source,
-          target: target
-        },
-        selectable: true,
-        css: {
-          'label': label
-        }
-      }
-    );
+    if (!allowModify()) {
+      return;
+    }
+    cy.add({
+      group: "edges",
+      data: {
+        id: id,
+        source: source,
+        target: target,
+      },
+      selectable: true,
+      css: {
+        label: label,
+      },
+    });
   }
 
   var selectedEdge = null;
-  cy.on('tap', function (event) {
+  cy.on("tap", function (event) {
     var target = event.cyTarget;
-    if (target.group != 'edges') {
+    if (target.group != "edges") {
       selectedEdge = null;
-      $('#label').val('');
+      $("#label").val("");
     }
   });
 
-  cy.on('tap', 'edge', function (event) {
+  function highlightEdge(source, target) {
+    cy.edges("[source='" + source + "'][target='" + target + "']").addClass(
+      "highlighted"
+    );
+  }
+
+  var path = new Set();
+  cy.on("tap", "edge", function (event) {
     var edge = event.cyTarget;
     if (!edge) return;
     selectedEdge = edge;
-    $('#label').val(edge.css('label'));
+    $("#label").val(edge.css("label"));
+    if (!allowModify() && $("#state").text() === "State: Select Path") {
+      // in steps
+      if (!path.has(edge)) {
+        path.add(edge);
+      } else {
+        path.delete(edge);
+      }
+    }
   });
 
-  $('#label-btn').on('click', function () {
-    var $label = $('#label');
-    var label = $label.val();
-    if (isNaN(parseInt(label)) || parseInt(label) < 0) {
-      $label.css('border', '1px solid red');
+  $("#proceed-step").on("click", function (event) {
+    event.preventDefault();
+    if ($("#state").text() === "State: Select Path") {
+      for (var edge in path) {
+      }
+    }
+  });
+
+  $("#label-btn").on("click", function () {
+    if (!allowModify()) {
       return;
     }
-    $label.css('border', '1px solid #18a689');
+    var $label = $("#label");
+    var label = $label.val();
+    if (isNaN(parseInt(label)) || parseInt(label) < 0) {
+      $label.css("border", "1px solid red");
+      return;
+    }
+    $label.css("border", "1px solid #18a689");
     if (!selectedEdge) return;
 
-    selectedEdge.css('label', label);
+    selectedEdge.css("label", label);
   });
 
-  $('#fulkerson').on('click', function (e) {
+  $("#fulkerson").on("click", function (e) {
     e.preventDefault();
 
     var flowNetwork = new FlowNetwork();
 
-    var $source = $('#source');
+    var $source = $("#source");
     var source = $source.val();
-    var $sink = $('#sink');
+    var $sink = $("#sink");
     var sink = $sink.val();
 
-    $('#reset').triggerHandler('click');
+    $("#reset").triggerHandler("click");
 
     if (!parseInt(source)) {
-      $source.css('border', '1px solid red');
+      $source.css("border", "1px solid red");
       return;
     } else {
-      $source.css('border', '1px solid #18a689');
+      $source.css("border", "1px solid #18a689");
     }
 
     if (!parseInt(sink)) {
-      $sink.css('border', '1px solid red');
+      $sink.css("border", "1px solid red");
       return;
     } else {
-      $sink.css('border', '1px solid #18a689');
+      $sink.css("border", "1px solid #18a689");
     }
 
     var edges = cy.edges();
     edges.forEach(function (edge) {
-      var label = edge.css('label');
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label)
+      var label = edge.css("label");
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
     if (!flowNetwork.isExistVertex(source)) {
-      $source.css('border', '1px solid red');
+      $source.css("border", "1px solid red");
       return;
     } else {
-      $source.css('border', '1px solid #18a689');
+      $source.css("border", "1px solid #18a689");
     }
 
     if (!flowNetwork.isExistVertex(sink)) {
-      $sink.css('border', '1px solid red');
+      $sink.css("border", "1px solid red");
       return;
     } else {
-      $sink.css('border', '1px solid #18a689');
+      $sink.css("border", "1px solid #18a689");
     }
 
     if (sink == source) {
-      $source.css('border', '1px solid red');
-      $sink.css('border', '1px solid red');
+      $source.css("border", "1px solid red");
+      $sink.css("border", "1px solid red");
       return;
     } else {
-      $source.css('border', '1px solid #18a689');
-      $sink.css('border', '1px solid #18a689');
+      $source.css("border", "1px solid #18a689");
+      $sink.css("border", "1px solid #18a689");
     }
 
     var paths = [];
     flowNetwork.findMaxFlowFulkerson(source, sink, paths);
     var sum = 0;
-    loop(paths.length, function (pathIndex, nextPath) {
-      cancelHighlightedElements();
-      var path = paths[pathIndex];
-      var nodes = path.nodes;
-      var flow = path.flow;
-      sum += flow;
-      var _source = nodes[0], _target = null;
-      highlightNode(_source);
-      loop(nodes.length - 1, function (nodeIndex, nextNode) {
-        _source = nodes[nodeIndex];
-        _target = nodes[nodeIndex + 1];
-        highlightNode(_target);
-        if (_source && _target) {
-          highlightEdge(_source, _target);
-          changeLabel(_source, _target, flow);
-        }
-        nextNode();
-      }, function () {
-        nextPath();
-        addLog(nodes, flow);
-        updateStatus(source, sink, sum);
-      });
-    }, cancelHighlightedElements);
+    loop(
+      paths.length,
+      function (pathIndex, nextPath) {
+        cancelHighlightedElements();
+        var path = paths[pathIndex];
+        var nodes = path.nodes;
+        var flow = path.flow;
+        sum += flow;
+        var _source = nodes[0],
+          _target = null;
+        highlightNode(_source);
+        loop(
+          nodes.length - 1,
+          function (nodeIndex, nextNode) {
+            _source = nodes[nodeIndex];
+            _target = nodes[nodeIndex + 1];
+            highlightNode(_target);
+            if (_source && _target) {
+              highlightEdge(_source, _target);
+              changeLabel(_source, _target, flow);
+            }
+            nextNode();
+          },
+          function () {
+            nextPath();
+            addLog(nodes, flow);
+            updateStatus(source, sink, sum);
+          }
+        );
+      },
+      cancelHighlightedElements
+    );
 
     function highlightEdge(source, target) {
-      cy.edges("[source='" + source + "'][target='" + target + "']").addClass('highlighted');
+      cy.edges("[source='" + source + "'][target='" + target + "']").addClass(
+        "highlighted"
+      );
     }
 
     function highlightNode(name) {
       var nodes = cy.nodes("[name=" + name + "]");
       if (nodes.length) {
-        nodes[0].addClass('highlighted');
+        nodes[0].addClass("highlighted");
       }
     }
 
     function changeLabel(source, target, flow) {
-      var edges = cy.edges("[source='" + source + "'][target='" + target + "']");
+      var edges = cy.edges(
+        "[source='" + source + "'][target='" + target + "']"
+      );
       if (edges.length) {
         var edge = edges[0];
-        var label = edge.css('label');
+        var label = edge.css("label");
         var parts = label.split("/");
         if (parts.length == 2) parts[0] = +parts[0] + flow;
         else {
           parts[0] = flow;
           parts[1] = label;
         }
-        edge.css('label', parts.join("/"));
+        edge.css("label", parts.join("/"));
       }
     }
 
     function updateStatus(source, sink, sum) {
-      $('#status').text("Maximum flow from " + source + " to " + sink + " is " + sum);
+      $("#status").text(
+        "Maximum flow from " + source + " to " + sink + " is " + sum
+      );
     }
 
     function addLog(nodes, flow) {
-      $('#log-container').append('<p class="text-success log">' + nodes.join("->") + ': ' + flow + '</p>')
+      $("#log-container").append(
+        '<p class="text-success log">' + nodes.join("->") + ": " + flow + "</p>"
+      );
     }
 
     function cancelHighlightedElements() {
-      cy.elements().removeClass('highlighted');
+      cy.elements().removeClass("highlighted");
     }
-
   });
 
-
-  var $add = $('#add-graph');
-  $add.on('click', function (event) {
-    $('#clear').triggerHandler('click');
+  var $add = $("#add-graph");
+  $add.on("click", function (event) {
+    $("#clear").triggerHandler("click");
     event.preventDefault();
 
-    $('#source').val(1);
-    $('#sink').val(8);
+    $("#source").val(1);
+    $("#sink").val(8);
 
     var nodes = [
-      {id: 1, name: 1, x: 150, y: 240},
-      {id: 2, name: 2, x: 300, y: 150},
-      {id: 3, name: 3, x: 300, y: 330},
-      {id: 4, name: 4, x: 450, y: 150},
-      {id: 5, name: 5, x: 450, y: 330},
-      {id: 6, name: 6, x: 600, y: 150},
-      {id: 7, name: 7, x: 600, y: 330},
-      {id: 8, name: 8, x: 750, y: 240}
+      { id: 1, name: 1, x: 150, y: 240 },
+      { id: 2, name: 2, x: 300, y: 150 },
+      { id: 3, name: 3, x: 300, y: 330 },
+      { id: 4, name: 4, x: 450, y: 150 },
+      { id: 5, name: 5, x: 450, y: 330 },
+      { id: 6, name: 6, x: 600, y: 150 },
+      { id: 7, name: 7, x: 600, y: 330 },
+      { id: 8, name: 8, x: 750, y: 240 },
     ];
 
     var edges = [
-      {id: '1-2', label: 6, source: 1, target: 2},
-      {id: '1-3', label: 6, source: 1, target: 3},
-      {id: '2-4', label: 4, source: 2, target: 4},
-      {id: '2-5', label: 2, source: 2, target: 5},
-      {id: '3-2', label: 5, source: 3, target: 2},
-      {id: '3-5', label: 9, source: 3, target: 5},
-      {id: '4-2', label: 7, source: 4, target: 7},
-      {id: '4-6', label: 4, source: 4, target: 6},
-      {id: '5-4', label: 8, source: 5, target: 4},
-      {id: '5-7', label: 7, source: 5, target: 7},
-      {id: '6-8', label: 7, source: 6, target: 8},
-      {id: '7-6', label: 11, source: 7, target: 6},
-      {id: '7-8', label: 4, source: 7, target: 8},
+      { id: "1-2", label: 6, source: 1, target: 2 },
+      { id: "1-3", label: 6, source: 1, target: 3 },
+      { id: "2-4", label: 4, source: 2, target: 4 },
+      { id: "2-5", label: 2, source: 2, target: 5 },
+      { id: "3-2", label: 5, source: 3, target: 2 },
+      { id: "3-5", label: 9, source: 3, target: 5 },
+      { id: "4-2", label: 7, source: 4, target: 7 },
+      { id: "4-6", label: 4, source: 4, target: 6 },
+      { id: "5-4", label: 8, source: 5, target: 4 },
+      { id: "5-7", label: 7, source: 5, target: 7 },
+      { id: "6-8", label: 7, source: 6, target: 8 },
+      { id: "7-6", label: 11, source: 7, target: 6 },
+      { id: "7-8", label: 4, source: 7, target: 8 },
     ];
 
     nodes.forEach(function (node) {
@@ -408,5 +479,5 @@ $(function () {
     });
   });
 
-  $add.trigger('click');
+  $add.trigger("click");
 });
