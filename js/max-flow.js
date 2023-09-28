@@ -45,11 +45,11 @@ class FlowNetwork {
     return nodes.indexOf(vertex) !== -1;
   };
 
-  bfs (source, target, parent) {
+  bfs (parent) {
     var queue = [];
     var visited = [];
-    queue.push(source);
-    visited.push(source);
+    queue.push(this.source);
+    visited.push(this.source);
     while (queue.length) {
       var u = queue.shift();
       var keys = Object.keys(this.graph[u]);
@@ -62,39 +62,72 @@ class FlowNetwork {
         }
       }
     }
-    return visited.indexOf(target) !== -1;
+    return visited.indexOf(this.target) !== '-1';
   };
+
+  findShortestPath (parent) {
+    var queue = []
+    var visited = new Set()
+    queue.push(this.source);
+    visited.add(this.source);
+    while (queue.length) {
+      var u = queue.shift();
+      var keys = Object.keys(this.graph[u]);
+      console.log(keys)
+      for (var i = 0; i < keys.length; i++) {
+        var v = keys[i];
+        if (!visited.has(v)) {
+          queue.push(v);
+          parent[v] = u;
+          visited.add(v);
+        }
+      }
+    }
+    return visited.indexOf(this.target) !== '-1';
+  }
+
+  findRandomPath () {
+  }
+
+  addFlow (path, flow) {
+
+  }
   
   findMaxFlowFulkerson (paths) {
-    paths = paths || [];
-    var maxFlow = 0;
-    var parent = {};
-    while (this.bfs(this.source, this.sink, parent)) {
-      var flow = Number.MAX_VALUE;
-      var curr = this.sink;
-      var path = [];
-      while (curr != this.source) {
-        path.push(curr);
-        var prev = parent[curr];
-        flow = Math.min(flow, this.graph[prev][curr].flow);
-        curr = prev;
-      }
-      path.push(this.source);
-      paths.push({
-        nodes: path.reverse(),
-        flow: flow
-      });
+    console.log(this.graph)
+  }
   
-      curr = this.sink;
-      while (curr != this.source) {
-        prev = parent[curr];
-        this.graph[prev][curr].flow -= flow;
-        this.graph[curr][prev].flow += flow;
-        curr = prev;
-      }
+  // findMaxFlowFulkerson (paths) {
+  //   paths = paths || [];
+  //   var maxFlow = 0;
+  //   var parent = {};
+  //   console.log("here");
+  //   while (this.bfs(parent)) {
+  //     var flow = Number.MAX_VALUE;
+  //     var curr = this.sink;
+  //     var path = [];
+  //     while (curr != this.source) {
+  //       path.push(curr);
+  //       var prev = parent[curr];
+  //       flow = Math.min(flow, this.graph[prev][curr].flow);
+  //       curr = prev;
+  //     }
+  //     path.push(this.source);
+  //     paths.push({
+  //       nodes: path.reverse(),
+  //       flow: flow
+  //     });
   
-      maxFlow += flow;
-    }
-    return maxFlow;
-  };
+  //     curr = this.sink;
+  //     while (curr != this.source) {
+  //       prev = parent[curr];
+  //       this.graph[prev][curr].flow -= flow;
+  //       this.graph[curr][prev].flow += flow;
+  //       curr = prev;
+  //     }
+  
+  //     maxFlow += flow;
+  //   }
+  //   return maxFlow;
+  // };
 }

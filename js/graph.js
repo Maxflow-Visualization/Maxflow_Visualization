@@ -300,7 +300,8 @@ $(function () {
     }
 
     var paths = [];
-    flowNetwork.findMaxFlowFulkerson(paths);
+    // flowNetwork.findMaxFlowFulkerson(paths);
+    flowNetwork.findShortestPath({})
     var sum = 0;
     loop(paths.length, function (pathIndex, nextPath) {
       cancelHighlightedElements();
