@@ -1,51 +1,59 @@
+// Fisher-Yates shuffle algorithm
+function shuffle(array) {
+  let i = array.length;
+  while (--i > 0) {
+    let temp = Math.floor(Math.random() * (i + 1));
+    [array[temp], array[i]] = [array[i], array[temp]];
+  }
+}
+
 class Edge {
-  constructor (source, target, capacity) {
+  constructor(source, target, capacity) {
     this.source = source;
     this.target = target;
-    this.capacity = capacity;
-    this.flow = capacity;
+    this.capacity = parseInt(capacity);
+    this.flow = 0;
   }
-};
+}
 
 class FlowNetwork {
-  constructor (source, sink) {
+  constructor(source, sink) {
     // this.edges[source][target] = Edge()
-    this.graph = {}
-    this.source = source
-    this.sink = sink
+    this.graph = new Map();
+    this.source = source;
+    this.sink = sink;
   }
 
   getGraph() {
-    return this.graph
+    return this.graph;
   }
-  
-  addEdge (source, target, capacity) {
+
+  addEdge(source, target, capacity) {
     if (source == target) return;
-  
+
     var edge = new Edge(source, target, capacity);
     var reverseEdge = new Edge(target, source, 0);
-  
-    if (this.graph[source] === undefined) this.graph[source] = {};
-    if (this.graph[target] === undefined) this.graph[target] = {};
-  
-    this.graph[source][target] = edge;
-  
+
+    if (this.graph[source] === undefined) this.graph[source] = new Map();
+    if (this.graph[target] === undefined) this.graph[target] = new Map();
+
+    this.graph[source].set(target, edge);
+
     if (!this.isExistEdge(target, source)) {
       this.graph[target][source] = reverseEdge;
     }
-  };
-  
-  isExistEdge (source, target) {
+  }
+
+  isExistEdge(source, target) {
     return !!this.graph[source][target];
-  
-  };
-  
-  isExistVertex (vertex) {
+  }
+
+  isExistVertex(vertex) {
     var nodes = Object.keys(this.graph);
     return nodes.indexOf(vertex) !== -1;
-  };
+  }
 
-  bfs (parent) {
+  bfs(parent) {
     var queue = [];
     var visited = [];
     queue.push(this.source);
@@ -62,41 +70,86 @@ class FlowNetwork {
         }
       }
     }
-    return visited.indexOf(this.target) !== '-1';
-  };
+    return visited.indexOf(this.target) !== "-1";
+  }
 
-  findShortestPath (parent) {
-    var queue = []
-    var visited = new Set()
-    queue.push(this.source);
+  // filter neighbors whose edge is not saturated (current flow hasn't reached capacity)
+  filterNeighbors (neighborsMap) {
+    var filteredNeighborsMap = new Map(
+      [...neighborsMap].filter(
+        ([neighbor, edge]) => edge.capacity - edge.flow > 0
+      )
+    );
+    return [...filteredNeighborsMap.keys()]
+  }
+
+  findShortestAugmentingPath(parent) {
+    var res = []
+    var queue = [];
+    var visited = new Set();
+    var initSearchNode = [this.source, [this.source]];
+    queue.push(initSearchNode);
     visited.add(this.source);
     while (queue.length) {
-      var u = queue.shift();
-      var keys = Object.keys(this.graph[u]);
-      console.log(keys)
-      for (var i = 0; i < keys.length; i++) {
-        var v = keys[i];
-        if (!visited.has(v)) {
-          queue.push(v);
-          parent[v] = u;
-          visited.add(v);
+      var searchNode = queue.shift();
+      var node = searchNode[0];
+      var path = searchNode[1];
+      if (node === this.sink) {
+        res = path
+      }
+      var filteredNeighbors = this.filterNeighbors(this.graph[node])
+      for (const neighbor of filteredNeighbors) {
+        if (!visited.has(neighbor)) {
+          var newPath = structuredClone(path)
+          newPath.push(neighbor)
+          queue.push([neighbor, newPath])
+          visited.add(neighbor)
         }
       }
     }
-    return visited.indexOf(this.target) !== '-1';
+    console.log(res)
+    return res
   }
 
-  findRandomPath () {
+  findRandomAugmentingPath() {
+    var res = []
+    var stack = [];
+    var visited = new Set();
+    var initSearchNode = [this.source, [this.source]];
+    stack.push(initSearchNode);
+    visited.add(this.source);
+    while (stack.length) {
+      var searchNode = stack.pop();
+      var node = searchNode[0];
+      var path = searchNode[1];
+      if (node === this.sink) {
+        res = path
+      }
+      var filteredNeighbors = this.filterNeighbors(this.graph[node])
+      shuffle(filteredNeighbors);
+      for (const neighbor of filteredNeighbors) {
+        if (!visited.has(neighbor)) {
+          var newPath = structuredClone(path)
+          newPath.push(neighbor)
+          stack.push([neighbor, newPath])
+          visited.add(neighbor)
+        }
+      }
+    }
+    console.log(res)
+    return res
   }
 
-  addFlow (path, flow) {
+  findWidestAugmentingPath() {
+    
+  }
 
+  addFlow(path, flow) {}
+
+  findMaxFlowFulkerson(paths) {
+    console.log(this.graph);
   }
-  
-  findMaxFlowFulkerson (paths) {
-    console.log(this.graph)
-  }
-  
+
   // findMaxFlowFulkerson (paths) {
   //   paths = paths || [];
   //   var maxFlow = 0;
@@ -117,7 +170,7 @@ class FlowNetwork {
   //       nodes: path.reverse(),
   //       flow: flow
   //     });
-  
+
   //     curr = this.sink;
   //     while (curr != this.source) {
   //       prev = parent[curr];
@@ -125,7 +178,7 @@ class FlowNetwork {
   //       this.graph[curr][prev].flow += flow;
   //       curr = prev;
   //     }
-  
+
   //     maxFlow += flow;
   //   }
   //   return maxFlow;
