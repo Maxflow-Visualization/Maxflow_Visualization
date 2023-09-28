@@ -300,12 +300,12 @@ $(function () {
   $("#fulkerson").on("click", function (e) {
     e.preventDefault();
 
-    var flowNetwork = new FlowNetwork();
-
     var $source = $("#source");
     var source = $source.val();
     var $sink = $("#sink");
     var sink = $sink.val();
+
+    var flowNetwork = new FlowNetwork(source, sink);
 
     $("#reset").triggerHandler("click");
 
@@ -328,6 +328,8 @@ $(function () {
       var label = edge.css("label");
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
+
+    console.log(flowNetwork);
 
     if (!flowNetwork.isExistVertex(source)) {
       $source.css("border", "1px solid red");
@@ -353,7 +355,7 @@ $(function () {
     }
 
     var paths = [];
-    flowNetwork.findMaxFlowFulkerson(source, sink, paths);
+    flowNetwork.findShortestAugmentingPath();
     var sum = 0;
     loop(
       paths.length,
