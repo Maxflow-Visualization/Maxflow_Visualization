@@ -300,7 +300,7 @@ $(function () {
     }
 
     var paths = [];
-    // flowNetwork.findMaxFlowFulkerson(paths);
+    flowNetwork.findRandomAugmentingPath();
     flowNetwork.findShortestPath({})
     var sum = 0;
     loop(paths.length, function (pathIndex, nextPath) {
