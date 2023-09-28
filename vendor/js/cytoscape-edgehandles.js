@@ -292,10 +292,10 @@ SOFTWARE.
         handleLineType: 'ghost', // can be 'ghost' for real edge, 'straight' for a straight line, or 'draw' for a draw-as-you-go line
         handleLineWidth: 1, // width of handle line in pixels
         handleNodes: 'node', // selector/filter function for whether edges can be made from a given node
-        hoverDelay: 150, // time spend over a target node before it is considered a target selection
+        hoverDelay: 100, // time spend over a target node before it is considered a target selection
         cxt: false, // whether cxt events trigger edgehandles (useful on touch)
         enabled: true, // whether to start the plugin in the enabled state
-        toggleOffOnLeave: false, // whether an edge is cancelled by leaving a node (true), or whether you need to go over again to cancel (false; allows multiple edges in one pass)
+        toggleOffOnLeave: true, // whether an edge is cancelled by leaving a node (true), or whether you need to go over again to cancel (false; allows multiple edges in one pass)
         edgeType: function( sourceNode, targetNode ) {
           // can return 'flat' for flat edges between nodes or 'node' for intermediate node between them
           // returning null/undefined means an edge can't be added between the two nodes
