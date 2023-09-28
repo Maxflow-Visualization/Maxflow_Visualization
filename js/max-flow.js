@@ -73,47 +73,75 @@ class FlowNetwork {
     return visited.indexOf(this.target) !== "-1";
   }
 
+  // filter neighbors whose edge is not saturated (current flow hasn't reached capacity)
+  filterNeighbors (neighborsMap) {
+    var filteredNeighborsMap = new Map(
+      [...neighborsMap].filter(
+        ([neighbor, edge]) => edge.capacity - edge.flow > 0
+      )
+    );
+    return [...filteredNeighborsMap.keys()]
+  }
+
   findShortestAugmentingPath(parent) {
+    var res = []
     var queue = [];
     var visited = new Set();
-    queue.push(this.source);
+    var initSearchNode = [this.source, [this.source]];
+    queue.push(initSearchNode);
     visited.add(this.source);
     while (queue.length) {
-      var u = queue.shift();
-      var keys = Object.keys(this.graph[u]);
-      console.log(keys);
-      for (var i = 0; i < keys.length; i++) {
-        var v = keys[i];
-        if (!visited.has(v)) {
-          queue.push(v);
-          parent[v] = u;
-          visited.add(v);
+      var searchNode = queue.shift();
+      var node = searchNode[0];
+      var path = searchNode[1];
+      if (node === this.sink) {
+        res = path
+      }
+      var filteredNeighbors = this.filterNeighbors(this.graph[node])
+      for (const neighbor of filteredNeighbors) {
+        if (!visited.has(neighbor)) {
+          var newPath = structuredClone(path)
+          newPath.push(neighbor)
+          queue.push([neighbor, newPath])
+          visited.add(neighbor)
         }
       }
     }
-    return visited.indexOf(this.target) !== "-1";
+    console.log(res)
+    return res
   }
 
   findRandomAugmentingPath() {
+    var res = []
     var stack = [];
     var visited = new Set();
-    var initSearchNode = [this.source, []];
+    var initSearchNode = [this.source, [this.source]];
     stack.push(initSearchNode);
     visited.add(this.source);
     while (stack.length) {
       var searchNode = stack.pop();
       var node = searchNode[0];
       var path = searchNode[1];
-      // Filter neighbors whose flow hasn't reached capacity
-      console.log(this.graph[node])
-      var filteredNeighborsMap = new Map(
-        [...this.graph[node]].filter(
-          ([k, edge]) => edge.capacity - edge.flow > 0
-        )
-      );
-      var filteredNeighbors = [...filteredNeighborsMap.keys()]
+      if (node === this.sink) {
+        res = path
+      }
+      var filteredNeighbors = this.filterNeighbors(this.graph[node])
       shuffle(filteredNeighbors);
+      for (const neighbor of filteredNeighbors) {
+        if (!visited.has(neighbor)) {
+          var newPath = structuredClone(path)
+          newPath.push(neighbor)
+          stack.push([neighbor, newPath])
+          visited.add(neighbor)
+        }
+      }
     }
+    console.log(res)
+    return res
+  }
+
+  findWidestAugmentingPath() {
+    
   }
 
   addFlow(path, flow) {}

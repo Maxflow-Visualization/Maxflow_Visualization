@@ -300,8 +300,7 @@ $(function () {
     }
 
     var paths = [];
-    flowNetwork.findRandomAugmentingPath();
-    flowNetwork.findShortestPath({})
+    flowNetwork.findShortestAugmentingPath();
     var sum = 0;
     loop(paths.length, function (pathIndex, nextPath) {
       cancelHighlightedElements();
