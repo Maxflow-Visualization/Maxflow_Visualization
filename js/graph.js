@@ -547,44 +547,51 @@ $(function () {
   // read file and load it to cy drawboard
   document.getElementById("fileInput").addEventListener("change", readFile);
   function readFile(event) {
+    $("#clear").triggerHandler("click");
     const file = event.target.files[0];
     const reader = new FileReader();
 
-    reader.onload = function (e) {
-      const content = e.target.result;
-      const lines = content.split("\n");
-      const graph = {};
-      var smallest = 10000000;
-      var largest = 0;
-      var positionX = 150;
-      var positionY = 200;
-      let mySet = new Set();
-      var nextAdd = 1;
+    reader.onload = function(e) {
+        const content = e.target.result;
+        const lines = content.split('\n');
+        const graph = {};
+        var smallest = 10000000;
+        var largest = 0;
+        var positionX = 150;
+        var positionY = 200;
+        let mySet = new Set();
+        var nextAdd = 1;
 
-      lines.forEach((line) => {
-        const parts = line.trim().split(" "); // assuming space-separated values
-        if (parts.length !== 3) return;
+        lines.forEach(line => {
+            var parts = ''
+            if (file.name.endsWith('.csv')) {
+              parts = line.trim().split(','); // Splitting on commas for CSV
+            }
+            else {
+              parts = line.trim().split(' '); // assuming space-separated values
+            }
+            if (parts.length !== 3) return;
 
-        const node1 = parts[0];
-        const node2 = parts[1];
-        const edgeValue = parts[2];
+            const node1 = parts[0];
+            const node2 = parts[1];
+            const edgeValue = parts[2];
+            
+            var node1val = parseInt(node1, 10);
+            var node2val = parseInt(node2, 10);
 
-        var node1val = parseInt(node1, 10);
-        var node2val = parseInt(node2, 10);
-
-        // find smallest and largest node
-        if (node1val < smallest) {
-          smallest = node1val;
-        }
-        if (node2val < smallest) {
-          smallest = node2val;
-        }
-        if (node1val > largest) {
-          largest = node1val;
-        }
-        if (node2val > largest) {
-          largest = node2val;
-        }
+            // find smallest and largest node
+            if (node1val < smallest) {
+                smallest = node1val;
+            }
+            if (node2val < smallest) {
+                smallest =  node2val;
+            }
+            if (node1val > largest) {
+                largest =  node1val;
+            }
+            if (node2val > largest) {
+                largest =  node2val;
+            }
 
         if (!mySet.has(node1val)) {
           mySet.add(node1val);
