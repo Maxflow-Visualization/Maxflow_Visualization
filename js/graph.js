@@ -485,7 +485,9 @@ $(function () {
 
   document.getElementById('fileInput').addEventListener('change', readFile);
 
+  //for creating graph after reading the file
   function readFile(event) {
+    $("#clear").triggerHandler("click");
     const file = event.target.files[0];
     const reader = new FileReader();
 
