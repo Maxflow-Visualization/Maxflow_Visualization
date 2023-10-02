@@ -17,6 +17,7 @@ $(function () {
 
   console.log("Starting...");
 
+  // initialize style of cy
   var cy = cytoscape({
     container: document.getElementById("cy"),
     style: [
@@ -65,13 +66,13 @@ $(function () {
           "border-color": "black",
         },
       },
-      // {
-      //   selector: ".edgehandles-target",
-      //   css: {
-      //     "border-width": 3,
-      //     "border-color": "black",
-      //   },
-      // },
+      {
+        selector: ".edgehandles-target",
+        css: {
+          "border-width": 3,
+          "border-color": "black",
+        },
+      },
       {
         selector: ".edgehandles-preview",
         css: {
@@ -118,6 +119,7 @@ $(function () {
     selectionType: "single",
   });
 
+  // edge handles, which is used for creating edge interactively
   cy.edgehandles({
     handleColor: "grey",
     handleSize: 15,
@@ -126,6 +128,7 @@ $(function () {
     toggleOffOnLeave: true,
   });
 
+  // check which state we are in: modifying or practicing
   function allowModify() {
     return $("#state").text() === "State: Graph Creation";
   }
@@ -142,6 +145,7 @@ $(function () {
     return ids.length + 1;
   }
 
+  // double click for creating node
   var $cy = $("#cy");
   $cy.dblclick(function (e) {
     if (!allowModify()) {
