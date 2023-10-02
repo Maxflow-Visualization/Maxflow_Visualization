@@ -83,7 +83,7 @@ class FlowNetwork {
     return [...filteredNeighborsMap.keys()]
   }
 
-  findShortestAugmentingPath(parent) {
+  findShortestAugmentingPath() {
     var res = []
     var queue = [];
     var visited = new Set();
