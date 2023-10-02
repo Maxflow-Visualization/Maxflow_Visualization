@@ -503,7 +503,13 @@ $(function () {
         var nextAdd = 1;
 
         lines.forEach(line => {
-            const parts = line.trim().split(' '); // assuming space-separated values
+            var parts = ''
+            if (file.name.endsWith('.csv')) {
+              parts = line.trim().split(','); // Splitting on commas for CSV
+            }
+            else {
+              parts = line.trim().split(' '); // assuming space-separated values
+            }
             if (parts.length !== 3) return;
 
             const node1 = parts[0];
@@ -561,4 +567,6 @@ $(function () {
 
     reader.readAsText(file);
   }
+
+
 });

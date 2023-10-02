@@ -1,6 +1,9 @@
 // document.getElementById('fileInput').addEventListener('change', readFile);
+// import { cy } from './graph.js';
 
-// function readFile(event) {
+//   //for creating graph after reading the file
+//   function readFile(event) {
+//     $("#clear").triggerHandler("click");
 //     const file = event.target.files[0];
 //     const reader = new FileReader();
 
@@ -16,7 +19,12 @@
 //         var nextAdd = 1;
 
 //         lines.forEach(line => {
-//             const parts = line.trim().split(' '); // assuming space-separated values
+//             var parts;
+//             if (file.name.endsWith('.csv')) {
+//               parts = line.trim().split(','); // Splitting on commas for CSV
+//             } else {
+//               parts = line.trim().split(' '); // assuming space-separated values
+//             }
 //             if (parts.length !== 3) return;
 
 //             const node1 = parts[0];
@@ -40,21 +48,23 @@
 //                 largest =  node2val;
 //             }
 
-//             if (!mySet.has(node1val)) {
-//                 mySet.add(node1val);
-//                 addNode(cy, node1val, node1val, positionX, positionY);
-//                 positionX += 50 * (nextAdd % 2) ;
-//                 positionY += 60 * ((nextAdd + 1) % 2);
-//                 nextAdd ^= 1;
-//             }
+//             // if (!mySet.has(node1val)) {
+//             //     mySet.add(node1val);
+//             //     addNode(cy, node1val, node1val, positionX, positionY);
+//             //     positionX += 100 * (nextAdd % 2) ;
+//             //     positionY += 120 * ((nextAdd + 1) % 2);
+//             //     nextAdd ^= 1;
+//             // }
 
-//             if (!mySet.has(node2val)) {
-//                 mySet.add(node2val);
-//                 addNode(cy, node2val, node2val, positionX, positionY);
-//                 positionX += 50 * (nextAdd % 2) ;
-//                 positionY += 60 * ((nextAdd + 1) % 2);
-//                 nextAdd ^= 1;
-//             }
+//             // if (!mySet.has(node2val)) {
+//             //     mySet.add(node2val);
+//             //     addNode(cy, node2val, node2val, positionX, positionY);
+//             //     positionX += 100 * (nextAdd % 2) ;
+//             //     positionY += 120 * ((nextAdd + 1) % 2);
+//             //     nextAdd ^= 1;
+//             // }
+
+//             // addEdge(cy, node1 + "-" + node2, parseInt(edgeValue, 10), node1val, node2val);
 
 //             // Adding to graph
 //             if (!graph[node1]) {
@@ -71,6 +81,4 @@
 //     };
 
 //     reader.readAsText(file);
-// }
-
-
+//   }
