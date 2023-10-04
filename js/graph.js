@@ -358,8 +358,8 @@ $(function () {
       $sink.css("border", "1px solid #18a689");
     }
 
-    var paths = [];
-    flowNetwork.findShortestAugmentingPath();
+    // var paths = [];
+    var path = flowNetwork.findWidestAugmentingPath();
     var sum = 0;
     loop(
       paths.length,
