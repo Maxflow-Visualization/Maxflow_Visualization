@@ -165,7 +165,11 @@ $(function () {
       return;
     }
     if (e.key == "Backspace" || e.key == "Delete") {
-      cy.$(":selected").remove();
+      const inputElement = document.getElementById("label");
+      // Check if there's a selection within the input
+      if (document.activeElement != inputElement) {
+        cy.$(":selected").remove();
+      } 
     }
   });
 
@@ -354,7 +358,7 @@ $(function () {
     return;
   });
 
-  // find shotest path
+  // find shortest path
   $("#shortest-path").on("click", function (e) {
     e.preventDefault();
 
