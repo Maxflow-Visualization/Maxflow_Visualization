@@ -554,6 +554,7 @@ $(function () {
             }
 
             addEdge(cy, node1 + "-" + node2, parseInt(edgeValue, 10), node1val, node2val);
+            addEdge(cy, node1 + "-" + node2, parseInt(edgeValue, 10), node1val, node2val);
 
             // Adding to graph
             if (!graph[node1]) {
