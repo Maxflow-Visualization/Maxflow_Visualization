@@ -130,7 +130,7 @@ $(function () {
 
   // check which state we are in: modifying or practicing
   function allowModify() {
-    return $("#state").text() === "State: Graph Creation";
+    return $("#state").text().includes("State: Graph Creation");
   }
 
   function getId() {
@@ -159,6 +159,7 @@ $(function () {
     if (id == 1) $("#source").val(id);
   });
 
+  // delete a node with backspace or delete button
   $("html").keyup(function (e) {
     if (!allowModify()) {
       return;
@@ -168,6 +169,7 @@ $(function () {
     }
   });
 
+  // clear cy drawboard
   $("#clear").on("click", function (event) {
     event.preventDefault();
     cy.nodes().remove();
@@ -181,6 +183,7 @@ $(function () {
     $("#label").val("");
   });
 
+  // reset with sample graph
   $("#reset").on("click", function (event) {
     event.preventDefault();
     var edges = cy.edges();
@@ -195,9 +198,10 @@ $(function () {
     $("#label").val("");
   });
 
+  // change state between modifying and practicing
   $("#change-mode").on("click", function (event) {
     event.preventDefault();
-    if ($(this).text() === "Start Practice") {
+    if (allowModify()) {
       $(this).text("Modify Network Graph");
       $("#state").text("State: Select Path");
       $("#proceed-step").toggle();
@@ -210,10 +214,8 @@ $(function () {
     $(".modification").toggle();
   });
 
+  // add node with given args
   function addNode(cy, id, name, posX, posY) {
-    if (!allowModify()) {
-      return;
-    }
     cy.add({
       group: "nodes",
       data: {
@@ -228,10 +230,8 @@ $(function () {
     });
   }
 
+  // add edge with given args
   function addEdge(cy, id, label, source, target) {
-    if (!allowModify()) {
-      return;
-    }
     cy.add({
       group: "edges",
       data: {
@@ -246,6 +246,7 @@ $(function () {
     });
   }
 
+  // allow edge label to show and disappear
   var selectedEdge = null;
   cy.on("tap", function (event) {
     var target = event.cyTarget;
@@ -255,28 +256,49 @@ $(function () {
     }
   });
 
+  // make edge highlighted with given args
   function highlightEdge(source, target) {
+    console.log(cy);
     cy.edges("[source='" + source + "'][target='" + target + "']").addClass(
       "highlighted"
     );
   }
 
-  var path = new Set();
+  // cancel all highlights
+  function cancelHighlightedElements() {
+    cy.elements().removeClass("highlighted");
+  }
+
+  // cancel one edge's highlight
+  function cancelHighlightedEdge(source, target) {
+    cy.edges("[source='" + source + "'][target='" + target + "']").removeClass(
+      "highlighted"
+    );
+  }
+
+  // var path = new Set();
+  // tap edge to change capacity in modifying mode or select path in practicing mode
   cy.on("tap", "edge", function (event) {
     var edge = event.cyTarget;
     if (!edge) return;
     selectedEdge = edge;
     $("#label").val(edge.css("label"));
-    if (!allowModify() && $("#state").text() === "State: Select Path") {
-      // in steps
-      if (!path.has(edge)) {
-        path.add(edge);
+    if (!allowModify() && $("#state").text().includes("State: Select Path")) {
+      if (
+        cy
+          .edges(
+            "[source='" + edge.source() + "'][target='" + edge.target() + "']"
+          )
+          .hasClass("highlighted")
+      ) {
+        cancelHighlightedEdge(edge.source(), edge.target());
       } else {
-        path.delete(edge);
+        highlightEdge(edge.source(), edge.target());
       }
     }
   });
 
+  // proceed in steps in pracitcing mode
   $("#proceed-step").on("click", function (event) {
     event.preventDefault();
     if ($("#state").text() === "State: Select Path") {
@@ -285,6 +307,7 @@ $(function () {
     }
   });
 
+  // change edge capacity after clicking update button
   $("#label-btn").on("click", function () {
     if (!allowModify()) {
       return;
@@ -301,8 +324,11 @@ $(function () {
     selectedEdge.css("label", label);
   });
 
-  $("#fulkerson").on("click", function (e) {
+  // find random path
+  $("#random-path").on("click", function (e) {
     e.preventDefault();
+
+    cancelHighlightedElements();
 
     var $source = $("#source");
     var source = $source.val();
@@ -311,6 +337,48 @@ $(function () {
 
     var flowNetwork = new FlowNetwork(source, sink);
 
+    var edges = cy.edges();
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
+
+    var path = flowNetwork.findRandomAugmentingPath();
+    console.log(path);
+    highlightEdge(path[0], path[1]);
+
+    for (var i = 0; i < path.length - 1; i++) {
+      highlightEdge(path[i], path[i + 1]);
+    }
+
+    return;
+  });
+
+  // find shotest path
+  $("#shortest-path").on("click", function (e) {
+    e.preventDefault();
+
+    cancelHighlightedElements();
+
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
+
+    var flowNetwork = new FlowNetwork(source, sink);
+
+    var edges = cy.edges();
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
+
+    var path = flowNetwork.findShortestAugmentingPath();
+    for (var i = 0; i < path.length - 1; i++) {
+      highlightEdge(path[i], path[i + 1]);
+    }
+
+    return;
     $("#reset").triggerHandler("click");
 
     if (!parseInt(source)) {
@@ -326,12 +394,6 @@ $(function () {
     } else {
       $sink.css("border", "1px solid #18a689");
     }
-
-    var edges = cy.edges();
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-    });
 
     console.log(flowNetwork);
 
@@ -358,8 +420,8 @@ $(function () {
       $sink.css("border", "1px solid #18a689");
     }
 
-    var paths = [];
-    flowNetwork.findShortestAugmentingPath();
+    // var paths = [];
+    var path = flowNetwork.findWidestAugmentingPath();
     var sum = 0;
     loop(
       paths.length,
@@ -441,14 +503,13 @@ $(function () {
     }
   });
 
+  // creating example graph
   var $add = $("#add-graph");
   $add.on("click", function (event) {
     $("#clear").triggerHandler("click");
     event.preventDefault();
-
     $("#source").val(1);
     $("#sink").val(8);
-
     var nodes = [
       { id: 1, name: 1, x: 150, y: 240 },
       { id: 2, name: 2, x: 300, y: 150 },
@@ -459,7 +520,6 @@ $(function () {
       { id: 7, name: 7, x: 600, y: 330 },
       { id: 8, name: 8, x: 750, y: 240 },
     ];
-
     var edges = [
       { id: "1-2", label: 6, source: 1, target: 2 },
       { id: "1-3", label: 6, source: 1, target: 3 },
@@ -475,21 +535,17 @@ $(function () {
       { id: "7-6", label: 11, source: 7, target: 6 },
       { id: "7-8", label: 4, source: 7, target: 8 },
     ];
-
     nodes.forEach(function (node) {
       addNode(cy, node.id, node.name, node.x, node.y);
     });
-
     edges.forEach(function (edge) {
       addEdge(cy, edge.id, edge.label, edge.source, edge.target);
     });
   });
-
   $add.trigger("click");
 
-  document.getElementById('fileInput').addEventListener('change', readFile);
-
-  //for creating graph after reading the file
+  // read file and load it to cy drawboard
+  document.getElementById("fileInput").addEventListener("change", readFile);
   function readFile(event) {
     $("#clear").triggerHandler("click");
     const file = event.target.files[0];
@@ -537,41 +593,44 @@ $(function () {
                 largest =  node2val;
             }
 
-            if (!mySet.has(node1val)) {
-                mySet.add(node1val);
-                addNode(cy, node1val, node1val, positionX, positionY);
-                positionX += 100 * (nextAdd % 2) ;
-                positionY += 120 * ((nextAdd + 1) % 2);
-                nextAdd ^= 1;
-            }
+        if (!mySet.has(node1val)) {
+          mySet.add(node1val);
+          addNode(cy, node1val, node1val, positionX, positionY);
+          positionX += 100 * (nextAdd % 2);
+          positionY += 120 * ((nextAdd + 1) % 2);
+          nextAdd ^= 1;
+        }
 
-            if (!mySet.has(node2val)) {
-                mySet.add(node2val);
-                addNode(cy, node2val, node2val, positionX, positionY);
-                positionX += 100 * (nextAdd % 2) ;
-                positionY += 120 * ((nextAdd + 1) % 2);
-                nextAdd ^= 1;
-            }
+        if (!mySet.has(node2val)) {
+          mySet.add(node2val);
+          addNode(cy, node2val, node2val, positionX, positionY);
+          positionX += 100 * (nextAdd % 2);
+          positionY += 120 * ((nextAdd + 1) % 2);
+          nextAdd ^= 1;
+        }
 
-            addEdge(cy, node1 + "-" + node2, parseInt(edgeValue, 10), node1val, node2val);
-            addEdge(cy, node1 + "-" + node2, parseInt(edgeValue, 10), node1val, node2val);
+        addEdge(
+          cy,
+          node1 + "-" + node2,
+          parseInt(edgeValue, 10),
+          node1val,
+          node2val
+        );
 
-            // Adding to graph
-            if (!graph[node1]) {
-                graph[node1] = {};
-            }
-            graph[node1][node2] = edgeValue;
-        });
+        // Adding to graph
+        if (!graph[node1]) {
+          graph[node1] = {};
+        }
+        graph[node1][node2] = edgeValue;
+      });
 
-        console.log(graph); // Here's your directed graph
-        console.log(smallest);
-        console.log(largest);
-        $("#source").val(smallest);
-        $("#sink").val(largest);
+      console.log(graph); // Here's your directed graph
+      console.log(smallest);
+      console.log(largest);
+      $("#source").val(smallest);
+      $("#sink").val(largest);
     };
 
     reader.readAsText(file);
   }
-
-
 });

@@ -1,3 +1,83 @@
+// Priority Queue Implementation
+const topp = 0;
+const parent = i => ((i + 1) >>> 1) - 1;
+const left = i => (i << 1) + 1;
+const right = i => (i + 1) << 1;
+
+class PriorityQueue {
+  constructor(comparator = (a, b) => a > b) {
+    this._heap = [];
+    this._comparator = comparator;
+  }
+  size() {
+    return this._heap.length;
+  }
+  isEmpty() {
+    return this.size() == 0;
+  }
+  peek() {
+    return this._heap[topp];
+  }
+  push(...values) {
+    values.forEach(value => {
+      this._heap.push(value);
+      this._siftUp();
+    });
+    return this.size();
+  }
+  pop() {
+    const poppedValue = this.peek();
+    const bottom = this.size() - 1;
+    if (bottom > topp) {
+      this._swap(topp, bottom);
+    }
+    this._heap.pop();
+    this._siftDown();
+    return poppedValue;
+  }
+  replace(value) {
+    const replacedValue = this.peek();
+    this._heap[topp] = value;
+    this._siftDown();
+    return replacedValue;
+  }
+  _greater(i, j) {
+    return this._comparator(this._heap[i], this._heap[j]);
+  }
+  _swap(i, j) {
+    [this._heap[i], this._heap[j]] = [this._heap[j], this._heap[i]];
+  }
+  _siftUp() {
+    let node = this.size() - 1;
+    while (node > topp && this._greater(node, parent(node))) {
+      this._swap(node, parent(node));
+      node = parent(node);
+    }
+  }
+  _siftDown() {
+    let node = topp;
+    while (
+      (left(node) < this.size() && this._greater(left(node), node)) ||
+      (right(node) < this.size() && this._greater(right(node), node))
+    ) {
+      let maxChild = (right(node) < this.size() && this._greater(right(node), left(node))) ? right(node) : left(node);
+      this._swap(node, maxChild);
+      node = maxChild;
+    }
+  }
+}
+
+class WidthNodePair {
+  constructor(width, node) {
+    this.width = width;
+    this.node = node;
+  }
+}
+
+function compareWidthNodePair(pair1, pair2) {
+  return pair1.width > pair2.width;
+}
+
 // Fisher-Yates shuffle algorithm
 function shuffle(array) {
   let i = array.length;
@@ -33,44 +113,21 @@ class FlowNetwork {
 
     var edge = new Edge(source, target, capacity);
     var reverseEdge = new Edge(target, source, 0);
-
-    if (this.graph[source] === undefined) this.graph[source] = new Map();
-    if (this.graph[target] === undefined) this.graph[target] = new Map();
-
-    this.graph[source].set(target, edge);
+    if (!this.graph.has(source)) this.graph.set(source, new Map());
+    if (!this.graph.has(target)) this.graph.set(target, new Map());
+    this.graph.get(source).set(target, edge);
 
     if (!this.isExistEdge(target, source)) {
-      this.graph[target][source] = reverseEdge;
+      this.graph.get(target).set(source, reverseEdge);
     }
   }
 
   isExistEdge(source, target) {
-    return !!this.graph[source][target];
+    return this.graph.has(source) && this.graph.get(source).has(target);
   }
 
   isExistVertex(vertex) {
-    var nodes = Object.keys(this.graph);
-    return nodes.indexOf(vertex) !== -1;
-  }
-
-  bfs(parent) {
-    var queue = [];
-    var visited = [];
-    queue.push(this.source);
-    visited.push(this.source);
-    while (queue.length) {
-      var u = queue.shift();
-      var keys = Object.keys(this.graph[u]);
-      for (var i = 0; i < keys.length; i++) {
-        var v = keys[i];
-        if (this.graph[u][v].flow > 0 && visited.indexOf(v) === -1) {
-          queue.push(v);
-          parent[v] = u;
-          visited.push(v);
-        }
-      }
-    }
-    return visited.indexOf(this.target) !== "-1";
+    return this.graph.has(vertex);
   }
 
   // filter neighbors whose edge is not saturated (current flow hasn't reached capacity)
@@ -83,7 +140,7 @@ class FlowNetwork {
     return [...filteredNeighborsMap.keys()]
   }
 
-  findShortestAugmentingPath(parent) {
+  findShortestAugmentingPath() {
     var res = []
     var queue = [];
     var visited = new Set();
@@ -97,7 +154,7 @@ class FlowNetwork {
       if (node === this.sink) {
         res = path
       }
-      var filteredNeighbors = this.filterNeighbors(this.graph[node])
+      var filteredNeighbors = this.filterNeighbors(this.graph.get(node))
       for (const neighbor of filteredNeighbors) {
         if (!visited.has(neighbor)) {
           var newPath = structuredClone(path)
@@ -125,7 +182,7 @@ class FlowNetwork {
       if (node === this.sink) {
         res = path
       }
-      var filteredNeighbors = this.filterNeighbors(this.graph[node])
+      var filteredNeighbors = this.filterNeighbors(this.graph.get(node))
       shuffle(filteredNeighbors);
       for (const neighbor of filteredNeighbors) {
         if (!visited.has(neighbor)) {
@@ -141,10 +198,54 @@ class FlowNetwork {
   }
 
   findWidestAugmentingPath() {
-    
+    var pq = new PriorityQueue(compareWidthNodePair)
+    // dp map that stores the maximum width to a node
+    var maxWidth = new Map();
+    for (const node of this.graph.keys()) {
+      maxWidth.set(node, 0);
+    }
+    maxWidth.set(this.source, Infinity);
+    var prev = new Map();
+    for (const node of this.graph.keys()) {
+      prev.set(node, '#');
+    }
+    var startPair = new WidthNodePair(Infinity, this.source);
+    pq.push(startPair);
+    while (!pq.isEmpty()) {
+      var pair = pq.pop();
+      var width = pair.width;
+      var node = pair.node;
+      // if there's already a path from source to current node with higher bottleneck flow, always use that path
+      if (maxWidth.get(node) > width) {
+        continue;
+      }
+      var filteredNeighbors = this.filterNeighbors(this.graph.get(node));
+      for (const neighbor of filteredNeighbors) {
+        // widthto(x) = max e=(v,x):v∈graph [min(widthto(v), width(e))] 
+        var widthToNeighbor = Math.min(this.graph.get(node).get(neighbor).capacity - this.graph.get(node).get(neighbor).flow, maxWidth.get(node));
+        if (widthToNeighbor > maxWidth.get(neighbor)) {
+          maxWidth.set(neighbor, widthToNeighbor);
+          prev.set(neighbor, node);
+          pq.push(new WidthNodePair(widthToNeighbor, neighbor));
+        }
+      }
+    }
+
+    // get the path
+    var node = this.sink
+    var res = []
+    while (node != this.source) {
+      res.push(node);
+      node = prev.get(node);
+    }
+    res.reverse();
+    res.unshift(this.source);
+    console.log(res);
+    return res;
   }
 
-  addFlow(path, flow) {}
+  addFlow(path, flow) {
+  }
 
   findMaxFlowFulkerson(paths) {
     console.log(this.graph);
