@@ -642,6 +642,7 @@ $(function () {
     reader.readAsText(file);
   }
 
+  //draw edges according to the input graph. There might be memory issue about the remove()
   function drawEdges(graph){
     cy.edges().remove();
     graph.forEach((edges, node1) => {
@@ -657,6 +658,7 @@ $(function () {
     });
   }
 
+  //draw nodes according to the input graph. Node position needs further considerations.
   function drawNodes(graph, source, tank){
     cy.nodes().remove();
     var yPosition = 80;
