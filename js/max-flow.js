@@ -1,72 +1,4 @@
-// Priority Queue Implementation
-const topp = 0;
-const parent = i => ((i + 1) >>> 1) - 1;
-const left = i => (i << 1) + 1;
-const right = i => (i + 1) << 1;
-
-class PriorityQueue {
-  constructor(comparator = (a, b) => a > b) {
-    this._heap = [];
-    this._comparator = comparator;
-  }
-  size() {
-    return this._heap.length;
-  }
-  isEmpty() {
-    return this.size() == 0;
-  }
-  peek() {
-    return this._heap[topp];
-  }
-  push(...values) {
-    values.forEach(value => {
-      this._heap.push(value);
-      this._siftUp();
-    });
-    return this.size();
-  }
-  pop() {
-    const poppedValue = this.peek();
-    const bottom = this.size() - 1;
-    if (bottom > topp) {
-      this._swap(topp, bottom);
-    }
-    this._heap.pop();
-    this._siftDown();
-    return poppedValue;
-  }
-  replace(value) {
-    const replacedValue = this.peek();
-    this._heap[topp] = value;
-    this._siftDown();
-    return replacedValue;
-  }
-  _greater(i, j) {
-    return this._comparator(this._heap[i], this._heap[j]);
-  }
-  _swap(i, j) {
-    [this._heap[i], this._heap[j]] = [this._heap[j], this._heap[i]];
-  }
-  _siftUp() {
-    let node = this.size() - 1;
-    while (node > topp && this._greater(node, parent(node))) {
-      this._swap(node, parent(node));
-      node = parent(node);
-    }
-  }
-  _siftDown() {
-    let node = topp;
-    while (
-      (left(node) < this.size() && this._greater(left(node), node)) ||
-      (right(node) < this.size() && this._greater(right(node), node))
-    ) {
-      let maxChild = (right(node) < this.size() && this._greater(right(node), left(node))) ? right(node) : left(node);
-      this._swap(node, maxChild);
-      node = maxChild;
-    }
-  }
-}
-
+// helper class and function for finding widest path
 class WidthNodePair {
   constructor(width, node) {
     this.width = width;
@@ -78,6 +10,7 @@ function compareWidthNodePair(pair1, pair2) {
   return pair1.width > pair2.width;
 }
 
+// helper function for finding random path
 // Fisher-Yates shuffle algorithm
 function shuffle(array) {
   let i = array.length;
@@ -122,6 +55,64 @@ class FlowNetwork {
     }
   }
 
+  // a path topology is not valid if any of these 2 conditions satisfies:
+  // 1. there is no path from source to sink
+  // 2. there is a node in the given path that does not exist on this path
+  // to validate this, first construct a new graph from the path given
+  // then use BFS (so that cycle is false later) to find the path from source to sink, if no such path exists, return false
+  // otherwise check if there's a node that is not on this path, if so then return false
+  // otherwise return true
+  // input is list of Edge
+  validatePathTopology(path) {
+    // construct graph and record all nodes
+    var graph = new Map();
+    var allNodes = new Set();
+    for (const edge of path) {
+      if (!graph.has(edge.source)) graph.set(edge.source, new Map());
+      if (!graph.has(edge.target)) graph.set(edge.target, new Map());
+      allNodes.add(edge.source);
+      allNodes.add(edge.target);
+      graph.get(edge.source).set(edge.target, edge);
+    }
+    console.log(graph);
+    // find path from source to sink
+    if (!graph.has(this.source)) {
+      console.log("no source");
+      return false;
+    }
+    var queue = [];
+    var visited = new Set();
+    var initSearchNode = [this.source, [this.source]];
+    queue.push(initSearchNode);
+    visited.add(this.source);
+    var res = [];
+    while (queue.length) {
+      var searchNode = queue.shift();
+      var node = searchNode[0];
+      var path = searchNode[1];
+      if (node == this.sink) {
+        res = path;
+        break;
+      }
+      for (const neighbor of graph.get(node).keys()) {
+        if (!visited.has(neighbor)) {
+          var newPath = structuredClone(path);
+          newPath.push(neighbor);
+          queue.push([neighbor, newPath]);
+          visited.add(neighbor);
+        }
+      }
+    }
+    return res.length != 0 && res.length == allNodes.size;
+  }
+
+  // find bottleneck REMAINING capacity
+  findBottleneckCapacity(path) {
+    if (!this.validatePathTopology(path)) {
+      return -1;
+    }
+  }
+
   isExistEdge(source, target) {
     return this.graph.has(source) && this.graph.get(source).has(target);
   }
@@ -152,20 +143,21 @@ class FlowNetwork {
       var node = searchNode[0];
       var path = searchNode[1];
       if (node === this.sink) {
-        res = path
+        res = path;
+        break;
       }
-      var filteredNeighbors = this.filterNeighbors(this.graph.get(node))
+      var filteredNeighbors = this.filterNeighbors(this.graph.get(node));
       for (const neighbor of filteredNeighbors) {
         if (!visited.has(neighbor)) {
-          var newPath = structuredClone(path)
-          newPath.push(neighbor)
-          queue.push([neighbor, newPath])
-          visited.add(neighbor)
+          var newPath = structuredClone(path);
+          newPath.push(neighbor);
+          queue.push([neighbor, newPath]);
+          visited.add(neighbor);
         }
       }
     }
-    console.log(res)
-    return res
+    console.log(res);
+    return res;
   }
 
   findRandomAugmentingPath() {
@@ -180,21 +172,22 @@ class FlowNetwork {
       var node = searchNode[0];
       var path = searchNode[1];
       if (node === this.sink) {
-        res = path
+        res = path;
+        break;
       }
-      var filteredNeighbors = this.filterNeighbors(this.graph.get(node))
+      var filteredNeighbors = this.filterNeighbors(this.graph.get(node));
       shuffle(filteredNeighbors);
       for (const neighbor of filteredNeighbors) {
         if (!visited.has(neighbor)) {
-          var newPath = structuredClone(path)
-          newPath.push(neighbor)
-          stack.push([neighbor, newPath])
-          visited.add(neighbor)
+          var newPath = structuredClone(path);
+          newPath.push(neighbor);
+          stack.push([neighbor, newPath]);
+          visited.add(neighbor);
         }
       }
     }
-    console.log(res)
-    return res
+    console.log(res);
+    return res;
   }
 
   findWidestAugmentingPath() {
@@ -221,7 +214,7 @@ class FlowNetwork {
       }
       var filteredNeighbors = this.filterNeighbors(this.graph.get(node));
       for (const neighbor of filteredNeighbors) {
-        // widthto(x) = max e=(v,x):v∈graph [min(widthto(v), width(e))] 
+        // widthto(x) = max e=(v,x):v∈graph [min(widthto(v), width(e))]
         var widthToNeighbor = Math.min(this.graph.get(node).get(neighbor).capacity - this.graph.get(node).get(neighbor).flow, maxWidth.get(node));
         if (widthToNeighbor > maxWidth.get(neighbor)) {
           maxWidth.set(neighbor, widthToNeighbor);
@@ -232,8 +225,8 @@ class FlowNetwork {
     }
 
     // get the path
-    var node = this.sink
-    var res = []
+    var node = this.sink;
+    var res = [];
     while (node != this.source) {
       res.push(node);
       node = prev.get(node);

@@ -373,6 +373,11 @@ $(function () {
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
+    p1 = [new Edge("1", "3", 0), new Edge("1", "2", 0)];
+    p2 = [new Edge("1", "2", 0), new Edge("2", "3", 0), new Edge("3", "1", 0), new Edge("2", "4", 0)];
+    p3 = [new Edge("1", "2", 0), new Edge("2", "3", 0), new Edge("2", "4", 0), new Edge("3", "5", 0), new Edge("4", "5", 0)];
+    console.log(flowNetwork.validatePathTopology(p3));
+
     var path = flowNetwork.findShortestAugmentingPath();
     for (var i = 0; i < path.length - 1; i++) {
       highlightEdge(path[i], path[i + 1]);
