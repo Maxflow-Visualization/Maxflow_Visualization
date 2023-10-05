@@ -165,7 +165,11 @@ $(function () {
       return;
     }
     if (e.key == "Backspace" || e.key == "Delete") {
-      cy.$(":selected").remove();
+      const inputElement = document.getElementById("label");
+      // Check if there's a selection within the input
+      if (document.activeElement != inputElement) {
+        cy.$(":selected").remove();
+      } 
     }
   });
 
@@ -232,6 +236,11 @@ $(function () {
 
   // add edge with given args
   function addEdge(cy, id, label, source, target) {
+    var edge = cy.edges("[source='" + source + "'][target='" + target + "']");
+    //if there's already an edge, remove it
+    if (edge.css("label")) {
+      edge.remove();
+    }
     cy.add({
       group: "edges",
       data: {
@@ -344,17 +353,15 @@ $(function () {
     });
 
     var path = flowNetwork.findRandomAugmentingPath();
+    path = flowNetwork.convertNodesToEdges(path);
     console.log(path);
-    highlightEdge(path[0], path[1]);
-
-    for (var i = 0; i < path.length - 1; i++) {
-      highlightEdge(path[i], path[i + 1]);
-    }
-
+    path.forEach(function(edge) {
+      highlightEdge(edge.source, edge.target);
+    });
     return;
   });
 
-  // find shotest path
+  // find shortest path
   $("#shortest-path").on("click", function (e) {
     e.preventDefault();
 
@@ -379,9 +386,10 @@ $(function () {
     console.log(flowNetwork.validatePathTopology(p3));
 
     var path = flowNetwork.findShortestAugmentingPath();
-    for (var i = 0; i < path.length - 1; i++) {
-      highlightEdge(path[i], path[i + 1]);
-    }
+    path = flowNetwork.convertNodesToEdges(path);
+    path.forEach(function(edge) {
+      highlightEdge(edge.source, edge.target);
+    });
 
     return;
     $("#reset").triggerHandler("click");
@@ -559,13 +567,9 @@ $(function () {
     reader.onload = function(e) {
         const content = e.target.result;
         const lines = content.split('\n');
-        const graph = {};
+        var graph = new Map();
         var smallest = 10000000;
         var largest = 0;
-        var positionX = 150;
-        var positionY = 200;
-        let mySet = new Set();
-        var nextAdd = 1;
 
         lines.forEach(line => {
             var parts = ''
@@ -598,35 +602,12 @@ $(function () {
                 largest =  node2val;
             }
 
-        if (!mySet.has(node1val)) {
-          mySet.add(node1val);
-          addNode(cy, node1val, node1val, positionX, positionY);
-          positionX += 100 * (nextAdd % 2);
-          positionY += 120 * ((nextAdd + 1) % 2);
-          nextAdd ^= 1;
-        }
-
-        if (!mySet.has(node2val)) {
-          mySet.add(node2val);
-          addNode(cy, node2val, node2val, positionX, positionY);
-          positionX += 100 * (nextAdd % 2);
-          positionY += 120 * ((nextAdd + 1) % 2);
-          nextAdd ^= 1;
-        }
-
-        addEdge(
-          cy,
-          node1 + "-" + node2,
-          parseInt(edgeValue, 10),
-          node1val,
-          node2val
-        );
-
         // Adding to graph
-        if (!graph[node1]) {
-          graph[node1] = {};
+        if (!graph.has(node1)) {
+          graph.set(node1, new Map());
         }
-        graph[node1][node2] = edgeValue;
+
+        graph.get(node1).set(node2, edgeValue);
       });
 
       console.log(graph); // Here's your directed graph
@@ -634,8 +615,65 @@ $(function () {
       console.log(largest);
       $("#source").val(smallest);
       $("#sink").val(largest);
+      drawNodes(graph, smallest, largest);
+      drawEdges(graph);
     };
 
     reader.readAsText(file);
   }
+
+  //draw edges according to the input graph. There might be memory issue about the remove()
+  function drawEdges(graph){
+    cy.edges().remove();
+    graph.forEach((edges, node1) => {
+      edges.forEach((edgeValue, node2) => {
+        addEdge(
+          cy,
+          node1 + "-" + node2,
+          parseInt(edgeValue, 10),
+          parseInt(node1, 10),
+          parseInt(node2, 10)
+        );
+      });
+    });
+  }
+
+  //draw nodes according to the input graph. Node position needs further considerations.
+  function drawNodes(graph, source, tank){
+    cy.nodes().remove();
+    var yPosition = 80;
+    let mySet = new Set();
+    var xPositionOffset = -30;
+    console.log(source);
+    console.log(tank);
+    graph.forEach((edges, node) => {
+      edges.forEach((edgeValue, node2) => {
+        var node2val = parseInt(node2, 10);
+        if (!mySet.has(node2val)){
+          mySet.add(node2val);
+          if (node2val === tank) {
+            addNode(cy, node2val, node2val, 600, 300);
+          }
+          else {
+            addNode(cy, node2val, node2val, 350 + xPositionOffset, yPosition);
+            yPosition += 80;
+            xPositionOffset = -xPositionOffset;
+          }
+        }
+      });
+      var nodeVal = parseInt(node, 10);
+      if (!mySet.has(nodeVal)){
+        mySet.add(nodeVal);
+        if (nodeVal === source) {
+          addNode(cy, nodeVal, nodeVal, 100, 300);
+        }
+        else {
+          addNode(cy, nodeVal, nodeVal, 350 + xPositionOffset, yPosition);
+          yPosition += 80;
+          xPositionOffset = -xPositionOffset;
+        }
+      }
+    });
+  }
+
 });

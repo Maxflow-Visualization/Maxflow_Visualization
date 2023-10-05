@@ -121,6 +121,15 @@ class FlowNetwork {
     return this.graph.has(vertex);
   }
 
+  // make edge highlighted with given args
+  convertNodesToEdges(nodes) {
+    var edges = [];
+    for (var i = 0; i < nodes.length - 1; i++) {
+      edges.push(this.graph.get(nodes[i]).get(nodes[i+1]));
+    }
+    return edges;
+  }
+
   // filter neighbors whose edge is not saturated (current flow hasn't reached capacity)
   filterNeighbors (neighborsMap) {
     var filteredNeighborsMap = new Map(
