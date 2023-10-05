@@ -327,6 +327,24 @@ $(function () {
     event.preventDefault();
     if (getState() === "Select Path") {
       // check if path is valid, get max flow, -1 if not valid path
+      var $source = $("#source");
+      var source = $source.val();
+      var $sink = $("#sink");
+      var sink = $sink.val();
+
+      var flowNetwork = new FlowNetwork(source, sink);
+
+      var edges = cy.edges();
+      edges.forEach(function (edge) {
+        var label = edge.css("label");
+        flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+      });
+
+      var bottleneck = flowNetwork.findBottleneckCapacity(selectedPath);
+      if (bottleneck === -1) {
+        alert("Not valid path, select again.");
+        return;
+      }
 
       // now proceed to choose flow
       $("#state").text("State: Choose Flow");
