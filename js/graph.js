@@ -353,13 +353,11 @@ $(function () {
     });
 
     var path = flowNetwork.findRandomAugmentingPath();
+    path = flowNetwork.convertNodesToEdges(path);
     console.log(path);
-    highlightEdge(path[0], path[1]);
-
-    for (var i = 0; i < path.length - 1; i++) {
-      highlightEdge(path[i], path[i + 1]);
-    }
-
+    path.forEach(function(edge) {
+      highlightEdge(edge.source, edge.target);
+    });
     return;
   });
 
@@ -383,9 +381,10 @@ $(function () {
     });
 
     var path = flowNetwork.findShortestAugmentingPath();
-    for (var i = 0; i < path.length - 1; i++) {
-      highlightEdge(path[i], path[i + 1]);
-    }
+    path = flowNetwork.convertNodesToEdges(path);
+    path.forEach(function(edge) {
+      highlightEdge(edge.source, edge.target);
+    });
 
     return;
     $("#reset").triggerHandler("click");
