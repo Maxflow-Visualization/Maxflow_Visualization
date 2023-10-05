@@ -42,7 +42,9 @@
             <div class="row">
               <div class="col-md-5">
                 <input
-                  type="text"
+                  type="number"
+                  min="1"
+                  oninput="removeLeadingZeros(this)"
                   id="label"
                   class="form-control input-sm text-center modification"
                 />
@@ -67,7 +69,9 @@
 
                   <div class="col-sm-7" style="padding-left: 5px !important">
                     <input
-                      type="text"
+                      type="number"
+                      min="1"
+                      oninput="removeLeadingZeros(this)"
                       id="source"
                       class="form-control input-sm text-center"
                     />
@@ -80,7 +84,9 @@
 
                   <div class="col-sm-7" style="padding-left: 5px !important">
                     <input
-                      type="text"
+                      type="number"
+                      min="1"
+                      oninput="removeLeadingZeros(this)"
                       id="sink"
                       class="form-control input-sm text-center"
                     />
@@ -148,5 +154,6 @@
     <script src="js/graph.js"></script>
     <script src="js/max-flow.js"></script>
     <script src="js/read-file.js"></script>
+    <script src="js/utils.js"></script>
   </body>
 </html>
