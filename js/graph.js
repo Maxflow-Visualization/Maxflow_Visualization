@@ -171,7 +171,11 @@ $(function () {
       return;
     }
     if (e.key == "Backspace" || e.key == "Delete") {
-      cy.$(":selected").remove();
+      const inputElement = document.getElementById("label");
+      // Check if there's a selection within the input
+      if (document.activeElement != inputElement) {
+        cy.$(":selected").remove();
+      } 
     }
   });
 
@@ -276,9 +280,10 @@ $(function () {
 
   // cancel one edge's highlight
   function cancelHighlightedEdge(source, target) {
-    cy.edges("[source='" + source + "'][target='" + target + "']").removeClass(
-      "highlighted"
-    );
+    edge = cy.edges("[source='" + source + "'][target='" + target + "']");
+    edge.removeClass("highlighted");
+    edge.css("line-color", "lightgray");
+    edge.css("target-arrow-color", "lightgray");
   }
 
   var selectedPath = null;
@@ -292,6 +297,7 @@ $(function () {
     var target = edge.target().id();
     var capacity = edge.css("label");
     if (!allowModify() && getState() === "Select Path") {
+
       if (selectedPath === null || selectedPath.length === 0) {
         selectedPath = [new Edge(source, target, capacity)];
         highlightEdge(source, target);
@@ -362,16 +368,18 @@ $(function () {
     });
 
     var path = flowNetwork.findRandomAugmentingPath();
+    selectedPath = flowNetwork.convertNodesToEdges(path);
     console.log(path);
 
-    for (var i = 0; i < path.length - 1; i++) {
-      highlightEdge(path[i], path[i + 1]);
-    }
+    selectedPath.forEach(function(edge) {
+      highlightEdge(edge.source, edge.target);
+    });
+    console.log(selectedPath);
 
     return;
   });
 
-  // find shotest path
+  // find shortest path
   $("#shortest-path").on("click", function (e) {
     e.preventDefault();
 
@@ -391,9 +399,11 @@ $(function () {
     });
 
     var path = flowNetwork.findShortestAugmentingPath();
-    for (var i = 0; i < path.length - 1; i++) {
-      highlightEdge(path[i], path[i + 1]);
-    }
+    selectedPath = flowNetwork.convertNodesToEdges(path);
+    selectedPath.forEach(function(edge) {
+      highlightEdge(edge.source, edge.target);
+    });
+    console.log(selectedPath);
 
     return;
     $("#reset").triggerHandler("click");
@@ -571,7 +581,7 @@ $(function () {
     reader.onload = function(e) {
         const content = e.target.result;
         const lines = content.split('\n');
-        const graph = {};
+        var graph = new Map();
         var smallest = 10000000;
         var largest = 0;
         var positionX = 150;
@@ -610,35 +620,36 @@ $(function () {
                 largest =  node2val;
             }
 
-        if (!mySet.has(node1val)) {
-          mySet.add(node1val);
-          addNode(cy, node1val, node1val, positionX, positionY);
-          positionX += 100 * (nextAdd % 2);
-          positionY += 120 * ((nextAdd + 1) % 2);
-          nextAdd ^= 1;
-        }
+        // if (!mySet.has(node1val)) {
+        //   mySet.add(node1val);
+        //   addNode(cy, node1val, node1val, positionX, positionY);
+        //   positionX += 100 * (nextAdd % 2);
+        //   positionY += 120 * ((nextAdd + 1) % 2);
+        //   nextAdd ^= 1;
+        // }
 
-        if (!mySet.has(node2val)) {
-          mySet.add(node2val);
-          addNode(cy, node2val, node2val, positionX, positionY);
-          positionX += 100 * (nextAdd % 2);
-          positionY += 120 * ((nextAdd + 1) % 2);
-          nextAdd ^= 1;
-        }
+        // if (!mySet.has(node2val)) {
+        //   mySet.add(node2val);
+        //   addNode(cy, node2val, node2val, positionX, positionY);
+        //   positionX += 100 * (nextAdd % 2);
+        //   positionY += 120 * ((nextAdd + 1) % 2);
+        //   nextAdd ^= 1;
+        // }
 
-        addEdge(
-          cy,
-          node1 + "-" + node2,
-          parseInt(edgeValue, 10),
-          node1val,
-          node2val
-        );
+        // addEdge(
+        //   cy,
+        //   node1 + "-" + node2,
+        //   parseInt(edgeValue, 10),
+        //   node1val,
+        //   node2val
+        // );
 
         // Adding to graph
-        if (!graph[node1]) {
-          graph[node1] = {};
+        if (!graph.has(node1)) {
+          graph.set(node1, new Map());
         }
-        graph[node1][node2] = edgeValue;
+
+        graph.get(node1).set(node2, edgeValue);
       });
 
       console.log(graph); // Here's your directed graph
@@ -646,8 +657,66 @@ $(function () {
       console.log(largest);
       $("#source").val(smallest);
       $("#sink").val(largest);
+      drawNodes(graph, smallest, largest);
+      drawEdges(graph);
+      
     };
 
     reader.readAsText(file);
   }
+
+  //draw edges according to the input graph. There might be memory issue about the remove()
+  function drawEdges(graph){
+    cy.edges().remove();
+    graph.forEach((edges, node1) => {
+      edges.forEach((edgeValue, node2) => {
+        addEdge(
+          cy,
+          node1 + "-" + node2,
+          parseInt(edgeValue, 10),
+          parseInt(node1, 10),
+          parseInt(node2, 10)
+        );
+      });
+    });
+  }
+
+  //draw nodes according to the input graph. Node position needs further considerations.
+  function drawNodes(graph, source, tank){
+    cy.nodes().remove();
+    var yPosition = 80;
+    let mySet = new Set();
+    var xPositionOffset = -30;
+    console.log(source);
+    console.log(tank);
+    graph.forEach((edges, node) => {
+      edges.forEach((edgeValue, node2) => {
+        var node2val = parseInt(node2, 10);
+        if (!mySet.has(node2val)){
+          mySet.add(node2val);
+          if (node2val == tank) {
+            addNode(cy, node2val, node2val, 600, 300);
+          }
+          else {
+            addNode(cy, node2val, node2val, 350 + xPositionOffset, yPosition);
+            yPosition += 80;
+            xPositionOffset = -xPositionOffset;
+          }
+        }
+      });
+      var nodeVal = parseInt(node, 10);
+      if (!mySet.has(nodeVal)){
+        mySet.add(nodeVal);
+        if (nodeVal == source) {
+          addNode(cy, nodeVal, nodeVal, 100, 300);
+        }
+        else {
+          addNode(cy, nodeVal, nodeVal, 350 + xPositionOffset, yPosition);
+          yPosition += 80;
+          xPositionOffset = -xPositionOffset;
+        }
+      }
+    });
+  }
+
 });
