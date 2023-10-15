@@ -428,6 +428,11 @@ $(function () {
 
     var path = flowNetwork.findShortestAugmentingPath();
     selectedPath = flowNetwork.convertNodesToEdges(path);
+    modifiedGraph = flowNetwork.addFlow(selectedPath, 1, false);
+    // modifiedGraph.delete("1");
+    console.log(modifiedGraph)
+    console.log(flowNetwork.graph)
+    console.log(_.isEqual(modifiedGraph, flowNetwork.graph));
     selectedPath.forEach(function(edge) {
       highlightEdge(edge.source, edge.target);
     });
