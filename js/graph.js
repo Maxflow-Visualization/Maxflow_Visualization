@@ -133,6 +133,12 @@ $(function () {
     return $("#state").text().includes("State: Graph Creation");
   }
 
+  function getState() {
+    if ($("#state").text().includes("State: Select Path")) {
+      return "Select Path";
+    }
+  }
+
   function getId() {
     var ids = cy.nodes().map(function (node) {
       return node.id();
@@ -267,7 +273,6 @@ $(function () {
 
   // make edge highlighted with given args
   function highlightEdge(source, target) {
-    console.log(cy);
     cy.edges("[source='" + source + "'][target='" + target + "']").addClass(
       "highlighted"
     );
@@ -280,39 +285,72 @@ $(function () {
 
   // cancel one edge's highlight
   function cancelHighlightedEdge(source, target) {
-    cy.edges("[source='" + source + "'][target='" + target + "']").removeClass(
-      "highlighted"
-    );
+    edge = cy.edges("[source='" + source + "'][target='" + target + "']");
+    edge.removeClass("highlighted");
+    edge.css("line-color", "lightgray");
+    edge.css("target-arrow-color", "lightgray");
   }
 
-  // var path = new Set();
+  var selectedPath = null;
   // tap edge to change capacity in modifying mode or select path in practicing mode
   cy.on("tap", "edge", function (event) {
     var edge = event.cyTarget;
     if (!edge) return;
     selectedEdge = edge;
     $("#label").val(edge.css("label"));
-    if (!allowModify() && $("#state").text().includes("State: Select Path")) {
-      if (
-        cy
-          .edges(
-            "[source='" + edge.source() + "'][target='" + edge.target() + "']"
-          )
-          .hasClass("highlighted")
-      ) {
-        cancelHighlightedEdge(edge.source(), edge.target());
+    var source = edge.source().id();
+    var target = edge.target().id();
+    var capacity = edge.css("label");
+    if (!allowModify() && getState() === "Select Path") {
+
+      if (selectedPath === null || selectedPath.length === 0) {
+        selectedPath = [new Edge(source, target, capacity)];
+        highlightEdge(source, target);
+        return;
+      }
+      var index = selectedPath.findIndex(edge => edge.source === source && edge.target === target);
+      if (index !== -1) {
+        console.log("highlighted");
+        cancelHighlightedEdge(source, target);
+        selectedPath.splice(index, 1);
       } else {
-        highlightEdge(edge.source(), edge.target());
+        console.log("unhighlighted");
+        highlightEdge(source, target);
+        selectedPath.push(new Edge(source, target, capacity));
       }
     }
+    console.log(selectedPath);
   });
 
   // proceed in steps in pracitcing mode
   $("#proceed-step").on("click", function (event) {
     event.preventDefault();
-    if ($("#state").text() === "State: Select Path") {
-      for (var edge in path) {
+    if (getState() === "Select Path") {
+      // check if path is valid, get max flow, -1 if not valid path
+      var $source = $("#source");
+      var source = $source.val();
+      var $sink = $("#sink");
+      var sink = $sink.val();
+
+      var flowNetwork = new FlowNetwork(source, sink);
+
+      var edges = cy.edges();
+      edges.forEach(function (edge) {
+        var label = edge.css("label");
+        flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+      });
+
+      var bottleneck = flowNetwork.findBottleneckCapacity(selectedPath);
+      if (bottleneck === -1) {
+        alert("Not valid path, select again.");
+        return;
       }
+
+      // now proceed to choose flow
+      $("#state").text("State: Choose Flow");
+      var prompt = window.prompt("Enter a flow you want to apply to the edge.");
+      console.log(prompt);
+      $("#state").text("State: Update Graph");
     }
   });
 
@@ -353,11 +391,14 @@ $(function () {
     });
 
     var path = flowNetwork.findRandomAugmentingPath();
-    path = flowNetwork.convertNodesToEdges(path);
+    selectedPath = flowNetwork.convertNodesToEdges(path);
     console.log(path);
-    path.forEach(function(edge) {
+
+    selectedPath.forEach(function(edge) {
       highlightEdge(edge.source, edge.target);
     });
+    console.log(selectedPath);
+
     return;
   });
 
@@ -386,10 +427,11 @@ $(function () {
     console.log(flowNetwork.validatePathTopology(p3));
 
     var path = flowNetwork.findShortestAugmentingPath();
-    path = flowNetwork.convertNodesToEdges(path);
-    path.forEach(function(edge) {
+    selectedPath = flowNetwork.convertNodesToEdges(path);
+    selectedPath.forEach(function(edge) {
       highlightEdge(edge.source, edge.target);
     });
+    console.log(selectedPath);
 
     return;
     $("#reset").triggerHandler("click");
@@ -469,11 +511,11 @@ $(function () {
       cancelHighlightedElements
     );
 
-    function highlightEdge(source, target) {
-      cy.edges("[source='" + source + "'][target='" + target + "']").addClass(
-        "highlighted"
-      );
-    }
+    // function highlightEdge(source, target) {
+    //   cy.edges("[source='" + source + "'][target='" + target + "']").addClass(
+    //     "highlighted"
+    //   );
+    // }
 
     function highlightNode(name) {
       var nodes = cy.nodes("[name=" + name + "]");
@@ -511,9 +553,9 @@ $(function () {
       );
     }
 
-    function cancelHighlightedElements() {
-      cy.elements().removeClass("highlighted");
-    }
+    // function cancelHighlightedElements() {
+    //   cy.elements().removeClass("highlighted");
+    // }
   });
 
   // creating example graph

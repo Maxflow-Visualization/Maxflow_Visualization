@@ -108,7 +108,7 @@ class FlowNetwork {
 
   // find bottleneck REMAINING capacity
   findBottleneckCapacity(path) {
-    if (!this.validatePathTopology(path)) {
+    if (!path || !this.validatePathTopology(path)) {
       return -1;
     }
   }
