@@ -617,6 +617,18 @@ $(function () {
       $("#sink").val(largest);
       drawNodes(graph, smallest, largest);
       drawEdges(graph);
+
+      cy.layout({
+        name: 'breadthfirst',
+        directed: true,  // because max-flow problems are typically directed
+        spacingFactor: 1.25,
+        avoidOverlap: true
+      }).run();
+
+      // // Apply the "spring model" layout
+      // cy.layout({
+      //   name: 'cose'
+      // }).run();
     };
 
     reader.readAsText(file);
