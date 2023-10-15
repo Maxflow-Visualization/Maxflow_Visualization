@@ -175,7 +175,7 @@ $(function () {
       // Check if there's a selection within the input
       if (document.activeElement != inputElement) {
         cy.$(":selected").remove();
-      } 
+      }
     }
   });
 
@@ -302,13 +302,14 @@ $(function () {
     var target = edge.target().id();
     var capacity = edge.css("label");
     if (!allowModify() && getState() === "Select Path") {
-
       if (selectedPath === null || selectedPath.length === 0) {
         selectedPath = [new Edge(source, target, capacity)];
         highlightEdge(source, target);
         return;
       }
-      var index = selectedPath.findIndex(edge => edge.source === source && edge.target === target);
+      var index = selectedPath.findIndex(
+        (edge) => edge.source === source && edge.target === target
+      );
       if (index !== -1) {
         console.log("highlighted");
         cancelHighlightedEdge(source, target);
@@ -340,6 +341,7 @@ $(function () {
         flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
       });
 
+      // get path expression to show in the front end and the bottleneck: -1 means invalid path
       var bottleneck = flowNetwork.findBottleneckCapacity(selectedPath);
       if (bottleneck === -1) {
         alert("Not valid path, select again.");
@@ -348,7 +350,10 @@ $(function () {
 
       // now proceed to choose flow
       $("#state").text("State: Choose Flow");
+      // tell user the range he can choose from
       var prompt = window.prompt("Enter a flow you want to apply to the edge.");
+      // check if the user entered a proper flow: check int and should be within valid range
+      // prompt again if not valid
       console.log(prompt);
       $("#state").text("State: Update Graph");
     }
@@ -394,7 +399,7 @@ $(function () {
     selectedPath = flowNetwork.convertNodesToEdges(path);
     console.log(path);
 
-    selectedPath.forEach(function(edge) {
+    selectedPath.forEach(function (edge) {
       highlightEdge(edge.source, edge.target);
     });
     console.log(selectedPath);
@@ -422,13 +427,24 @@ $(function () {
     });
 
     p1 = [new Edge("1", "3", 0), new Edge("1", "2", 0)];
-    p2 = [new Edge("1", "2", 0), new Edge("2", "3", 0), new Edge("3", "1", 0), new Edge("2", "4", 0)];
-    p3 = [new Edge("1", "2", 0), new Edge("2", "3", 0), new Edge("2", "4", 0), new Edge("3", "5", 0), new Edge("4", "5", 0)];
+    p2 = [
+      new Edge("1", "2", 0),
+      new Edge("2", "3", 0),
+      new Edge("3", "1", 0),
+      new Edge("2", "4", 0),
+    ];
+    p3 = [
+      new Edge("1", "2", 0),
+      new Edge("2", "3", 0),
+      new Edge("2", "4", 0),
+      new Edge("3", "5", 0),
+      new Edge("4", "5", 0),
+    ];
     console.log(flowNetwork.validatePathTopology(p3));
 
     var path = flowNetwork.findShortestAugmentingPath();
     selectedPath = flowNetwork.convertNodesToEdges(path);
-    selectedPath.forEach(function(edge) {
+    selectedPath.forEach(function (edge) {
       highlightEdge(edge.source, edge.target);
     });
     console.log(selectedPath);
@@ -606,43 +622,42 @@ $(function () {
     const file = event.target.files[0];
     const reader = new FileReader();
 
-    reader.onload = function(e) {
-        const content = e.target.result;
-        const lines = content.split('\n');
-        var graph = new Map();
-        var smallest = 10000000;
-        var largest = 0;
+    reader.onload = function (e) {
+      const content = e.target.result;
+      const lines = content.split("\n");
+      var graph = new Map();
+      var smallest = 10000000;
+      var largest = 0;
 
-        lines.forEach(line => {
-            var parts = ''
-            if (file.name.endsWith('.csv')) {
-              parts = line.trim().split(','); // Splitting on commas for CSV
-            }
-            else {
-              parts = line.trim().split(' '); // assuming space-separated values
-            }
-            if (parts.length !== 3) return;
+      lines.forEach((line) => {
+        var parts = "";
+        if (file.name.endsWith(".csv")) {
+          parts = line.trim().split(","); // Splitting on commas for CSV
+        } else {
+          parts = line.trim().split(" "); // assuming space-separated values
+        }
+        if (parts.length !== 3) return;
 
-            const node1 = parts[0];
-            const node2 = parts[1];
-            const edgeValue = parts[2];
-            
-            var node1val = parseInt(node1, 10);
-            var node2val = parseInt(node2, 10);
+        const node1 = parts[0];
+        const node2 = parts[1];
+        const edgeValue = parts[2];
 
-            // find smallest and largest node
-            if (node1val < smallest) {
-                smallest = node1val;
-            }
-            if (node2val < smallest) {
-                smallest =  node2val;
-            }
-            if (node1val > largest) {
-                largest =  node1val;
-            }
-            if (node2val > largest) {
-                largest =  node2val;
-            }
+        var node1val = parseInt(node1, 10);
+        var node2val = parseInt(node2, 10);
+
+        // find smallest and largest node
+        if (node1val < smallest) {
+          smallest = node1val;
+        }
+        if (node2val < smallest) {
+          smallest = node2val;
+        }
+        if (node1val > largest) {
+          largest = node1val;
+        }
+        if (node2val > largest) {
+          largest = node2val;
+        }
 
         // Adding to graph
         if (!graph.has(node1)) {
@@ -661,13 +676,13 @@ $(function () {
       drawEdges(graph);
 
       cy.layout({
-        name: 'breadthfirst',
-        directed: true,  // because max-flow problems are typically directed
+        name: "breadthfirst",
+        directed: true, // because max-flow problems are typically directed
         spacingFactor: 1.25,
         avoidOverlap: true,
-        ScreenOrientation: "horizontal"
+        ScreenOrientation: "horizontal",
       });
-      makeLayoutHorizontal(cy)
+      makeLayoutHorizontal(cy);
 
       // // Apply the "spring model" layout
       // cy.layout({
@@ -684,17 +699,17 @@ $(function () {
     let height = cy.height();
 
     //rotate correspondingly
-    cy.nodes().forEach(node => {
-        let currentPosition = node.position();
-        node.position({
-            x: currentPosition.y / height * 800,
-            y: currentPosition.x / width * 500
-        });
+    cy.nodes().forEach((node) => {
+      let currentPosition = node.position();
+      node.position({
+        x: (currentPosition.y / height) * 800,
+        y: (currentPosition.x / width) * 500,
+      });
     });
   }
 
   //draw edges according to the input graph. There might be memory issue about the remove()
-  function drawEdges(graph){
+  function drawEdges(graph) {
     cy.edges().remove();
     graph.forEach((edges, node1) => {
       edges.forEach((edgeValue, node2) => {
@@ -710,7 +725,7 @@ $(function () {
   }
 
   //draw nodes according to the input graph. Node position needs further considerations.
-  function drawNodes(graph, source, tank){
+  function drawNodes(graph, source, tank) {
     cy.nodes().remove();
     var yPosition = 80;
     let mySet = new Set();
@@ -720,12 +735,11 @@ $(function () {
     graph.forEach((edges, node) => {
       edges.forEach((edgeValue, node2) => {
         var node2val = parseInt(node2, 10);
-        if (!mySet.has(node2val)){
+        if (!mySet.has(node2val)) {
           mySet.add(node2val);
           if (node2val === tank) {
             addNode(cy, node2val, node2val, 600, 300);
-          }
-          else {
+          } else {
             addNode(cy, node2val, node2val, 350 + xPositionOffset, yPosition);
             yPosition += 80;
             xPositionOffset = -xPositionOffset;
@@ -733,12 +747,11 @@ $(function () {
         }
       });
       var nodeVal = parseInt(node, 10);
-      if (!mySet.has(nodeVal)){
+      if (!mySet.has(nodeVal)) {
         mySet.add(nodeVal);
         if (nodeVal === source) {
           addNode(cy, nodeVal, nodeVal, 100, 300);
-        }
-        else {
+        } else {
           addNode(cy, nodeVal, nodeVal, 350 + xPositionOffset, yPosition);
           yPosition += 80;
           xPositionOffset = -xPositionOffset;
@@ -747,24 +760,25 @@ $(function () {
     });
   }
 
-  document.getElementById('downloadButton').addEventListener('click', function() {
-    // Assuming the graph is globally accessible or you can pass it as an argument
-    event.preventDefault();
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-    var flowNetwork = new FlowNetwork(source, sink);
-    var edges = cy.edges();
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+  document
+    .getElementById("downloadButton")
+    .addEventListener("click", function () {
+      // Assuming the graph is globally accessible or you can pass it as an argument
+      event.preventDefault();
+      var $source = $("#source");
+      var source = $source.val();
+      var $sink = $("#sink");
+      var sink = $sink.val();
+      var flowNetwork = new FlowNetwork(source, sink);
+      var edges = cy.edges();
+      edges.forEach(function (edge) {
+        var label = edge.css("label");
+        flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+      });
+      graph = flowNetwork.getGraph();
+      console.log(graph);
+      const edgelistContent = graphToEdgelist(graph);
+      console.log(edgelistContent);
+      download("edgelist.txt", edgelistContent);
     });
-    graph = flowNetwork.getGraph();
-    console.log(graph)
-    const edgelistContent = graphToEdgelist(graph);
-    console.log(edgelistContent)
-    download('edgelist.txt', edgelistContent);
-  });
-
 });
