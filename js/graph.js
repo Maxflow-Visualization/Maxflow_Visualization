@@ -664,8 +664,10 @@ $(function () {
         name: 'breadthfirst',
         directed: true,  // because max-flow problems are typically directed
         spacingFactor: 1.25,
-        avoidOverlap: true
-      }).run();
+        avoidOverlap: true,
+        ScreenOrientation: "horizontal"
+      });
+      makeLayoutHorizontal(cy)
 
       // // Apply the "spring model" layout
       // cy.layout({
@@ -674,6 +676,21 @@ $(function () {
     };
 
     reader.readAsText(file);
+  }
+
+  function makeLayoutHorizontal(cy) {
+    //get the width and height
+    let width = cy.width();
+    let height = cy.height();
+
+    //rotate correspondingly
+    cy.nodes().forEach(node => {
+        let currentPosition = node.position();
+        node.position({
+            x: currentPosition.y / height * 800,
+            y: currentPosition.x / width * 500
+        });
+    });
   }
 
   //draw edges according to the input graph. There might be memory issue about the remove()
@@ -729,5 +746,25 @@ $(function () {
       }
     });
   }
+
+  document.getElementById('downloadButton').addEventListener('click', function() {
+    // Assuming the graph is globally accessible or you can pass it as an argument
+    event.preventDefault();
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
+    var flowNetwork = new FlowNetwork(source, sink);
+    var edges = cy.edges();
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
+    graph = flowNetwork.getGraph();
+    console.log(graph)
+    const edgelistContent = graphToEdgelist(graph);
+    console.log(edgelistContent)
+    download('edgelist.txt', edgelistContent);
+  });
 
 });
