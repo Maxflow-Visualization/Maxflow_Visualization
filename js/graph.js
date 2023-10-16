@@ -1,19 +1,19 @@
 $(function () {
-  function loop(count, callback, done) {
-    var counter = 0;
-    var next = function () {
-      setTimeout(iteration, 1000);
-    };
-    var iteration = function () {
-      if (counter < count) {
-        callback(counter, next);
-      } else {
-        done && done();
-      }
-      counter++;
-    };
-    iteration();
-  }
+  // function loop(count, callback, done) {
+  //   var counter = 0;
+  //   var next = function () {
+  //     setTimeout(iteration, 1000);
+  //   };
+  //   var iteration = function () {
+  //     if (counter < count) {
+  //       callback(counter, next);
+  //     } else {
+  //       done && done();
+  //     }
+  //     counter++;
+  //   };
+  //   iteration();
+  // }
 
   console.log("Starting...");
 
@@ -31,7 +31,7 @@ $(function () {
           "line-color": "red",
           "target-arrow-color": "#61bffc",
           "transition-property":
-          "background-color, line-color, target-arrow-color",
+            "background-color, line-color, target-arrow-color",
           "transition-duration": "0.5s",
           "padding-top": "5px",
           "padding-right": "5px",
@@ -223,8 +223,7 @@ $(function () {
     event.preventDefault();
     // proceed to algorithm practice
     if (allowModify()) {
-
-      cy.edgehandles('disable');
+      cy.edgehandles("disable");
 
       $(this).text("Modify Network Graph");
       $(this).css("background-color", "#ed5565");
@@ -238,8 +237,7 @@ $(function () {
       $("#sink-label").text("T=" + $("#sink").val());
       hideElement("#sink");
 
-      showElement("#random-path");
-      showElement("#shortest-path");
+      showElement(".find-path");
 
       hideElement(".change-capacity");
       hideElement("#add-graph");
@@ -258,9 +256,8 @@ $(function () {
       $("#sink-label").text("T=");
       showElement("#sink");
 
-      hideElement("#random-path");
-      hideElement("#shortest-path");
-      
+      hideElement(".find-path");
+
       showElement(".change-capacity");
       showElement("#add-graph");
       showElement("#clear");
@@ -366,8 +363,8 @@ $(function () {
     console.log(selectedPath);
   });
 
-
   var oldFlowNetwork = null;
+  var totalflow = 0;
   var flow = 0;
   // proceed in steps in pracitcing mode
   $("#proceed-step").on("click", function (event) {
@@ -388,14 +385,19 @@ $(function () {
       });
 
       // get path expression to show in the front end and the bottleneck: -1 means invalid path
-      const [bottleneck, message] = flowNetwork.findBottleneckCapacity(selectedPath);
+      const [bottleneck, message] =
+        flowNetwork.findBottleneckCapacity(selectedPath);
       if (bottleneck === -1) {
         alert(message);
         return;
       }
 
       // tell user the range he can choose from
-      var prompt = window.prompt("Enter a flow you want to apply to the edge. " + "Hint: 1 to " + bottleneck);
+      var prompt = window.prompt(
+        "Enter a flow you want to apply to the edge. " +
+          "Hint: 1 to " +
+          bottleneck
+      );
 
       console.log(prompt);
       // User pressed cancel
@@ -404,26 +406,31 @@ $(function () {
       }
       // check if the user entered a proper flow: check int and should be within valid range
       flow = parseInt(prompt);
-      while (isNaN(flow) || flow < 1 || flow > bottleneck)  {
-        prompt = window.prompt("Enter a valid flow you want to apply to the edge. " + "Hint: 1 to " + bottleneck);
+      while (isNaN(flow) || flow < 1 || flow > bottleneck) {
+        prompt = window.prompt(
+          "Enter a valid flow you want to apply to the edge. " +
+            "Hint: 1 to " +
+            bottleneck
+        );
         if (prompt === null) {
           return;
         }
         flow = parseInt(prompt);
       }
 
-      $("#history").append("Path: " + message + " \nChosen Capacity: " + flow + "<br>");
+      $("#history").append(
+        "Path: " + message + " \nChosen Capacity: " + flow + "<br>"
+      );
       console.log(flow);
 
       $("#state").text("State: Update Residual Graph");
       oldFlowNetwork = flowNetwork;
       showElement(".change-capacity");
-      hideElement("#random-path");
-      hideElement("#shortest-path");
+      hideElement(".find-path");
       showElement("#auto-complete");
       showElement("#undo-updates");
       $("#proceed-step").text("Confirm Residual Graph");
-      cy.edgehandles('enable');
+      cy.edgehandles("enable");
 
       var cyStyles = [
         {
@@ -436,7 +443,7 @@ $(function () {
             "line-color": "red",
             "target-arrow-color": "#61bffc",
             "transition-property":
-            "background-color, line-color, target-arrow-color",
+              "background-color, line-color, target-arrow-color",
             "transition-duration": "0.5s",
             "padding-top": "5px",
             "padding-right": "5px",
@@ -514,9 +521,7 @@ $(function () {
       ];
 
       cy.style().fromJson(cyStyles);
-
     } else if (getState() === "Update Residual Graph") {
-      
       var $source = $("#source");
       var source = $source.val();
       var $sink = $("#sink");
@@ -531,51 +536,64 @@ $(function () {
       });
       console.log(flowNetwork);
       // check if the current graph is the same network after applying the flow
-      // if not, let user redo it. 
-      
+      // if not, let user redo it.
+
       var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
       if (isSameGraphSkipFlowComparison(flowNetwork.graph, expectedGraph)) {
         cancelHighlightedElements();
 
+        totalflow += flow;
+
         hideElement(".change-capacity");
-        showElement("#random-path");
-        showElement("#shortest-path");
+        showElement(".find-path");
         hideElement("#auto-complete");
         hideElement("#undo-updates");
 
         $("#state").text("State: Select Path");
         $("#proceed-step").text("Confirm Path");
 
-        cy.edgehandles('disable');
+        cy.edgehandles("disable");
       } else {
         alert("Residual graph not yet completed, please keep trying.");
       }
     }
   });
 
-  $("#auto-complete").on("click", function(event) {
+  $("#auto-complete").on("click", function (event) {
     event.preventDefault();
     // call check graph function, update the graph
     var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
-    
+
     cy.edges().remove();
     for (const [_, neighborsMap] of expectedGraph) {
       for (const [_, edge] of neighborsMap) {
         if (edge.capacity !== 0) {
-          addEdge(cy, edge.source+"-"+edge.target, edge.capacity, edge.source, edge.target);
+          addEdge(
+            cy,
+            edge.source + "-" + edge.target,
+            edge.capacity,
+            edge.source,
+            edge.target
+          );
         }
       }
     }
   });
 
-  $("#undo-updates").on("click", function(event) {
+  $("#undo-updates").on("click", function (event) {
     event.preventDefault();
 
     cy.edges().remove();
     for (const [_, neighborsMap] of oldFlowNetwork.graph) {
       for (const [_, edge] of neighborsMap) {
         if (edge.capacity !== 0) {
-          addEdge(cy, edge.source+"-"+edge.target, edge.capacity, edge.source, edge.target);
+          addEdge(
+            cy,
+            edge.source + "-" + edge.target,
+            edge.capacity,
+            edge.source,
+            edge.target
+          );
         }
       }
     }
@@ -593,6 +611,61 @@ $(function () {
     if (!selectedEdge) return;
 
     selectedEdge.css("label", label);
+  });
+
+  $("#confirm-max-flow").on("click", function (e) {
+    e.preventDefault();
+
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
+
+    var flowNetwork = new FlowNetwork(source, sink);
+
+    var edges = cy.edges();
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
+
+    var path = flowNetwork.findRandomAugmentingPath();
+
+    if (path.length > 0) {
+      alert(
+        "There is still a possible path from source to target. Please keep moving on. "
+      );
+      return;
+    } else {
+      var usermaxflow = window.prompt("Please enter the max flow: ");
+
+      if (usermaxflow === null) {
+        // cancel button
+        return;
+      }
+
+      // check if the user entered a proper flow: check int and should be within valid range
+      usermaxflow = parseInt(usermaxflow);
+      while (isNaN(usermaxflow) || usermaxflow < 0) {
+        usermaxflow = window.prompt("Enter a valid number for max flow.");
+        if (usermaxflow === null) {
+          return;
+        }
+        usermaxflow = parseInt(usermaxflow);
+      }
+      if (usermaxflow !== totalflow) {
+        alert(
+          "The max flow you have entered is not correct, but there is no more augumenting path. Try again from the start."
+        );
+        window.location.reload();
+        // start practicing again, need original network (maybe)
+      } else {
+        alert(
+          "Congratulation! You have sccessfully find the max flow for the given network graph!"
+        );
+        window.location.reload();
+      }
+    }
   });
 
   // find random path
@@ -615,6 +688,12 @@ $(function () {
     });
 
     var path = flowNetwork.findRandomAugmentingPath();
+
+    if (path.length === 0) {
+      alert("No more augmenting path.");
+      return;
+    }
+
     selectedPath = flowNetwork.convertNodesToEdges(path);
     console.log(path);
 
@@ -645,159 +724,80 @@ $(function () {
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
-    p1 = [new Edge("1", "3", 0), new Edge("1", "2", 0)];
-    p2 = [
-      new Edge("1", "2", 0),
-      new Edge("2", "3", 0),
-      new Edge("3", "1", 0),
-      new Edge("2", "4", 0),
-    ];
-    p3 = [
-      new Edge("1", "2", 0),
-      new Edge("2", "3", 0),
-      new Edge("2", "4", 0),
-      new Edge("3", "5", 0),
-      new Edge("4", "5", 0),
-    ];
-    console.log(flowNetwork.validatePathTopology(p3));
+    // p1 = [new Edge("1", "3", 0), new Edge("1", "2", 0)];
+    // p2 = [
+    //   new Edge("1", "2", 0),
+    //   new Edge("2", "3", 0),
+    //   new Edge("3", "1", 0),
+    //   new Edge("2", "4", 0),
+    // ];
+    // p3 = [
+    //   new Edge("1", "2", 0),
+    //   new Edge("2", "3", 0),
+    //   new Edge("2", "4", 0),
+    //   new Edge("3", "5", 0),
+    //   new Edge("4", "5", 0),
+    // ];
+    // console.log(flowNetwork.validatePathTopology(p3));
 
     var path = flowNetwork.findShortestAugmentingPath();
+
+    if (path.length === 0) {
+      alert("No more augmenting path.");
+      return;
+    }
+
     selectedPath = flowNetwork.convertNodesToEdges(path);
-    const [bottleneck, message] = flowNetwork.findBottleneckCapacity(selectedPath);
+    const [bottleneck, message] =
+      flowNetwork.findBottleneckCapacity(selectedPath);
     console.log(message);
     expectedGraph = flowNetwork.addFlow(selectedPath, bottleneck, false);
     // expectedGraph.delete("1");
-    console.log(expectedGraph)
-    console.log(flowNetwork.graph)
+    console.log(expectedGraph);
+    console.log(flowNetwork.graph);
     console.log(_.isEqual(expectedGraph, flowNetwork.graph));
-    selectedPath.forEach(function(edge) {
+    selectedPath.forEach(function (edge) {
       highlightEdge(edge.source, edge.target);
     });
     console.log(selectedPath);
 
     return;
-    $("#reset").triggerHandler("click");
+  });
 
-    if (!parseInt(source)) {
-      $source.css("border", "1px solid red");
-      return;
-    } else {
-      $source.css("border", "1px solid #18a689");
-    }
+  $("#widest-path").on("click", function (e) {
+    e.preventDefault();
 
-    if (!parseInt(sink)) {
-      $sink.css("border", "1px solid red");
-      return;
-    } else {
-      $sink.css("border", "1px solid #18a689");
-    }
+    cancelHighlightedElements();
 
-    console.log(flowNetwork);
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
 
-    if (!flowNetwork.isExistVertex(source)) {
-      $source.css("border", "1px solid red");
-      return;
-    } else {
-      $source.css("border", "1px solid #18a689");
-    }
+    var flowNetwork = new FlowNetwork(source, sink);
 
-    if (!flowNetwork.isExistVertex(sink)) {
-      $sink.css("border", "1px solid red");
-      return;
-    } else {
-      $sink.css("border", "1px solid #18a689");
-    }
+    var edges = cy.edges();
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
 
-    if (sink == source) {
-      $source.css("border", "1px solid red");
-      $sink.css("border", "1px solid red");
-      return;
-    } else {
-      $source.css("border", "1px solid #18a689");
-      $sink.css("border", "1px solid #18a689");
-    }
-
-    // var paths = [];
     var path = flowNetwork.findWidestAugmentingPath();
-    var sum = 0;
-    loop(
-      paths.length,
-      function (pathIndex, nextPath) {
-        cancelHighlightedElements();
-        var path = paths[pathIndex];
-        var nodes = path.nodes;
-        var flow = path.flow;
-        sum += flow;
-        var _source = nodes[0],
-          _target = null;
-        highlightNode(_source);
-        loop(
-          nodes.length - 1,
-          function (nodeIndex, nextNode) {
-            _source = nodes[nodeIndex];
-            _target = nodes[nodeIndex + 1];
-            highlightNode(_target);
-            if (_source && _target) {
-              highlightEdge(_source, _target);
-              changeLabel(_source, _target, flow);
-            }
-            nextNode();
-          },
-          function () {
-            nextPath();
-            addLog(nodes, flow);
-            updateStatus(source, sink, sum);
-          }
-        );
-      },
-      cancelHighlightedElements
-    );
 
-    // function highlightEdge(source, target) {
-    //   cy.edges("[source='" + source + "'][target='" + target + "']").addClass(
-    //     "highlighted"
-    //   );
-    // }
-
-    function highlightNode(name) {
-      var nodes = cy.nodes("[name=" + name + "]");
-      if (nodes.length) {
-        nodes[0].addClass("highlighted");
-      }
+    if (path.length === 0) {
+      alert("No more augmenting path.");
+      return;
     }
 
-    function changeLabel(source, target, flow) {
-      var edges = cy.edges(
-        "[source='" + source + "'][target='" + target + "']"
-      );
-      if (edges.length) {
-        var edge = edges[0];
-        var label = edge.css("label");
-        var parts = label.split("/");
-        if (parts.length == 2) parts[0] = +parts[0] + flow;
-        else {
-          parts[0] = flow;
-          parts[1] = label;
-        }
-        edge.css("label", parts.join("/"));
-      }
-    }
+    selectedPath = flowNetwork.convertNodesToEdges(path);
+    console.log(path);
 
-    function updateStatus(source, sink, sum) {
-      $("#status").text(
-        "Maximum flow from " + source + " to " + sink + " is " + sum
-      );
-    }
+    selectedPath.forEach(function (edge) {
+      highlightEdge(edge.source, edge.target);
+    });
+    console.log(selectedPath);
 
-    function addLog(nodes, flow) {
-      $("#log-container").append(
-        '<p class="text-success log">' + nodes.join("->") + ": " + flow + "</p>"
-      );
-    }
-
-    // function cancelHighlightedElements() {
-    //   cy.elements().removeClass("highlighted");
-    // }
+    return;
   });
 
   // creating example graph
