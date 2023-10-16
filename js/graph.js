@@ -31,7 +31,7 @@ $(function () {
           "line-color": "red",
           "target-arrow-color": "#61bffc",
           "transition-property":
-            "background-color, line-color, target-arrow-color",
+          "background-color, line-color, target-arrow-color",
           "transition-duration": "0.5s",
           "padding-top": "5px",
           "padding-right": "5px",
@@ -136,7 +136,17 @@ $(function () {
   function getState() {
     if ($("#state").text().includes("State: Select Path")) {
       return "Select Path";
+    } else if ($("#state").text().includes("State: Update Residual Graph")) {
+      return "Update Residual Graph";
     }
+  }
+
+  function showElement(selector) {
+    $(selector).css("display", "block");
+  }
+
+  function hideElement(selector) {
+    $(selector).css("display", "none");
   }
 
   function getId() {
@@ -167,7 +177,7 @@ $(function () {
 
   // delete a node with backspace or delete button
   $("html").keyup(function (e) {
-    if (!allowModify()) {
+    if (!allowModify() && getState() !== "Update Graph") {
       return;
     }
     if (e.key == "Backspace" || e.key == "Delete") {
@@ -211,17 +221,50 @@ $(function () {
   // change state between modifying and practicing
   $("#change-mode").on("click", function (event) {
     event.preventDefault();
+    // proceed to algorithm practice
     if (allowModify()) {
+
+      cy.edgehandles('disable');
+
       $(this).text("Modify Network Graph");
+      $(this).css("background-color", "#ed5565");
+
       $("#state").text("State: Select Path");
-      $("#proceed-step").toggle();
       $("#proceed-step").text("Confirm Path");
+      showElement("#proceed-step");
+
+      $("#source-label").text("S=" + $("#source").val());
+      hideElement("#source");
+      $("#sink-label").text("T=" + $("#sink").val());
+      hideElement("#sink");
+
+      showElement("#random-path");
+      showElement("#shortest-path");
+
+      hideElement(".change-capacity");
+      hideElement("#add-graph");
+      hideElement("#clear");
     } else {
+      cancelHighlightedElements();
+
+      $(this).css("background-color", "#1ab394");
       $(this).text("Start Practice");
+
       $("#state").text("State: Graph Creation");
-      $("#proceed-step").toggle();
+      hideElement("#proceed-step");
+
+      $("#source-label").text("S=");
+      showElement("#source");
+      $("#sink-label").text("T=");
+      showElement("#sink");
+
+      hideElement("#random-path");
+      hideElement("#shortest-path");
+      
+      showElement(".change-capacity");
+      showElement("#add-graph");
+      showElement("#clear");
     }
-    $(".modification").toggle();
   });
 
   // add node with given args
@@ -323,6 +366,8 @@ $(function () {
     console.log(selectedPath);
   });
 
+
+  var oldFlowNetwork = null;
   // proceed in steps in pracitcing mode
   $("#proceed-step").on("click", function (event) {
     event.preventDefault();
@@ -343,27 +388,176 @@ $(function () {
 
       // get path expression to show in the front end and the bottleneck: -1 means invalid path
       var bottleneck = flowNetwork.findBottleneckCapacity(selectedPath);
+      console.log(bottleneck);
       if (bottleneck === -1) {
         alert("Not valid path, select again.");
         return;
       }
 
-      // now proceed to choose flow
-      $("#state").text("State: Choose Flow");
+      bottleneck = 5;//parseInt(bottleneck);
+
       // tell user the range he can choose from
-      var prompt = window.prompt("Enter a flow you want to apply to the edge.");
-      // check if the user entered a proper flow: check int and should be within valid range
-      // prompt again if not valid
+      var prompt = window.prompt("Enter a flow you want to apply to the edge. " + "Hint: 1 to " + bottleneck);
+
       console.log(prompt);
-      $("#state").text("State: Update Graph");
+      // User pressed cancel
+      if (prompt === null) {
+        return;
+      }
+      // check if the user entered a proper flow: check int and should be within valid range
+      var flow = parseInt(prompt);
+      while (isNaN(flow) || flow < 1 || flow > bottleneck)  {
+        prompt = window.prompt("Enter a valid flow you want to apply to the edge. " + "Hint: 1 to " + bottleneck);
+        if (prompt === null) {
+          return;
+        }
+        flow = parseInt(prompt);
+      }
+
+      $("#history").text(selectedPath);
+      console.log(flow);
+
+      $("#state").text("State: Update Residual Graph");
+      oldFlowNetwork = flowNetwork;
+      showElement(".change-capacity");
+      hideElement("#random-path");
+      hideElement("#shortest-path");
+      showElement("#auto-complete");
+      $("#proceed-step").text("Confirm Residual Graph");
+      cy.edgehandles('enable');
+
+      var cyStyles = [
+        {
+          selector: "node",
+          css: {
+            content: "data(id)",
+            "text-valign": "center",
+            "text-halign": "center",
+            "background-color": "white",
+            "line-color": "red",
+            "target-arrow-color": "#61bffc",
+            "transition-property":
+            "background-color, line-color, target-arrow-color",
+            "transition-duration": "0.5s",
+            "padding-top": "5px",
+            "padding-right": "5px",
+            "padding-bottom": "5px",
+            "padding-left": "5px",
+            "border-width": 2,
+            "border-color": "black",
+          },
+        },
+        {
+          selector: "edge",
+          css: {
+            "target-arrow-shape": "triangle",
+            width: 4,
+            "line-color": "lightgray",
+            "target-arrow-color": "lightgray",
+            label: flow.toString(),
+            "text-valign": "right",
+          },
+        },
+        {
+          selector: ".edgehandles-hover",
+          css: {
+            "border-width": 3,
+            "border-color": "black",
+          },
+        },
+        {
+          selector: ".edgehandles-source",
+          css: {
+            "border-width": 3,
+            "border-color": "black",
+          },
+        },
+        {
+          selector: ".edgehandles-target",
+          css: {
+            "border-width": 3,
+            "border-color": "black",
+          },
+        },
+        {
+          selector: ".edgehandles-preview",
+          css: {
+            "line-color": "darkgray",
+            "target-arrow-color": "darkgray",
+            "source-arrow-color": "darkgray",
+          },
+        },
+        {
+          selector: "node:selected",
+          css: {
+            "border-width": 3,
+            "border-color": "#000000",
+          },
+        },
+        {
+          selector: "edge:selected",
+          css: {
+            "line-color": "darkgray",
+            "target-arrow-color": "darkgray",
+          },
+        },
+        {
+          selector: ".highlighted",
+          css: {
+            "background-color": "#ad1a66",
+            "line-color": "#ad1a66",
+            "target-arrow-color": "#ad1a66",
+            "transition-property":
+              "background-color, line-color, target-arrow-color",
+            "transition-duration": "0.5s",
+          },
+        },
+      ];
+
+      cy.style().fromJson(cyStyles);
+
+    } else if (getState() === "Update Residual Graph") {
+      
+      var $source = $("#source");
+      var source = $source.val();
+      var $sink = $("#sink");
+      var sink = $sink.val();
+
+      var flowNetwork = new FlowNetwork(source, sink);
+
+      var edges = cy.edges();
+      edges.forEach(function (edge) {
+        var label = edge.css("label");
+        flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+      });
+      // check if the current graph is the same network after applying the flow
+      // if not, let user redo it. 
+      
+      // var valid = oldFlowNetwork. function
+      var valid = true;
+      if (valid) {
+        cancelHighlightedElements();
+
+        hideElement(".change-capacity");
+        showElement("#random-path");
+        showElement("#shortest-path");
+        hideElement("#auto-complete");
+
+        $("#state").text("State: Select Path");
+        $("#proceed-step").text("Confirm Path");
+
+        cy.edgehandles('disable');
+      }
     }
+  });
+
+  $("#auto-complete").on("click", function() {
+    event.preventDefault();
+    // call check graph function, update the graph
   });
 
   // change edge capacity after clicking update button
   $("#label-btn").on("click", function () {
-    if (!allowModify()) {
-      return;
-    }
     var $label = $("#label");
     var label = $label.val();
     if (isNaN(parseInt(label)) || parseInt(label) < 0) {

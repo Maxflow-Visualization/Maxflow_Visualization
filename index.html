@@ -25,12 +25,20 @@
         </div>
         <div class="wrapper wrapper-content">
           <div class="row">
-            <div class="col-lg-12">
+            <div class="col-lg-10">
               <div class="ibox float-e-margins" style="padding: 0 !important">
                 <div class="ibox-content" style="padding: 0 !important">
                   <div class="row">
                     <div id="cy"></div>
                   </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-2">
+              <div class="ibox float-e-margins" style="padding: 0 !important">
+                <div class="ibox-content" style="padding: 0 !important">
+                  <h2>Selected Path(s)</h2>
+                  <div id="history"></div>
                 </div>
               </div>
             </div>
@@ -46,14 +54,14 @@
                   min="1"
                   oninput="removeLeadingZeros(this)"
                   id="label"
-                  class="form-control input-sm text-center modification"
+                  class="form-control input-sm text-center change-capacity"
                 />
               </div>
               <div>
                 <button
                   type="button"
                   id="label-btn"
-                  class="btn btn-primary btn-sm modification"
+                  class="btn btn-primary btn-sm change-capacity"
                 >
                   Update
                 </button>
@@ -65,7 +73,7 @@
             <div class="col-sm-7">
               <div class="col-md-2">
                 <div class="form-group has-success">
-                  <label class="col-sm-1 control-label">S=</label>
+                  <label class="col-sm-1 control-label" id="source-label">S=</label>
 
                   <div class="col-sm-7" style="padding-left: 5px !important">
                     <input
@@ -80,7 +88,7 @@
               </div>
               <div class="col-md-2">
                 <div class="form-group has-success">
-                  <label class="col-sm-1 control-label">T=</label>
+                  <label class="col-sm-1 control-label" id="sink-label">T=</label>
 
                   <div class="col-sm-7" style="padding-left: 5px !important">
                     <input
@@ -94,15 +102,15 @@
                 </div>
               </div>
               <button
-                class="btn btn-primary btn-sm modification"
+                class="btn btn-primary btn-sm"
                 id="random-path"
                 type="submit"
                 style="display: none"
               >
-                Compute random Path
+                Compute Random Path
               </button>
               <button
-                class="btn btn-primary btn-sm modification"
+                class="btn btn-primary btn-sm"
                 id="shortest-path"
                 type="submit"
                 style="display: none"
@@ -139,6 +147,14 @@
                 type="submit"
               >
                 Confirm Path
+              </button>
+              <button
+                class="btn btn-info btn-sm"
+                style="margin-left: 40px; display: none"
+                id="auto-complete"
+                type="submit"
+              >
+                Auto Compelete Residual Graph
               </button>
             </div>
             <div>
