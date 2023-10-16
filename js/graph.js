@@ -177,10 +177,10 @@ $(function () {
 
   // delete a node with backspace or delete button
   $("html").keyup(function (e) {
-    if (!allowModify() && getState() !== "Update Graph") {
+    if (!allowModify() && getState() !== "Update Residual Graph") {
       return;
     }
-    if (e.key == "Backspace" || e.key == "Delete") {
+    if (e.key == "Delete") {
       const inputElement = document.getElementById("label");
       // Check if there's a selection within the input
       if (document.activeElement != inputElement) {
@@ -368,6 +368,7 @@ $(function () {
 
 
   var oldFlowNetwork = null;
+  var flow = 0;
   // proceed in steps in pracitcing mode
   $("#proceed-step").on("click", function (event) {
     event.preventDefault();
@@ -387,14 +388,11 @@ $(function () {
       });
 
       // get path expression to show in the front end and the bottleneck: -1 means invalid path
-      var bottleneck = flowNetwork.findBottleneckCapacity(selectedPath);
-      console.log(bottleneck);
+      const [bottleneck, message] = flowNetwork.findBottleneckCapacity(selectedPath);
       if (bottleneck === -1) {
-        alert("Not valid path, select again.");
+        alert(message);
         return;
       }
-
-      bottleneck = 5;//parseInt(bottleneck);
 
       // tell user the range he can choose from
       var prompt = window.prompt("Enter a flow you want to apply to the edge. " + "Hint: 1 to " + bottleneck);
@@ -405,7 +403,7 @@ $(function () {
         return;
       }
       // check if the user entered a proper flow: check int and should be within valid range
-      var flow = parseInt(prompt);
+      flow = parseInt(prompt);
       while (isNaN(flow) || flow < 1 || flow > bottleneck)  {
         prompt = window.prompt("Enter a valid flow you want to apply to the edge. " + "Hint: 1 to " + bottleneck);
         if (prompt === null) {
@@ -414,7 +412,7 @@ $(function () {
         flow = parseInt(prompt);
       }
 
-      $("#history").text(selectedPath);
+      $("#history").append("Path: " + message + " \nChosen Capacity: " + flow + "<br>");
       console.log(flow);
 
       $("#state").text("State: Update Residual Graph");
@@ -423,6 +421,7 @@ $(function () {
       hideElement("#random-path");
       hideElement("#shortest-path");
       showElement("#auto-complete");
+      showElement("#undo-updates");
       $("#proceed-step").text("Confirm Residual Graph");
       cy.edgehandles('enable');
 
@@ -530,30 +529,56 @@ $(function () {
         var label = edge.css("label");
         flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
       });
+      console.log(flowNetwork);
       // check if the current graph is the same network after applying the flow
       // if not, let user redo it. 
       
-      // var valid = oldFlowNetwork. function
-      var valid = true;
-      if (valid) {
+      var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
+      if (isSameGraphSkipFlowComparison(flowNetwork.graph, expectedGraph)) {
         cancelHighlightedElements();
 
         hideElement(".change-capacity");
         showElement("#random-path");
         showElement("#shortest-path");
         hideElement("#auto-complete");
+        hideElement("#undo-updates");
 
         $("#state").text("State: Select Path");
         $("#proceed-step").text("Confirm Path");
 
         cy.edgehandles('disable');
+      } else {
+        alert("Residual graph not yet completed, please keep trying.");
       }
     }
   });
 
-  $("#auto-complete").on("click", function() {
+  $("#auto-complete").on("click", function(event) {
     event.preventDefault();
     // call check graph function, update the graph
+    var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
+    
+    cy.edges().remove();
+    for (const [_, neighborsMap] of expectedGraph) {
+      for (const [_, edge] of neighborsMap) {
+        if (edge.capacity !== 0) {
+          addEdge(cy, edge.source+"-"+edge.target, edge.capacity, edge.source, edge.target);
+        }
+      }
+    }
+  });
+
+  $("#undo-updates").on("click", function(event) {
+    event.preventDefault();
+
+    cy.edges().remove();
+    for (const [_, neighborsMap] of oldFlowNetwork.graph) {
+      for (const [_, edge] of neighborsMap) {
+        if (edge.capacity !== 0) {
+          addEdge(cy, edge.source+"-"+edge.target, edge.capacity, edge.source, edge.target);
+        }
+      }
+    }
   });
 
   // change edge capacity after clicking update button

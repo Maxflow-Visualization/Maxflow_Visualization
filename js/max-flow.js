@@ -20,6 +20,28 @@ function shuffle(array) {
   }
 }
 
+function isSameGraphSkipFlowComparison(graph1, graph2) {
+  console.log(graph1.keys())
+  console.log("------")
+  console.log(graph2.keys())
+  if (JSON.stringify([...graph1.keys()].sort()) != JSON.stringify([...graph2.keys()].sort())) {
+    console.log("here1");
+    return false;
+  }
+  for (const source of graph1.keys()) {
+    if (JSON.stringify([...graph1.get(source).keys()].sort()) != JSON.stringify([...graph2.get(source).keys()].sort())) {
+      console.log("here2");
+      return false;
+    }
+    for (const neighbor of graph1.get(source).keys()) {
+      if (graph1.get(source).get(neighbor).capacity != graph2.get(source).get(neighbor).capacity) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 class Edge {
   constructor(source, target, capacity, flow = 0) {
     this.source = source;
@@ -35,7 +57,6 @@ class FlowNetwork {
     this.graph = new Map();
     this.source = source;
     this.sink = sink;
-    this.metaGraph = new Map();
   }
 
   getGraph() {
@@ -128,7 +149,7 @@ class FlowNetwork {
       bottleneck = Math.min(bottleneck, edge.capacity - edge.flow);
     }
     if (bottleneck == 0) {
-      return [0, "the selected path is saturated"]
+      return [-1, "the selected path is saturated"]
     }
     return [bottleneck, pathFromSourceToSink.join("->")];
   }
@@ -258,27 +279,6 @@ class FlowNetwork {
     return res;
   }
 
-  // isSameGraph(graph1, graph2) {
-  //   if (JSON.stringify([...graph1.keys()]) != JSON.stringify([...graph2.keys()])) {
-  //     console.log("here");
-  //     return false;
-  //   }
-  //   for (const source of graph1.keys()) {
-  //     if (JSON.stringify(graph1.get(source).keys()) != JSON.stringify(graph2.get(source).keys())) {
-  //       console.log("here")
-  //       return false;
-  //     }
-  //     for (const neighbor of graph1.get(source).keys()) {
-  //       var edge1 = graph1.get(source).get(neighbor)
-  //       var edge2 = graph2.get(source).get(neighbor)
-  //       if (edge1.flow != edge2.flow || edge1.capacity != edge2.capacity) {
-  //         return false;
-  //       }
-  //     }
-  //   }
-  //   return true;
-  // }
-
   // deepCopyGraph(graph) {
   //   var copy = new Map();
   //   for (const [source, neighborsMap] of graph) {
@@ -299,11 +299,8 @@ class FlowNetwork {
     }
     if (doUpdate) {
       this.graph = _.cloneDeep(expectedGraph);
-      return expectedGraph;
     }
-    else {
-      return expectedGraph;
-    }
+    return expectedGraph;
   }
 
   findMaxFlowFulkerson(paths) {
