@@ -112,19 +112,25 @@ class FlowNetwork {
         }
       }
     }
-    return res.length != 0 && res.length == allNodes.size;
+    // Must have no node outside of the path from source to sink
+    return [res.length != 0 && res.length == allNodes.size, res];
   }
 
   // find bottleneck REMAINING capacity
+  // return [bottleneck, "ordered" path from source to sink]
   findBottleneckCapacity(path) {
-    if (!path || !this.validatePathTopology(path)) {
-      return -1;
+    const [isValidTopology, pathFromSourceToSink] = this.validatePathTopology(path);
+    if (!path || !isValidTopology) {
+      return [-1, "invalid topology"];
     }
-    bottleneck = Infinity;
+    var bottleneck = Infinity;
     for (const edge of path) {
       bottleneck = Math.min(bottleneck, edge.capacity - edge.flow);
     }
-    return bottleneck;
+    if (bottleneck == Infinity) {
+      return [-1, "the selected path is saturated"]
+    }
+    return [bottleneck, pathFromSourceToSink.join("->")];
   }
 
   // make edge highlighted with given args
@@ -285,18 +291,18 @@ class FlowNetwork {
   // }
 
   addFlow(path, flow, doUpdate) {
-    var modifiedGraph = _.cloneDeep(this.graph);
+    var expectedGraph = _.cloneDeep(this.graph);
     for (const edge of path) {
-      modifiedGraph.get(edge.source).get(edge.target).flow += flow;
-      modifiedGraph.get(edge.source).get(edge.target).capacity -= flow;
-      modifiedGraph.get(edge.target).get(edge.source).capacity += flow;
+      expectedGraph.get(edge.source).get(edge.target).flow += flow;
+      expectedGraph.get(edge.source).get(edge.target).capacity -= flow;
+      expectedGraph.get(edge.target).get(edge.source).capacity += flow;
     }
     if (doUpdate) {
-      this.graph = _.cloneDeep(modifiedGraph);
-      return modifiedGraph;
+      this.graph = _.cloneDeep(expectedGraph);
+      return expectedGraph;
     }
     else {
-      return modifiedGraph;
+      return expectedGraph;
     }
   }
 
