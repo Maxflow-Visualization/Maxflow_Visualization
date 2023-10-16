@@ -105,7 +105,7 @@ class FlowNetwork {
     // find path from source to sink
     if (!graph.has(this.source)) {
       console.log("no source");
-      return false;
+      return [false, []];
     }
     var queue = [];
     var visited = new Set();
@@ -138,6 +138,7 @@ class FlowNetwork {
   // return [bottleneck, "ordered" path from source to sink]
   findBottleneckCapacity(path) {
     const [isValidTopology, pathFromSourceToSink] = this.validatePathTopology(path);
+    console.log(isValidTopology);
     if (!path || !isValidTopology) {
       return [-1, "invalid topology"];
     }

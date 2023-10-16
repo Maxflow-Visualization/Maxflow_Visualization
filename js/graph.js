@@ -331,7 +331,7 @@ $(function () {
     edge.css("target-arrow-color", "lightgray");
   }
 
-  var selectedPath = null;
+  var selectedPath = [];
   // tap edge to change capacity in modifying mode or select path in practicing mode
   cy.on("tap", "edge", function (event) {
     var edge = event.cyTarget;
@@ -342,8 +342,8 @@ $(function () {
     var target = edge.target().id();
     var capacity = edge.css("label");
     if (!allowModify() && getState() === "Select Path") {
-      if (selectedPath === null || selectedPath.length === 0) {
-        selectedPath = [new Edge(source, target, capacity)];
+      if (selectedPath.length === 0) {
+        selectedPath.push(Edge(source, target, capacity));
         highlightEdge(source, target);
         return;
       }
@@ -387,6 +387,7 @@ $(function () {
       // get path expression to show in the front end and the bottleneck: -1 means invalid path
       const [bottleneck, message] =
         flowNetwork.findBottleneckCapacity(selectedPath);
+      console.log(bottleneck);
       if (bottleneck === -1) {
         alert(message);
         return;
@@ -543,6 +544,7 @@ $(function () {
         cancelHighlightedElements();
 
         totalflow += flow;
+        selectedPath = [];
 
         hideElement(".change-capacity");
         showElement(".find-path");
