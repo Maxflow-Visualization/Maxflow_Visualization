@@ -672,7 +672,11 @@ $(function () {
       // // Apply the "spring model" layout
       // cy.layout({
       //   name: 'cose'
-      // }).run();
+      // })
+
+      // let layout = cy.layout({
+      //   name: 'circle'
+      // });
     };
 
     reader.readAsText(file);
