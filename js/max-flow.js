@@ -20,12 +20,31 @@ function shuffle(array) {
   }
 }
 
+function isSameGraphSkipFlowComparison(graph1, graph2) {
+  if (JSON.stringify([...graph1.keys()].sort()) != JSON.stringify([...graph2.keys()].sort())) {
+    console.log("here1");
+    return false;
+  }
+  for (const source of graph1.keys()) {
+    if (JSON.stringify([...graph1.get(source).keys()].sort()) != JSON.stringify([...graph2.get(source).keys()].sort())) {
+      console.log("here2");
+      return false;
+    }
+    for (const neighbor of graph1.get(source).keys()) {
+      if (graph1.get(source).get(neighbor).capacity != graph2.get(source).get(neighbor).capacity) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 class Edge {
-  constructor(source, target, capacity) {
+  constructor(source, target, capacity, flow = 0) {
     this.source = source;
     this.target = target;
     this.capacity = parseInt(capacity);
-    this.flow = 0;
+    this.flow = flow;
   }
 }
 
@@ -55,6 +74,14 @@ class FlowNetwork {
     }
   }
 
+  isExistEdge(source, target) {
+    return this.graph.has(source) && this.graph.get(source).has(target);
+  }
+  
+  isExistVertex(vertex) {
+    return this.graph.has(vertex);
+  }
+
   // a path topology is not valid if any of these 2 conditions satisfies:
   // 1. there is no path from source to sink
   // 2. there is a node in the given path that does not exist on this path
@@ -78,7 +105,7 @@ class FlowNetwork {
     // find path from source to sink
     if (!graph.has(this.source)) {
       console.log("no source");
-      return false;
+      return [false, []];
     }
     var queue = [];
     var visited = new Set();
@@ -103,22 +130,26 @@ class FlowNetwork {
         }
       }
     }
-    return res.length != 0 && res.length == allNodes.size;
+    // Must have no node outside of the path from source to sink
+    return [res.length != 0 && res.length == allNodes.size, res];
   }
 
   // find bottleneck REMAINING capacity
+  // return [bottleneck, "ordered" path from source to sink]
   findBottleneckCapacity(path) {
-    if (!path || !this.validatePathTopology(path)) {
-      return -1;
+    const [isValidTopology, pathFromSourceToSink] = this.validatePathTopology(path);
+    console.log(isValidTopology);
+    if (!path || !isValidTopology) {
+      return [-1, "invalid topology"];
     }
-  }
-
-  isExistEdge(source, target) {
-    return this.graph.has(source) && this.graph.get(source).has(target);
-  }
-
-  isExistVertex(vertex) {
-    return this.graph.has(vertex);
+    var bottleneck = Infinity;
+    for (const edge of path) {
+      bottleneck = Math.min(bottleneck, edge.capacity - edge.flow);
+    }
+    if (bottleneck == 0) {
+      return [-1, "the selected path is saturated"]
+    }
+    return [bottleneck, pathFromSourceToSink.join("->")];
   }
 
   // make edge highlighted with given args
@@ -165,7 +196,6 @@ class FlowNetwork {
         }
       }
     }
-    console.log(res);
     return res;
   }
 
@@ -175,7 +205,6 @@ class FlowNetwork {
     var visited = new Set();
     var initSearchNode = [this.source, [this.source]];
     stack.push(initSearchNode);
-    visited.add(this.source);
     while (stack.length) {
       var searchNode = stack.pop();
       var node = searchNode[0];
@@ -184,18 +213,18 @@ class FlowNetwork {
         res = path;
         break;
       }
+      if (visited.has(node)) {
+        continue;
+      }
+      visited.add(node);
       var filteredNeighbors = this.filterNeighbors(this.graph.get(node));
       shuffle(filteredNeighbors);
       for (const neighbor of filteredNeighbors) {
-        if (!visited.has(neighbor)) {
-          var newPath = structuredClone(path);
-          newPath.push(neighbor);
-          stack.push([neighbor, newPath]);
-          visited.add(neighbor);
-        }
+        var newPath = structuredClone(path);
+        newPath.push(neighbor);
+        stack.push([neighbor, newPath]);
       }
     }
-    console.log(res);
     return res;
   }
 
@@ -236,17 +265,45 @@ class FlowNetwork {
     // get the path
     var node = this.sink;
     var res = [];
+    var notReachable = false;
     while (node != this.source) {
+      if (node == "#") {
+        notReachable = true;
+        break;
+      }
       res.push(node);
       node = prev.get(node);
     }
+    if (notReachable) {
+      return [];
+    }
     res.reverse();
     res.unshift(this.source);
-    console.log(res);
     return res;
   }
 
-  addFlow(path, flow) {
+  // deepCopyGraph(graph) {
+  //   var copy = new Map();
+  //   for (const [source, neighborsMap] of graph) {
+  //     copy.set(source, new Map());
+  //     for (const [neighbor, edge] of neighborsMap) {
+  //       copy.get(source).set(neighbor, new Edge(edge.source, edge.target, edge.capacity, edge.flow));
+  //     }
+  //   }
+  //   return copy;
+  // }
+
+  addFlow(path, flow, doUpdate) {
+    var expectedGraph = _.cloneDeep(this.graph);
+    for (const edge of path) {
+      expectedGraph.get(edge.source).get(edge.target).flow += flow;
+      expectedGraph.get(edge.source).get(edge.target).capacity -= flow;
+      expectedGraph.get(edge.target).get(edge.source).capacity += flow;
+    }
+    if (doUpdate) {
+      this.graph = _.cloneDeep(expectedGraph);
+    }
+    return expectedGraph;
   }
 
   findMaxFlowFulkerson(paths) {
