@@ -21,9 +21,6 @@ function shuffle(array) {
 }
 
 function isSameGraphSkipFlowComparison(graph1, graph2) {
-  console.log(graph1.keys())
-  console.log("------")
-  console.log(graph2.keys())
   if (JSON.stringify([...graph1.keys()].sort()) != JSON.stringify([...graph2.keys()].sort())) {
     console.log("here1");
     return false;
@@ -267,13 +264,20 @@ class FlowNetwork {
     // get the path
     var node = this.sink;
     var res = [];
+    var notReachable = false;
     while (node != this.source) {
+      if (node == "#") {
+        notReachable = true;
+        break;
+      }
       res.push(node);
       node = prev.get(node);
     }
+    if (notReachable) {
+      return [];
+    }
     res.reverse();
     res.unshift(this.source);
-    console.log(res);
     return res;
   }
 
