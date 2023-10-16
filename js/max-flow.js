@@ -127,8 +127,8 @@ class FlowNetwork {
     for (const edge of path) {
       bottleneck = Math.min(bottleneck, edge.capacity - edge.flow);
     }
-    if (bottleneck == Infinity) {
-      return [-1, "the selected path is saturated"]
+    if (bottleneck == 0) {
+      return [0, "the selected path is saturated"]
     }
     return [bottleneck, pathFromSourceToSink.join("->")];
   }
