@@ -893,9 +893,9 @@ $(function () {
         graph.get(node1).set(node2, edgeValue);
       });
 
-      console.log(graph); // Here's your directed graph
-      console.log(smallest);
-      console.log(largest);
+      // console.log(graph); // Here's your directed graph
+      // console.log(smallest);
+      // console.log(largest);
       $("#source").val(smallest);
       $("#sink").val(largest);
       drawNodes(graph, smallest, largest);

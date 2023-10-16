@@ -198,7 +198,6 @@ class FlowNetwork {
         }
       }
     }
-    console.log(res);
     return res;
   }
 
@@ -208,7 +207,6 @@ class FlowNetwork {
     var visited = new Set();
     var initSearchNode = [this.source, [this.source]];
     stack.push(initSearchNode);
-    visited.add(this.source);
     while (stack.length) {
       var searchNode = stack.pop();
       var node = searchNode[0];
@@ -217,18 +215,18 @@ class FlowNetwork {
         res = path;
         break;
       }
+      if (visited.has(node)) {
+        continue;
+      }
+      visited.add(node);
       var filteredNeighbors = this.filterNeighbors(this.graph.get(node));
       shuffle(filteredNeighbors);
       for (const neighbor of filteredNeighbors) {
-        if (!visited.has(neighbor)) {
-          var newPath = structuredClone(path);
-          newPath.push(neighbor);
-          stack.push([neighbor, newPath]);
-          visited.add(neighbor);
-        }
+        var newPath = structuredClone(path);
+        newPath.push(neighbor);
+        stack.push([neighbor, newPath]);
       }
     }
-    console.log(res);
     return res;
   }
 
