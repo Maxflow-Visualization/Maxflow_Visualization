@@ -1013,4 +1013,28 @@ $(function () {
       console.log(edgelistContent);
       download("edgelist.txt", edgelistContent);
     });
+
+  $("#find-min-cut").on("click", function (e) {
+    e.preventDefault();
+
+    cancelHighlightedElements();
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
+
+    var flowNetwork = new FlowNetwork(source, sink);
+
+    var edges = cy.edges();
+    
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
+
+    var minCut = flowNetwork.findMinCut(source)
+    console.log(minCut);
+
+    return;
+  });
 });

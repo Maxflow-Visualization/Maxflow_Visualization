@@ -310,6 +310,39 @@ class FlowNetwork {
     console.log(this.graph);
   }
 
+  DFS(node, visited) {
+    if (visited.has(node)) {
+        return visited;
+    }
+    visited.add(node);
+    var filteredNeighbors = this.filterNeighbors(this.graph.get(node));
+    for (const neighbor of filteredNeighbors) {
+      console.log(neighbor)
+      if (!visited.has(neighbor)) {
+          visited = this.DFS(neighbor, visited);
+      }
+    }
+    return visited;
+  }
+
+  findMinCut(source) {
+    let visited = new Set();
+    // console.log(this.graph)
+    visited = this.DFS(source, visited);
+    console.log(visited)
+
+    let minCut = [];
+    for (let node of visited) {
+        for (let neighbor in this.graph[node]) {
+            if (!visited.has(neighbor)) {
+                minCut.push([node, neighbor]);
+            }
+        }
+    }
+    
+    return minCut;
+  }
+
   // findMaxFlowFulkerson (paths) {
   //   paths = paths || [];
   //   var maxFlow = 0;
