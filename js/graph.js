@@ -846,6 +846,10 @@ $(function () {
   // read file and load it to cy drawboard
   document.getElementById("fileInput").addEventListener("change", readFile);
   function readFile(event) {
+    if (!event.target.files.length) {
+      // User clicked "Cancel" in the file selection dialog
+      return;
+    }
     $("#clear").triggerHandler("click");
     const file = event.target.files[0];
     const reader = new FileReader();
@@ -856,6 +860,24 @@ $(function () {
       var graph = new Map();
       var smallest = 10000000;
       var largest = 0;
+
+      const hasPositionData = lines[0].includes("(") && lines[0].includes(")");
+        
+        if (hasPositionData) {
+          const positions = lines[0].split(" ").map(data => {
+            // Extract and process node positions here if needed
+            // Example: "1(100,200)" => { id: "1", x: 100, y: 200 }
+            const parts = data.match(/(\d+)\((\d+),(\d+)\)/);
+            if (parts) {
+              addNode(cy, parts[1], parts[1], parseInt(parts[2], 10), parseInt(parts[3], 10));
+            }
+          });
+
+          // Use the positions data as required
+          // console.log(positions);
+          // Remove the first line so that the edgelist processing doesn't consider it
+          lines.shift();
+        }
 
       lines.forEach((line) => {
         var parts = "";
@@ -895,22 +917,24 @@ $(function () {
         graph.get(node1).set(node2, edgeValue);
       });
 
-      // console.log(graph); // Here's your directed graph
-      // console.log(smallest);
-      // console.log(largest);
       $("#source").val(smallest);
       $("#sink").val(largest);
-      drawNodes(graph, smallest, largest);
+      if(!hasPositionData){
+        drawNodes(graph, smallest, largest);
+      }
+      
       drawEdges(graph);
 
-      cy.layout({
-        name: "breadthfirst",
-        directed: true, // because max-flow problems are typically directed
-        spacingFactor: 1.25,
-        avoidOverlap: true,
-        ScreenOrientation: "horizontal",
-      });
-      makeLayoutHorizontal(cy);
+      if(!hasPositionData){
+        cy.layout({
+          name: "breadthfirst",
+          directed: true, // because max-flow problems are typically directed
+          spacingFactor: 1.25,
+          avoidOverlap: true,
+          ScreenOrientation: "horizontal",
+        });
+        makeLayoutHorizontal(cy);
+      }
 
       // // Apply the "spring model" layout
       // cy.layout({
@@ -1008,10 +1032,18 @@ $(function () {
         flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
       });
       graph = flowNetwork.getGraph();
-      console.log(graph);
+      let positions = "";
+
+      // Iterate over all nodes in the Cytoscape instance and gather positions
+      cy.nodes().forEach(node => {
+        const id = node.id();
+        const pos = node.position();
+        positions += `${id}(${pos.x},${pos.y}) `;
+      });
+
       const edgelistContent = graphToEdgelist(graph);
       console.log(edgelistContent);
-      download("edgelist.txt", edgelistContent);
+      download("edgelist.txt", positions + '\n' + edgelistContent);
     });
 
   $("#find-min-cut").on("click", function (e) {
@@ -1037,4 +1069,33 @@ $(function () {
 
     return;
   });
+
+  document.getElementById('layoutChoices').addEventListener('change', function(event) {
+    const selectedValue = event.target.value;
+
+    switch(selectedValue) {
+        case 'layered':
+            // Execute code for layered layout
+            console.log('Executed code for Choice 1');
+            cy.layout({
+              name: "breadthfirst",
+              directed: true, // because max-flow problems are typically directed
+              spacingFactor: 1.25,
+              avoidOverlap: true,
+              ScreenOrientation: "horizontal",
+            });
+            makeLayoutHorizontal(cy);
+            break;
+        case 'spring':
+            // Execute code for Spring Model layout
+            console.log('Executed code for Choice 2');
+            cy.layout({
+              name: 'cose'
+            })
+            break;
+        default:
+            console.log('No choice');
+    }
+});
+
 });
