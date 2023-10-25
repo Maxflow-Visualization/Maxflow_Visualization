@@ -339,7 +339,7 @@ class FlowNetwork {
             }
         }
     }
-    
+    console.log(minCut);
     return minCut;
   }
 
