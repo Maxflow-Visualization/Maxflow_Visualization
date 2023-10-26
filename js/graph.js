@@ -385,7 +385,7 @@ $(function () {
       });
 
       // get path expression to show in the front end and the bottleneck: -1 means invalid path
-      const [bottleneck, message] =
+      const [bottleneck, bottleneckEdge, message] =
         flowNetwork.findBottleneckCapacity(selectedPath);
       console.log(bottleneck);
       if (bottleneck === -1) {
@@ -750,7 +750,7 @@ $(function () {
     }
 
     selectedPath = flowNetwork.convertNodesToEdges(path);
-    const [bottleneck, message] =
+    const [bottleneck, bottleneckEdge, message] =
       flowNetwork.findBottleneckCapacity(selectedPath);
     console.log(message);
     expectedGraph = flowNetwork.addFlow(selectedPath, bottleneck, false);
