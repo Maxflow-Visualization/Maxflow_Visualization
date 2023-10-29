@@ -582,6 +582,43 @@ $(function () {
     }
   });
 
+  $("#find-min-cut").on("click", function (e) {
+    e.preventDefault();
+
+    cancelHighlightedElements();
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
+
+    var flowNetwork = new FlowNetwork(source, sink);
+
+    var edges = cy.edges();
+
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
+
+    var minCutFromSource = flowNetwork.findMinCut(source);
+
+
+    console.log(minCutFromSource);
+
+    var nodes = cy.nodes();
+
+    nodes.forEach(function (node) {
+      if (minCutFromSource.has(node.id())) {
+        node.css("border-color", "red");
+      }
+    });
+
+    // var minCutFromSink = flowNetwork.findMinCutBack(sink);
+    // console.log(minCutFromSink);
+
+    return;
+  });
+
   $("#bottleneck").on("click", function (event) {
     event.preventDefault();
 
@@ -1089,7 +1126,7 @@ $(function () {
       cy.nodes().forEach((node) => {
         const id = node.id();
         const pos = node.position();
-        
+
         positions += `${id}(${parseInt(pos.x)},${parseInt(pos.y)}) `;
       });
 
@@ -1097,33 +1134,6 @@ $(function () {
       console.log(edgelistContent);
       download("edgelist.txt", positions + "\n" + edgelistContent);
     });
-
-  $("#find-min-cut").on("click", function (e) {
-    e.preventDefault();
-
-    cancelHighlightedElements();
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-
-    var flowNetwork = new FlowNetwork(source, sink);
-
-    var edges = cy.edges();
-
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-    });
-
-    var minCutFromSource = flowNetwork.findMinCut(source)
-    console.log(minCutFromSource);
-
-    var minCutFromSink = flowNetwork.findMinCutBack(sink)
-    console.log(minCutFromSink);
-
-    return;
-  });
 
   document
     .getElementById("layoutChoices")

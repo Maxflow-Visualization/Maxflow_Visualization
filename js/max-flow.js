@@ -21,17 +21,26 @@ function shuffle(array) {
 }
 
 function isSameGraphSkipFlowComparison(graph1, graph2) {
-  if (JSON.stringify([...graph1.keys()].sort()) != JSON.stringify([...graph2.keys()].sort())) {
+  if (
+    JSON.stringify([...graph1.keys()].sort()) !=
+    JSON.stringify([...graph2.keys()].sort())
+  ) {
     console.log("here1");
     return false;
   }
   for (const source of graph1.keys()) {
-    if (JSON.stringify([...graph1.get(source).keys()].sort()) != JSON.stringify([...graph2.get(source).keys()].sort())) {
+    if (
+      JSON.stringify([...graph1.get(source).keys()].sort()) !=
+      JSON.stringify([...graph2.get(source).keys()].sort())
+    ) {
       console.log("here2");
       return false;
     }
     for (const neighbor of graph1.get(source).keys()) {
-      if (graph1.get(source).get(neighbor).capacity != graph2.get(source).get(neighbor).capacity) {
+      if (
+        graph1.get(source).get(neighbor).capacity !=
+        graph2.get(source).get(neighbor).capacity
+      ) {
         return false;
       }
     }
@@ -77,7 +86,7 @@ class FlowNetwork {
   isExistEdge(source, target) {
     return this.graph.has(source) && this.graph.get(source).has(target);
   }
-  
+
   isExistVertex(vertex) {
     return this.graph.has(vertex);
   }
@@ -137,7 +146,8 @@ class FlowNetwork {
   // find bottleneck REMAINING capacity
   // return [bottleneck, "ordered" path from source to sink]
   findBottleneckCapacity(path) {
-    const [isValidTopology, pathFromSourceToSink] = this.validatePathTopology(path);
+    const [isValidTopology, pathFromSourceToSink] =
+      this.validatePathTopology(path);
     console.log(isValidTopology);
     if (!path || !isValidTopology) {
       return [-1, "invalid topology"];
@@ -151,32 +161,36 @@ class FlowNetwork {
       }
     }
     if (bottleneckCapacity == 0) {
-      return [-1, "the selected path is saturated"]
+      return [-1, "the selected path is saturated"];
     }
-    return [bottleneckCapacity, bottleneckEdge, pathFromSourceToSink.join("->")];
+    return [
+      bottleneckCapacity,
+      bottleneckEdge,
+      pathFromSourceToSink.join("->"),
+    ];
   }
 
   // make edge highlighted with given args
   convertNodesToEdges(nodes) {
     var edges = [];
     for (var i = 0; i < nodes.length - 1; i++) {
-      edges.push(this.graph.get(nodes[i]).get(nodes[i+1]));
+      edges.push(this.graph.get(nodes[i]).get(nodes[i + 1]));
     }
     return edges;
   }
 
   // filter neighbors whose edge is not saturated (current flow hasn't reached capacity)
-  filterNeighbors (neighborsMap) {
+  filterNeighbors(neighborsMap) {
     var filteredNeighborsMap = new Map(
       [...neighborsMap].filter(
         ([neighbor, edge]) => edge.capacity - edge.flow > 0
       )
     );
-    return [...filteredNeighborsMap.keys()]
+    return [...filteredNeighborsMap.keys()];
   }
 
   findShortestAugmentingPath() {
-    var res = []
+    var res = [];
     var queue = [];
     var visited = new Set();
     var initSearchNode = [this.source, [this.source]];
@@ -204,7 +218,7 @@ class FlowNetwork {
   }
 
   findRandomAugmentingPath() {
-    var res = []
+    var res = [];
     var stack = [];
     var visited = new Set();
     var initSearchNode = [this.source, [this.source]];
@@ -233,7 +247,7 @@ class FlowNetwork {
   }
 
   findWidestAugmentingPath() {
-    var pq = new PriorityQueue(compareWidthNodePair)
+    var pq = new PriorityQueue(compareWidthNodePair);
     // dp map that stores the maximum width to a node
     var maxWidth = new Map();
     for (const node of this.graph.keys()) {
@@ -242,7 +256,7 @@ class FlowNetwork {
     maxWidth.set(this.source, Infinity);
     var prev = new Map();
     for (const node of this.graph.keys()) {
-      prev.set(node, '#');
+      prev.set(node, "#");
     }
     var startPair = new WidthNodePair(Infinity, this.source);
     pq.push(startPair);
@@ -257,7 +271,11 @@ class FlowNetwork {
       var filteredNeighbors = this.filterNeighbors(this.graph.get(node));
       for (const neighbor of filteredNeighbors) {
         // widthto(x) = max e=(v,x):v∈graph [min(widthto(v), width(e))]
-        var widthToNeighbor = Math.min(this.graph.get(node).get(neighbor).capacity - this.graph.get(node).get(neighbor).flow, maxWidth.get(node));
+        var widthToNeighbor = Math.min(
+          this.graph.get(node).get(neighbor).capacity -
+            this.graph.get(node).get(neighbor).flow,
+          maxWidth.get(node)
+        );
         if (widthToNeighbor > maxWidth.get(neighbor)) {
           maxWidth.set(neighbor, widthToNeighbor);
           prev.set(neighbor, node);
@@ -316,14 +334,14 @@ class FlowNetwork {
 
   DFS(node, visited, searchGraph) {
     if (visited.has(node)) {
-        return visited;
+      return visited;
     }
     visited.add(node);
     var filteredNeighbors = this.filterNeighbors(searchGraph.get(node));
     for (const neighbor of filteredNeighbors) {
-      console.log(neighbor)
+      console.log(neighbor);
       if (!visited.has(neighbor)) {
-          visited = this.DFS(neighbor, visited, searchGraph);
+        visited = this.DFS(neighbor, visited, searchGraph);
       }
     }
     return visited;
@@ -333,18 +351,18 @@ class FlowNetwork {
     let reversedGraph = new Map();
 
     for (let node of graph.keys()) {
-        if (!reversedGraph.has(node)) {
-            reversedGraph.set(node, new Map());
+      if (!reversedGraph.has(node)) {
+        reversedGraph.set(node, new Map());
+      }
+
+      for (let neighbor of graph.get(node).keys()) {
+        if (!reversedGraph.has(neighbor)) {
+          reversedGraph.set(neighbor, new Map());
         }
-        
-        for (let neighbor of graph.get(node).keys()) {
-            if (!reversedGraph.has(neighbor)) {
-                reversedGraph.set(neighbor, new Map());
-            }
-            if (parseInt(graph.get(node).get(neighbor).capacity) > 0) {
-              reversedGraph.get(neighbor).set(node, graph.get(node).get(neighbor));
-            }
+        if (parseInt(graph.get(node).get(neighbor).capacity) > 0) {
+          reversedGraph.get(neighbor).set(node, graph.get(node).get(neighbor));
         }
+      }
     }
     return reversedGraph;
   }
@@ -353,37 +371,37 @@ class FlowNetwork {
     let visited = new Set();
     // console.log(this.graph)
     visited = this.DFS(source, visited, this.graph);
-    console.log(visited)
+    console.log(visited);
 
     let minCut = [];
     for (let node of visited) {
-        for (let neighbor in this.graph[node]) {
-            if (!visited.has(neighbor)) {
-                minCut.push([node, neighbor]);
-            }
+      for (let neighbor in this.graph[node]) {
+        if (!visited.has(neighbor)) {
+          minCut.push([node, neighbor]);
         }
+      }
     }
-    
-    return minCut;
+
+    return visited;
   }
 
   findMinCutBack(sink) {
     let visited = new Set();
     // console.log(this.graph)
-    let reversedGraph = this.reverseGraph(this.graph)
+    let reversedGraph = this.reverseGraph(this.graph);
     visited = this.DFS(sink, visited, reversedGraph);
-    console.log(visited)
+    console.log(visited);
 
     let minCut = [];
     for (let node of visited) {
-        for (let neighbor in this.graph[node]) {
-            if (!visited.has(neighbor)) {
-                minCut.push([node, neighbor]);
-            }
+      for (let neighbor in this.graph[node]) {
+        if (!visited.has(neighbor)) {
+          minCut.push([node, neighbor]);
         }
+      }
     }
     console.log(minCut);
-    return minCut;
+    return visited;
   }
 
   // findMaxFlowFulkerson (paths) {
