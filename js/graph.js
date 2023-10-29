@@ -409,6 +409,12 @@ $(function () {
 
       var flowNetwork = new FlowNetwork(source, sink);
 
+      var edges = cy.edges();
+      edges.forEach(function (edge) {
+        var label = edge.css("label");
+        flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+      });
+
       const [bottleneck, bottleneckEdge, message] =
         flowNetwork.findBottleneckCapacity(selectedPath);
 
