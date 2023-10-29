@@ -39,6 +39,21 @@
                 <div class="ibox-content" style="padding: 0 !important">
                   <h2>Selected Path(s)</h2>
                   <div id="history"></div>
+                  <button
+                    class="btn btn-primary btn-sm find-path"
+                    id="confirm-max-flow"
+                    type="submit"
+                    style="display: none"
+                  >
+                  Confirm I already Find the Max Flow !
+                  <button
+                    class="btn btn-primary btn-sm find-path"
+                    id="find-min-cut"
+                    type="submit"
+                    style="display: none"
+                  >
+                  Find min cut
+                  </button>
                 </div>
               </div>
             </div>
@@ -70,7 +85,7 @@
           </div>
 
           <form method="get" class="form-horizontal">
-            <div class="col-sm-7">
+            <div class="col-sm-7" id="all-buttons">
               <div class="col-md-2">
                 <div class="form-group has-success">
                   <label class="col-sm-1 control-label" id="source-label"
@@ -105,37 +120,67 @@
                   </div>
                 </div>
               </div>
-              <button
-                class="btn btn-primary btn-sm find-path"
-                id="shortest-path"
+              <div id="find-path-buttons">
+                <button
+                  class="btn btn-info btn-sm find-path"
+                  id="shortest-path"
+                  type="submit"
+                  style="display: none"
+                >
+                  Compute Shortest Path
+                </button>
+                <button
+                  class="btn btn-info btn-sm find-path"
+                  id="random-path"
+                  type="submit"
+                  style="display: none"
+                >
+                  Compute Random Path
+                </button>
+                <button
+                  class="btn btn-info btn-sm find-path"
+                  id="widest-path"
+                  type="submit"
+                  style="display: none"
+                >
+                  Compute Widest Path
+                </button>
+              </div>
+              <div id="residual-graph">
+                <button
+                class="btn btn-info btn-sm"
+                style="margin-left: 40px; display: none"
+                id="bottleneck"
                 type="submit"
-                style="display: none"
-              >
-                Compute Shortest Path
+                >
+                  Find Bottleneck Edge
+                </button>
+              <div id="residual-graph">
+                <button
+                class="btn btn-info btn-sm"
+                style="margin-left: 40px; display: none"
+                id="auto-complete"
+                type="submit"
+                >
+                  Auto Complete Residual Graph
+                </button>
+                <button
+                  class="btn btn-info btn-sm"
+                  style="margin-left: 40px; display: none"
+                  id="undo-updates"
+                  type="submit"
+                >
+                  Undo All Updates to Residual Graph
+                </button>
+              </div>
               </button>
               <button
-                class="btn btn-primary btn-sm find-path"
-                id="random-path"
+                class="btn btn-primary btn-sm"
+                style="margin-left: 40px; display: none"
+                id="proceed-step"
                 type="submit"
-                style="display: none"
               >
-                Compute Random Path
-              </button>
-              <button
-                class="btn btn-primary btn-sm find-path"
-                id="widest-path"
-                type="submit"
-                style="display: none"
-              >
-                Compute Widest Path
-              </button>
-              <button
-                class="btn btn-primary btn-sm find-path"
-                id="confirm-max-flow"
-                type="submit"
-                style="display: none"
-              >
-                Confirm I already Find the Max Flow !
+                Confirm Path
               </button>
               <button
                 class="btn btn-info btn-sm modification"
@@ -159,38 +204,6 @@
                 type="submit"
               >
                 Start Practice
-              </button>
-              <button
-                class="btn btn-info btn-sm"
-                style="margin-left: 40px; display: none"
-                id="proceed-step"
-                type="submit"
-              >
-                Confirm Path
-              </button>
-              <button
-                class="btn btn-info btn-sm"
-                style="margin-left: 40px; display: none"
-                id="auto-complete"
-                type="submit"
-              >
-                Auto Compelete Residual Graph
-              </button>
-              <button
-                class="btn btn-info btn-sm"
-                style="margin-left: 40px; display: none"
-                id="undo-updates"
-                type="submit"
-              >
-                Undo All Updates to Residual Graph
-              </button>
-              <button
-                class="btn btn-primary btn-sm find-path"
-                id="find-min-cut"
-                type="submit"
-                style="display: none"
-              >
-                Find min cut
               </button>
             </div>
             <div>

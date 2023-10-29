@@ -142,14 +142,18 @@ class FlowNetwork {
     if (!path || !isValidTopology) {
       return [-1, "invalid topology"];
     }
-    var bottleneck = Infinity;
+    var bottleneckCapacity = Infinity;
+    var bottleneckEdge;
     for (const edge of path) {
-      bottleneck = Math.min(bottleneck, edge.capacity - edge.flow);
+      if (edge.capacity - edge.flow < bottleneckCapacity) {
+        bottleneckCapacity = edge.capacity - edge.flow;
+        bottleneckEdge = edge;
+      }
     }
-    if (bottleneck == 0) {
+    if (bottleneckCapacity == 0) {
       return [-1, "the selected path is saturated"]
     }
-    return [bottleneck, pathFromSourceToSink.join("->")];
+    return [bottleneckCapacity, bottleneckEdge, pathFromSourceToSink.join("->")];
   }
 
   // make edge highlighted with given args
@@ -378,7 +382,7 @@ class FlowNetwork {
             }
         }
     }
-    
+    console.log(minCut);
     return minCut;
   }
 

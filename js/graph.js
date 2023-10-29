@@ -138,6 +138,8 @@ $(function () {
       return "Select Path";
     } else if ($("#state").text().includes("State: Update Residual Graph")) {
       return "Update Residual Graph";
+    } else if ($("#state").text().includes("State: Choose Flow")) {
+      return "Choose Flow";
     }
   }
 
@@ -385,7 +387,7 @@ $(function () {
       });
 
       // get path expression to show in the front end and the bottleneck: -1 means invalid path
-      const [bottleneck, message] =
+      const [bottleneck, bottleneckEdge, message] =
         flowNetwork.findBottleneckCapacity(selectedPath);
       console.log(bottleneck);
       if (bottleneck === -1) {
@@ -393,11 +395,26 @@ $(function () {
         return;
       }
 
+      $("#state").text("State: Choose Flow");
+
+      hideElement(".find-path");
+      showElement("#bottleneck");
+
+      $("#proceed-step").text("Choose Flow");
+    } else if (getState() === "Choose Flow") {
+      var $source = $("#source");
+      var source = $source.val();
+      var $sink = $("#sink");
+      var sink = $sink.val();
+
+      var flowNetwork = new FlowNetwork(source, sink);
+
+      const [bottleneck, bottleneckEdge, message] =
+        flowNetwork.findBottleneckCapacity(selectedPath);
+
       // tell user the range he can choose from
       var prompt = window.prompt(
-        "Enter a flow you want to apply to the edge. " +
-          "Hint: 1 to " +
-          bottleneck
+        "Enter a flow you want to apply to the edge. "
       );
 
       console.log(prompt);
@@ -409,9 +426,7 @@ $(function () {
       flow = parseInt(prompt);
       while (isNaN(flow) || flow < 1 || flow > bottleneck) {
         prompt = window.prompt(
-          "Enter a valid flow you want to apply to the edge. " +
-            "Hint: 1 to " +
-            bottleneck
+          "Enter a valid flow you want to apply to the edge. "
         );
         if (prompt === null) {
           return;
@@ -427,7 +442,7 @@ $(function () {
       $("#state").text("State: Update Residual Graph");
       oldFlowNetwork = flowNetwork;
       showElement(".change-capacity");
-      hideElement(".find-path");
+      hideElement("#bottleneck");
       showElement("#auto-complete");
       showElement("#undo-updates");
       $("#proceed-step").text("Confirm Residual Graph");
@@ -559,6 +574,30 @@ $(function () {
         alert("Residual graph not yet completed, please keep trying.");
       }
     }
+  });
+
+  $("#bottleneck").on("click", function (event) {
+    event.preventDefault();
+
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
+
+    var flowNetwork = new FlowNetwork(source, sink);
+
+    const [bottleneck, bottleneckEdge, message] =
+      flowNetwork.findBottleneckCapacity(selectedPath);
+
+    var edge = cy.edges(
+      "[source='" +
+        bottleneckEdge.source +
+        "'][target='" +
+        bottleneckEdge.target +
+        "']"
+    );
+    edge.css("line-color", "#1ab394");
+    edge.css("target-arrow-color", "#1ab394");
   });
 
   $("#auto-complete").on("click", function (event) {
@@ -750,7 +789,7 @@ $(function () {
     }
 
     selectedPath = flowNetwork.convertNodesToEdges(path);
-    const [bottleneck, message] =
+    const [bottleneck, bottleneckEdge, message] =
       flowNetwork.findBottleneckCapacity(selectedPath);
     console.log(message);
     expectedGraph = flowNetwork.addFlow(selectedPath, bottleneck, false);
@@ -862,22 +901,28 @@ $(function () {
       var largest = 0;
 
       const hasPositionData = lines[0].includes("(") && lines[0].includes(")");
-        
-        if (hasPositionData) {
-          const positions = lines[0].split(" ").map(data => {
-            // Extract and process node positions here if needed
-            // Example: "1(100,200)" => { id: "1", x: 100, y: 200 }
-            const parts = data.match(/(\d+)\((\d+),(\d+)\)/);
-            if (parts) {
-              addNode(cy, parts[1], parts[1], parseInt(parts[2], 10), parseInt(parts[3], 10));
-            }
-          });
 
-          // Use the positions data as required
-          // console.log(positions);
-          // Remove the first line so that the edgelist processing doesn't consider it
-          lines.shift();
-        }
+      if (hasPositionData) {
+        const positions = lines[0].split(" ").map((data) => {
+          // Extract and process node positions here if needed
+          // Example: "1(100,200)" => { id: "1", x: 100, y: 200 }
+          const parts = data.match(/(\d+)\((\d+),(\d+)\)/);
+          if (parts) {
+            addNode(
+              cy,
+              parts[1],
+              parts[1],
+              parseInt(parts[2], 10),
+              parseInt(parts[3], 10)
+            );
+          }
+        });
+
+        // Use the positions data as required
+        // console.log(positions);
+        // Remove the first line so that the edgelist processing doesn't consider it
+        lines.shift();
+      }
 
       lines.forEach((line) => {
         var parts = "";
@@ -919,13 +964,13 @@ $(function () {
 
       $("#source").val(smallest);
       $("#sink").val(largest);
-      if(!hasPositionData){
+      if (!hasPositionData) {
         drawNodes(graph, smallest, largest);
       }
-      
+
       drawEdges(graph);
 
-      if(!hasPositionData){
+      if (!hasPositionData) {
         cy.layout({
           name: "breadthfirst",
           directed: true, // because max-flow problems are typically directed
@@ -1035,7 +1080,7 @@ $(function () {
       let positions = "";
 
       // Iterate over all nodes in the Cytoscape instance and gather positions
-      cy.nodes().forEach(node => {
+      cy.nodes().forEach((node) => {
         const id = node.id();
         const pos = node.position();
         
@@ -1044,7 +1089,7 @@ $(function () {
 
       const edgelistContent = graphToEdgelist(graph);
       console.log(edgelistContent);
-      download("edgelist.txt", positions + '\n' + edgelistContent);
+      download("edgelist.txt", positions + "\n" + edgelistContent);
     });
 
   $("#find-min-cut").on("click", function (e) {
@@ -1059,7 +1104,7 @@ $(function () {
     var flowNetwork = new FlowNetwork(source, sink);
 
     var edges = cy.edges();
-    
+
     edges.forEach(function (edge) {
       var label = edge.css("label");
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
@@ -1074,32 +1119,33 @@ $(function () {
     return;
   });
 
-  document.getElementById('layoutChoices').addEventListener('change', function(event) {
-    const selectedValue = event.target.value;
+  document
+    .getElementById("layoutChoices")
+    .addEventListener("change", function (event) {
+      const selectedValue = event.target.value;
 
-    switch(selectedValue) {
-        case 'layered':
-            // Execute code for layered layout
-            console.log('Executed code for Choice 1');
-            cy.layout({
-              name: "breadthfirst",
-              directed: true, // because max-flow problems are typically directed
-              spacingFactor: 1.25,
-              avoidOverlap: true,
-              ScreenOrientation: "horizontal",
-            });
-            makeLayoutHorizontal(cy);
-            break;
-        case 'spring':
-            // Execute code for Spring Model layout
-            console.log('Executed code for Choice 2');
-            cy.layout({
-              name: 'cose'
-            })
-            break;
+      switch (selectedValue) {
+        case "layered":
+          // Execute code for layered layout
+          console.log("Executed code for Choice 1");
+          cy.layout({
+            name: "breadthfirst",
+            directed: true, // because max-flow problems are typically directed
+            spacingFactor: 1.25,
+            avoidOverlap: true,
+            ScreenOrientation: "horizontal",
+          });
+          makeLayoutHorizontal(cy);
+          break;
+        case "spring":
+          // Execute code for Spring Model layout
+          console.log("Executed code for Choice 2");
+          cy.layout({
+            name: "cose",
+          });
+          break;
         default:
-            console.log('No choice');
-    }
-});
-
+          console.log("No choice");
+      }
+    });
 });
