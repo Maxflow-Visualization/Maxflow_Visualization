@@ -600,23 +600,28 @@ $(function () {
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
-    var minCutFromSource = flowNetwork.findMinCut(source);
+    var path = flowNetwork.findRandomAugmentingPath();
 
+    if (path.length > 0) {
+      alert(
+        "There is still a possible path from source to target. Please keep moving on. "
+      );
+      return;
+    } else {
+      var minCutFromSource = flowNetwork.findMinCut(source);
 
-    console.log(minCutFromSource);
+      console.log(minCutFromSource);
 
-    var nodes = cy.nodes();
+      var nodes = cy.nodes();
 
-    nodes.forEach(function (node) {
-      if (minCutFromSource.has(node.id())) {
-        node.css("border-color", "red");
-      }
-    });
-
+      nodes.forEach(function (node) {
+        if (minCutFromSource.has(node.id())) {
+          node.css("border-color", "red");
+        }
+      });
+    }
     // var minCutFromSink = flowNetwork.findMinCutBack(sink);
     // console.log(minCutFromSink);
-
-    return;
   });
 
   $("#bottleneck").on("click", function (event) {
