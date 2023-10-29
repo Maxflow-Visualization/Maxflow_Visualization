@@ -1038,7 +1038,8 @@ $(function () {
       cy.nodes().forEach(node => {
         const id = node.id();
         const pos = node.position();
-        positions += `${id}(${pos.x},${pos.y}) `;
+        
+        positions += `${id}(${parseInt(pos.x)},${parseInt(pos.y)}) `;
       });
 
       const edgelistContent = graphToEdgelist(graph);
@@ -1064,8 +1065,11 @@ $(function () {
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
-    var minCut = flowNetwork.findMinCut(source)
-    console.log(minCut);
+    var minCutFromSource = flowNetwork.findMinCut(source)
+    console.log(minCutFromSource);
+
+    var minCutFromSink = flowNetwork.findMinCutBack(sink)
+    console.log(minCutFromSink);
 
     return;
   });

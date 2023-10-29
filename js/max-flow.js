@@ -310,25 +310,64 @@ class FlowNetwork {
     console.log(this.graph);
   }
 
-  DFS(node, visited) {
+  DFS(node, visited, searchGraph) {
     if (visited.has(node)) {
         return visited;
     }
     visited.add(node);
-    var filteredNeighbors = this.filterNeighbors(this.graph.get(node));
+    var filteredNeighbors = this.filterNeighbors(searchGraph.get(node));
     for (const neighbor of filteredNeighbors) {
       console.log(neighbor)
       if (!visited.has(neighbor)) {
-          visited = this.DFS(neighbor, visited);
+          visited = this.DFS(neighbor, visited, searchGraph);
       }
     }
     return visited;
   }
 
+  reverseGraph(graph) {
+    let reversedGraph = new Map();
+
+    for (let node of graph.keys()) {
+        if (!reversedGraph.has(node)) {
+            reversedGraph.set(node, new Map());
+        }
+        
+        for (let neighbor of graph.get(node).keys()) {
+            if (!reversedGraph.has(neighbor)) {
+                reversedGraph.set(neighbor, new Map());
+            }
+            if (parseInt(graph.get(node).get(neighbor).capacity) > 0) {
+              reversedGraph.get(neighbor).set(node, graph.get(node).get(neighbor));
+            }
+        }
+    }
+    return reversedGraph;
+  }
+
   findMinCut(source) {
     let visited = new Set();
     // console.log(this.graph)
-    visited = this.DFS(source, visited);
+    visited = this.DFS(source, visited, this.graph);
+    console.log(visited)
+
+    let minCut = [];
+    for (let node of visited) {
+        for (let neighbor in this.graph[node]) {
+            if (!visited.has(neighbor)) {
+                minCut.push([node, neighbor]);
+            }
+        }
+    }
+    
+    return minCut;
+  }
+
+  findMinCutBack(sink) {
+    let visited = new Set();
+    // console.log(this.graph)
+    let reversedGraph = this.reverseGraph(this.graph)
+    visited = this.DFS(sink, visited, reversedGraph);
     console.log(visited)
 
     let minCut = [];
