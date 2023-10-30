@@ -13,6 +13,7 @@ body {
     clear: both;
     display: block;
     height: 80vh;
+    position: relative;
 }
 
 .description {
@@ -66,4 +67,16 @@ body {
 
 #find-min-cut {
     margin-top: 30px;
+}
+
+#helper-text {
+    position: absolute;
+    top: 5vw;
+    right: 20vw;
+}
+
+#helper-text ul {
+    position: absolute;
+    width: 15vw;
+    font-size: medium;
 }
