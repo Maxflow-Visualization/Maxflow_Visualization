@@ -30,8 +30,15 @@
                 <div class="ibox-content" style="padding: 0 !important">
                   <div class="row">
                     <div id="cy">
-                      <div id="helper-text">
-                        <ul><b>Graph Creation:</b>
+                      <div id="helper-text" style="z-index: 9999;">
+                        <button
+                          class="btn btn-info btn-sm"
+                          id="show-hide-instructions"
+                          type="submit"
+                        >
+                        Show/Hide Instructions
+                        </button>
+                        <ul id="instructions"><b>Graph Creation:</b>
                           <li>In this step, you will construct a graph to run maxflow on.</li>
                           <li>Double click on the white space will add a node.</li>
                           <li>Click an existing node and then press "Delete" will delete that node.</li>
@@ -56,7 +63,7 @@
                     type="submit"
                     style="display: none"
                   >
-                  Confirm I already Find the Max Flow !
+                  Confirm I Already Found the Max Flow!
                   <button
                     class="btn btn-primary btn-sm find-path"
                     id="find-min-cut"
