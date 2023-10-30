@@ -429,15 +429,15 @@ $(function () {
         return;
       }
       // check if the user entered a proper flow: check int and should be within valid range
-      flow = parseInt(prompt);
-      while (isNaN(flow) || flow < 1 || flow > bottleneck) {
+      flow = parseFloat(prompt);
+      while (isNaN(flow) || flow < 0 || flow > bottleneck) {
         prompt = window.prompt(
           "Enter a valid flow you want to apply to the edge. "
         );
         if (prompt === null) {
           return;
         }
-        flow = parseInt(prompt);
+        flow = parseFloat(prompt);
       }
 
       $("#history").append(
@@ -692,7 +692,7 @@ $(function () {
   $("#label-btn").on("click", function () {
     var $label = $("#label");
     var label = $label.val();
-    if (isNaN(parseInt(label)) || parseInt(label) < 0) {
+    if (isNaN(parseFloat(label)) || parseFloat(label) < 0) {
       $label.css("border", "1px solid red");
       return;
     }
@@ -734,13 +734,13 @@ $(function () {
       }
 
       // check if the user entered a proper flow: check int and should be within valid range
-      usermaxflow = parseInt(usermaxflow);
+      usermaxflow = parseFloat(usermaxflow);
       while (isNaN(usermaxflow) || usermaxflow < 0) {
         usermaxflow = window.prompt("Enter a valid number for max flow.");
         if (usermaxflow === null) {
           return;
         }
-        usermaxflow = parseInt(usermaxflow);
+        usermaxflow = parseFloat(usermaxflow);
       }
       if (usermaxflow !== totalflow) {
         alert(
@@ -1065,7 +1065,7 @@ $(function () {
         addEdge(
           cy,
           node1 + "-" + node2,
-          parseInt(edgeValue, 10),
+          parseFloat(edgeValue, 10),
           parseInt(node1, 10),
           parseInt(node2, 10)
         );
