@@ -345,7 +345,7 @@ $(function () {
     var capacity = edge.css("label");
     if (!allowModify() && getState() === "Select Path") {
       if (selectedPath.length === 0) {
-        selectedPath.push(Edge(source, target, capacity));
+        selectedPath.push(new Edge(source, target, capacity));
         highlightEdge(source, target);
         return;
       }

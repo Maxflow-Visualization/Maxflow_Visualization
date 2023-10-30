@@ -72,5 +72,12 @@ body {
 #helper-text {
     position: absolute;
     top: 5vw;
-    right: 15vw;
+    right: 20vw;
+}
+
+#helper-text ul {
+    position: absolute;
+    width: 15vw;
+    font-size: medium;
+    /* font-family: Arial, Helvetica, sans-serif; */
 }
