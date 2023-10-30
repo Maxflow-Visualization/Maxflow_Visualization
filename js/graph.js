@@ -244,6 +244,11 @@ $(function () {
       hideElement(".change-capacity");
       hideElement("#add-graph");
       hideElement("#clear");
+
+      var instruction =
+        "<ul><b>Select Path: </b><li>In this step, you will choose yourself or let the algorithm choose an augmenting path</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn’t matter) </li><li>To let the algorithm choose an augmenting path, click one of the “Choose Shortest Path” (Edmonds-Karp), “Choose Random Path” (Ford-Fulkerson), “Choose Widest Path” (Capacity Scaling) </li><li>Once an augmenting path is chosen, click “Confirm Path”. If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid</li><li>Whenever you think you have find the max flow, click the button on the right to confirm your max flow.</li></ul>";
+
+      $("#helper-text").html(instruction);
     } else {
       cancelHighlightedElements();
 
@@ -263,6 +268,11 @@ $(function () {
       showElement(".change-capacity");
       showElement("#add-graph");
       showElement("#clear");
+
+      var instruction =
+        '<ul><b>Graph Creation:</b><li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press “Delete” will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li></ul>';
+
+      $("#helper-text").html(instruction);
     }
   });
 
@@ -401,6 +411,11 @@ $(function () {
       showElement("#bottleneck");
 
       $("#proceed-step").text("Choose Flow");
+
+      var instruction =
+        "<ul><b>Choose Flow: </b><li>In this step, you will choose a flow number to add to the path you have chosen in the last step</li><li>Click “Choose Flow”, a dialog box will appear</li><li>Input a flow number in the dialog box and click “OK” </li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow number</li><li>You can find the bottleneck edge by clicking “Find Bottleneck Edge” </li></ul>";
+
+      $("#helper-text").html(instruction);
     } else if (getState() === "Choose Flow") {
       var $source = $("#source");
       var source = $source.val();
@@ -543,6 +558,11 @@ $(function () {
       ];
 
       cy.style().fromJson(cyStyles);
+
+      var instruction =
+        '<ul><b>Update Residual Graph: </b><li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press “Delete” will delete that edge</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click “Update” will update that edge’s capacity to the number</li><li>You can auto complete the update step by clicking "Auto complete" button.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking "Undo" button.</li></ul>';
+
+      $("#helper-text").html(instruction);
     } else if (getState() === "Update Residual Graph") {
       var $source = $("#source");
       var source = $source.val();
@@ -576,10 +596,21 @@ $(function () {
         $("#proceed-step").text("Confirm Path");
 
         cy.edgehandles("disable");
+
+        var instruction =
+          "<ul><b>Select Path: </b><li>In this step, you will choose yourself or let the algorithm choose an augmenting path</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn’t matter) </li><li>To let the algorithm choose an augmenting path, click one of the “Choose Shortest Path” (Edmonds-Karp), “Choose Random Path” (Ford-Fulkerson), “Choose Widest Path” (Capacity Scaling) </li><li>Once an augmenting path is chosen, click “Confirm Path”. If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid</li><li>Whenever you think you have find the max flow, click the button on the right to confirm your max flow.</li></ul>";
+
+        $("#helper-text").html(instruction);
       } else {
         alert("Residual graph not yet completed, please keep trying.");
       }
     }
+  });
+
+  $("#show-hide-instructions").on("click", function (e) {
+    e.preventDefault();
+
+    $("#helper-text").toggle();
   });
 
   $("#find-min-cut").on("click", function (e) {
