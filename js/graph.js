@@ -399,7 +399,7 @@ $(function () {
       // get path expression to show in the front end and the bottleneck: -1 means invalid path
       const [bottleneck, bottleneckEdge, message] =
         flowNetwork.findBottleneckCapacity(selectedPath);
-      console.log(bottleneck);
+      console.log(message);
       if (bottleneck === -1) {
         alert(message);
         return;

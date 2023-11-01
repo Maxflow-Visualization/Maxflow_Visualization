@@ -150,7 +150,7 @@ class FlowNetwork {
       this.validatePathTopology(path);
     console.log(isValidTopology);
     if (!path || !isValidTopology) {
-      return [-1, "invalid topology"];
+      return [-1, -1, "invalid topology"];
     }
     var bottleneckCapacity = Infinity;
     var bottleneckEdge;
@@ -161,7 +161,7 @@ class FlowNetwork {
       }
     }
     if (bottleneckCapacity == 0) {
-      return [-1, "the selected path is saturated"];
+      return [-1, -1, "the selected path is saturated"];
     }
     return [
       bottleneckCapacity,
