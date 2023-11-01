@@ -669,10 +669,10 @@ $(function () {
 
     var edge = cy.edges(
       "[source='" +
-        bottleneckEdge.source +
-        "'][target='" +
-        bottleneckEdge.target +
-        "']"
+      bottleneckEdge.source +
+      "'][target='" +
+      bottleneckEdge.target +
+      "']"
     );
     edge.css("line-color", "#1ab394");
     edge.css("target-arrow-color", "#1ab394");

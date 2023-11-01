@@ -273,7 +273,7 @@ class FlowNetwork {
         // widthto(x) = max e=(v,x):v∈graph [min(widthto(v), width(e))]
         var widthToNeighbor = Math.min(
           this.graph.get(node).get(neighbor).capacity -
-            this.graph.get(node).get(neighbor).flow,
+          this.graph.get(node).get(neighbor).flow,
           maxWidth.get(node)
         );
         if (widthToNeighbor > maxWidth.get(neighbor)) {
