@@ -69,14 +69,14 @@ body {
     margin-top: 30px;
 } */
 
-/* #helper-text {
+#helper-text {
     position: absolute;
-    top: 4vw;
-    right: 20vw;
+    top: 1vw;
+    right: 15vw;
 }
 
 #helper-text ul {
     position: absolute;
-    width: 15vw;
+    width: 20vw;
     font-size: medium;
-} */
+}
