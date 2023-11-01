@@ -634,7 +634,7 @@ $(function () {
 
     if (path.length > 0) {
       alert(
-        "There is still a possible path from source to target. Please keep moving on. "
+        "There is still a possible augmenting path from source to sink Please keep moving on. "
       );
       return;
     } else {
