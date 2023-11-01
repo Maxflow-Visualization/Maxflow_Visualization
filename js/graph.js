@@ -166,7 +166,7 @@ $(function () {
   // double click for creating node
   var $cy = $("#cy");
   $cy.dblclick(function (e) {
-    if (!allowModify()) {
+    if (!allowModify() || e.target.id == "show-hide-instructions") {
       return;
     }
     var id = getId();
@@ -782,7 +782,7 @@ $(function () {
         alert(
           "Congratulation! You have sccessfully find the max flow for the given network graph!"
         );
-        window.location.reload();
+        // window.location.reload();
       }
     }
   });
