@@ -166,7 +166,7 @@ $(function () {
   // double click for creating node
   var $cy = $("#cy");
   $cy.dblclick(function (e) {
-    if (!allowModify()) {
+    if (!allowModify() || e.target.id == "show-hide-instructions") {
       return;
     }
     var id = getId();
@@ -270,7 +270,7 @@ $(function () {
       showElement("#clear");
 
       var instruction =
-        '<ul><b>Graph Creation:</b><li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li></ul>';
+        '<ul><b>Graph Creation:</b><li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li></ul>';
 
       $("#instructions").html(instruction);
     }
@@ -399,7 +399,7 @@ $(function () {
       // get path expression to show in the front end and the bottleneck: -1 means invalid path
       const [bottleneck, bottleneckEdge, message] =
         flowNetwork.findBottleneckCapacity(selectedPath);
-      console.log(bottleneck);
+      console.log(message);
       if (bottleneck === -1) {
         alert(message);
         return;
@@ -456,7 +456,7 @@ $(function () {
       }
 
       $("#history").append(
-        "Path: " + message + " \nChosen Capacity: " + flow + "<br>"
+        "Path: " + message + " \nChosen Flow: " + flow + "<br>"
       );
       console.log(flow);
 
@@ -634,7 +634,7 @@ $(function () {
 
     if (path.length > 0) {
       alert(
-        "There is still a possible path from source to target. Please keep moving on. "
+        "There is still a possible augmenting path from source to sink Please keep moving on. "
       );
       return;
     } else {
@@ -782,7 +782,7 @@ $(function () {
         alert(
           "Congratulation! You have sccessfully find the max flow for the given network graph!"
         );
-        window.location.reload();
+        // window.location.reload();
       }
     }
   });
