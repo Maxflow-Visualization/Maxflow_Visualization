@@ -32,7 +32,11 @@
               <div class="ibox float-e-margins" style="padding: 0 !important">
                 <div class="ibox-content" style="padding: 0 !important">
                   <div class="row">
-                    <div id="cy">
+                    <div class="col-lg-9">
+                      <div id="cy">
+                      </div>
+                    </div>
+                    <div class="col-lg-3">
                       <div id="helper-text" style="z-index: 9999;">
                         <button
                           class="btn btn-info btn-sm"
@@ -87,7 +91,7 @@
         <div class="row">
           <div class="col-sm-2">
             <div class="row">
-              <div class="col-md-5">
+              <div class="col-md-6">
                 <input
                   type="number"
                   min="1"
@@ -96,7 +100,7 @@
                   class="form-control input-sm text-center change-capacity"
                 />
               </div>
-              <div>
+              <div class="col-md-6">
                 <button
                   type="button"
                   id="label-btn"
@@ -109,7 +113,8 @@
           </div>
 
           <form method="get" class="form-horizontal">
-            <div class="col-sm-7" id="all-buttons">
+            <div class="col-sm-8" id="all-buttons">
+              <div class="row">
               <div class="col-md-2">
                 <div class="form-group has-success">
                   <label class="col-sm-1 control-label" id="source-label"
@@ -119,7 +124,7 @@
                   <div class="col-sm-7" style="padding-left: 5px !important">
                     <input
                       type="number"
-                      min="1"
+                      min="0"
                       oninput="removeLeadingZeros(this)"
                       id="source"
                       class="form-control input-sm text-center"
@@ -136,7 +141,7 @@
                   <div class="col-sm-7" style="padding-left: 5px !important">
                     <input
                       type="number"
-                      min="1"
+                      min="0"
                       oninput="removeLeadingZeros(this)"
                       id="sink"
                       class="form-control input-sm text-center"
@@ -145,98 +150,107 @@
                 </div>
               </div>
               <div id="find-path-buttons">
-                <button
-                  class="btn btn-info btn-sm find-path"
-                  id="shortest-path"
-                  type="submit"
-                  style="display: none"
-                >
-                  Compute Shortest Path
-                </button>
-                <button
-                  class="btn btn-info btn-sm find-path"
-                  id="random-path"
-                  type="submit"
-                  style="display: none"
-                >
-                  Compute Random Path
-                </button>
-                <button
-                  class="btn btn-info btn-sm find-path"
-                  id="widest-path"
-                  type="submit"
-                  style="display: none"
-                >
-                  Compute Widest Path
-                </button>
+                <div class="col-md-3">
+                  <button
+                    class="btn btn-info btn-sm find-path"
+                    id="shortest-path"
+                    type="submit"
+                    style="display: none"
+                  >
+                    Compute Shortest Path
+                  </button>
+                  <button
+                    class="btn btn-info btn-sm find-path"
+                    id="random-path"
+                    type="submit"
+                    style="display: none"
+                  >
+                    Compute Random Path
+                  </button>
+                  <button
+                    class="btn btn-info btn-sm find-path"
+                    id="widest-path"
+                    type="submit"
+                    style="display: none"
+                  >
+                    Compute Widest Path
+                  </button>
+                  <button
+                    class="btn btn-primary btn-sm"
+                    style="display: none"
+                    id="proceed-step"
+                    type="submit"
+                  >
+                    Confirm Path
+                  </button>
+                  <div id="residual-graph">
+                    <button
+                    class="btn btn-info btn-sm"
+                    style="display: none"
+                    id="auto-complete"
+                    type="submit"
+                    >
+                      Auto Complete Residual Graph
+                    </button>
+                    <button
+                      class="btn btn-info btn-sm"
+                      style="display: none"
+                      id="undo-updates"
+                      type="submit"
+                    >
+                      Undo All Updates to Residual Graph
+                    </button>
+                    <button
+                    class="btn btn-info btn-sm"
+                    style="display: none"
+                    id="bottleneck"
+                    type="submit"
+                    >
+                      Find Bottleneck Edge
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div id="residual-graph">
-                <button
-                class="btn btn-info btn-sm"
-                style="margin-left: 40px; display: none"
-                id="bottleneck"
-                type="submit"
-                >
-                  Find Bottleneck Edge
-                </button>
-              <div id="residual-graph">
-                <button
-                class="btn btn-info btn-sm"
-                style="margin-left: 40px; display: none"
-                id="auto-complete"
-                type="submit"
-                >
-                  Auto Complete Residual Graph
-                </button>
-                <button
-                  class="btn btn-info btn-sm"
-                  style="margin-left: 40px; display: none"
-                  id="undo-updates"
-                  type="submit"
-                >
-                  Undo All Updates to Residual Graph
-                </button>
+              
+              
+              <div class="col-md-1">
+                  <button
+                    class="btn btn-info btn-sm modification"
+                    
+                    id="add-graph"
+                    type="submit"
+                  >
+                    Example
+                  </button>
               </div>
-              </button>
-              <button
-                class="btn btn-primary btn-sm"
-                style="margin-left: 40px; display: none"
-                id="proceed-step"
-                type="submit"
-              >
-                Confirm Path
-              </button>
-              <button
-                class="btn btn-info btn-sm modification"
-                style="margin-left: 40px"
-                id="add-graph"
-                type="submit"
-              >
-                Example
-              </button>
-              <button
-                class="btn btn-danger btn-sm modification"
-                id="clear"
-                type="submit"
-              >
-                Clear
-              </button>
-              <button
-                class="btn btn-info btn-sm"
-                style="margin-left: 40px"
-                id="change-mode"
-                type="submit"
-              >
-                Start Practice
-              </button>
+              <div class="col-md-1">
+                  <button
+                    class="btn btn-danger btn-sm modification"
+                    id="clear"
+                    type="submit"
+                  >
+                    Clear
+                  </button>
+              </div>
+              <div class="col-md-1">
+                  <button
+                    class="btn btn-info btn-sm"
+                    
+                    id="change-mode"
+                    type="submit"
+                  >
+                    Start Practice
+                  </button>
+              </div>
+              </div>
             </div>
-            <div>
+            <div class="col-sm-2">
               <input type="file" id="fileInput" />
               <button id="downloadButton">Download Edgelist</button>
               <select id="layoutChoices">
                 <option value="layered">layered layout</option>
                 <option value="spring">spring model layout</option>
-            </select>
+              </select>
             </div>
           </form>
         </div>

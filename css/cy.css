@@ -25,7 +25,7 @@ body {
     display: block;
 }
 
-#all-buttons {
+/* #all-buttons {
     padding-right: 80px;
 }
 
@@ -41,22 +41,22 @@ body {
     margin-left: 10px;
     margin-right: 10px;
     margin-bottom: 10px;
-}
+} */
 
-#residual-graph {
+/* #residual-graph {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-right: 50px;
-}
+} */
 
-#residual-graph btn-sm {
+/* #residual-graph btn-sm {
     flex: 1;
     margin-left: 10px;
     margin-right: 10px;
     margin-bottom: 10px;
-}
-
+} */
+/* 
 #proceed-step {
     margin-top: 10px;
 }
@@ -67,9 +67,9 @@ body {
 
 #find-min-cut {
     margin-top: 30px;
-}
+} */
 
-#helper-text {
+/* #helper-text {
     position: absolute;
     top: 4vw;
     right: 20vw;
@@ -79,4 +79,4 @@ body {
     position: absolute;
     width: 15vw;
     font-size: medium;
-}
+} */
