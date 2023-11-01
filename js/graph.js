@@ -270,7 +270,7 @@ $(function () {
       showElement("#clear");
 
       var instruction =
-        '<ul><b>Graph Creation:</b><li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li></ul>';
+        '<ul><b>Graph Creation:</b><li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>Once you are ready, click "Start Practice".</li></ul>';
 
       $("#instructions").html(instruction);
     }
@@ -456,7 +456,7 @@ $(function () {
       }
 
       $("#history").append(
-        "Path: " + message + " \nChosen Capacity: " + flow + "<br>"
+        "Path: " + message + " \nChosen Flow: " + flow + "<br>"
       );
       console.log(flow);
 
