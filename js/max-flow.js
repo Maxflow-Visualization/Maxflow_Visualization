@@ -52,7 +52,7 @@ class Edge {
   constructor(source, target, capacity, flow = 0) {
     this.source = source;
     this.target = target;
-    this.capacity = parseInt(capacity);
+    this.capacity = parseFloat(capacity);
     this.flow = flow;
   }
 }
@@ -359,7 +359,7 @@ class FlowNetwork {
         if (!reversedGraph.has(neighbor)) {
           reversedGraph.set(neighbor, new Map());
         }
-        if (parseInt(graph.get(node).get(neighbor).capacity) > 0) {
+        if (parseFloat(graph.get(node).get(neighbor).capacity) > 0) {
           reversedGraph.get(neighbor).set(node, graph.get(node).get(neighbor));
         }
       }
