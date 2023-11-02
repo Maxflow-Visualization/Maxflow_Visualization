@@ -1,28 +1,28 @@
 body {
-    font: 14px helvetica neue, helvetica, arial, sans-serif;
+  font: 14px helvetica neue, helvetica, arial, sans-serif;
 }
 
 #cy {
-    left: 0;
-    top: 0;
-    z-index: 999;
-    background: #ffffff;
-    border-image: none;
-    padding: 0;
-    min-height: 300px;
-    clear: both;
-    display: block;
-    height: 80vh;
-    position: relative;
+  left: 0;
+  top: 0;
+  z-index: 999;
+  background: #ffffff;
+  border-image: none;
+  padding: 0;
+  min-height: 300px;
+  clear: both;
+  display: block;
+  height: 80vh;
+  position: relative;
 }
 
 .description {
-    text-transform: uppercase;
-    font-weight: bold;
-    color: #1ab394;
-    margin-top: 18px;
-    margin-left: 30px;
-    display: block;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: #1ab394;
+  margin-top: 18px;
+  margin-left: 30px;
+  display: block;
 }
 
 /* #all-buttons {
@@ -70,13 +70,13 @@ body {
 } */
 
 #helper-text {
-    position: absolute;
-    top: 1vw;
-    right: 15vw;
+  position: absolute;
+  top: 1vw;
+  right: 15vw;
 }
 
 #helper-text ul {
-    position: absolute;
-    width: 20vw;
-    font-size: medium;
+  position: absolute;
+  width: 20vw;
+  font-size: medium;
 }
