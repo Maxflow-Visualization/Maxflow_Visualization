@@ -1139,6 +1139,32 @@ $(function () {
     });
   }
 
+  function centerGraphNodes(cy) {
+    // Get the bounding box of the current graph
+    const boundingBox = cy.elements().boundingBox({});
+  
+    // Calculate the center of the graph
+    const centerX = (boundingBox.x1 + boundingBox.x2) / 2;
+    const centerY = (boundingBox.y1 + boundingBox.y2) / 2;
+  
+    // Calculate the center of the viewport
+    const viewportCenterX = cy.width() / 2;
+    const viewportCenterY = cy.height() / 2;
+  
+    // Calculate the distance to shift the graph to center it
+    const deltaX = viewportCenterX - centerX;
+    const deltaY = viewportCenterY - centerY;
+  
+    // Move all nodes by the calculated delta
+    cy.nodes().forEach((node) => {
+      let currentPosition = node.position();
+      node.position({
+        x: currentPosition.x + deltaX - cy.width() / 5,
+        y: currentPosition.y + deltaY - cy.height() / 10
+      });
+    });
+  }
+
   document
     .getElementById("downloadButton")
     .addEventListener("click", function () {
@@ -1171,6 +1197,13 @@ $(function () {
     });
 
   document
+    .getElementById("centering")
+    .addEventListener("click", function () {
+      event.preventDefault();
+      centerGraphNodes(cy)
+    });
+
+  document
     .getElementById("layoutChoices")
     .addEventListener("change", function (event) {
       const selectedValue = event.target.value;
@@ -1187,6 +1220,7 @@ $(function () {
             ScreenOrientation: "horizontal",
           });
           makeLayoutHorizontal(cy);
+          centerGraphNodes(cy);
           break;
         case "spring":
           // Execute code for Spring Model layout
@@ -1194,6 +1228,7 @@ $(function () {
           cy.layout({
             name: "cose",
           });
+          centerGraphNodes(cy);
           break;
         default:
           console.log("No choice");
