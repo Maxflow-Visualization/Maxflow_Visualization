@@ -117,6 +117,7 @@ $(function () {
     zoomingEnabled: false,
     userZoomingEnabled: false,
     selectionType: "single",
+    
   });
 
   // edge handles, which is used for creating edge interactively
@@ -1148,8 +1149,8 @@ $(function () {
     const centerY = (boundingBox.y1 + boundingBox.y2) / 2;
   
     // Calculate the center of the viewport
-    const viewportCenterX = cy.width() / 2;
-    const viewportCenterY = cy.height() / 2;
+    const viewportCenterX = cy.width() / 2 - cy.width() / 7;
+    const viewportCenterY = cy.height() / 2 - cy.height() / 12;
   
     // Calculate the distance to shift the graph to center it
     const deltaX = viewportCenterX - centerX;
@@ -1159,8 +1160,8 @@ $(function () {
     cy.nodes().forEach((node) => {
       let currentPosition = node.position();
       node.position({
-        x: currentPosition.x + deltaX - cy.width() / 5,
-        y: currentPosition.y + deltaY - cy.height() / 10
+        x: currentPosition.x + deltaX,
+        y: currentPosition.y + deltaY
       });
     });
   }
@@ -1228,10 +1229,67 @@ $(function () {
           cy.layout({
             name: "cose",
           });
-          centerGraphNodes(cy);
+          setTimeout(function() {
+            // Call the function you want to run after 1 second
+            centerGraphNodes(cy);
+          }, 50); // 1000 milliseconds = 1 second
           break;
         default:
           console.log("No choice");
       }
+
     });
+
+  function fakeZoomIn(cy, scaleFactor = 1.1) {
+    // Calculate the center of the graph
+    const boundingBox = cy.elements().boundingBox({});
+    const centerX = (boundingBox.x1 + boundingBox.x2) / 2;
+    const centerY = (boundingBox.y1 + boundingBox.y2) / 2;
+
+    // Move each node
+    cy.nodes().forEach(node => {
+        let pos = node.position();
+        node.position({
+            x: centerX + (pos.x - centerX) * scaleFactor,
+            y: centerY + (pos.y - centerY) * scaleFactor
+        });
+    });
+  }
+
+  function fakeZoomOut(cy, scaleFactor = 0.9) {
+    // Calculate the center of the graph
+    const boundingBox = cy.elements().boundingBox({});
+    const centerX = (boundingBox.x1 + boundingBox.x2) / 2;
+    const centerY = (boundingBox.y1 + boundingBox.y2) / 2;
+
+    // Move each node
+    cy.nodes().forEach(node => {
+        let pos = node.position();
+        node.position({
+            x: centerX + (pos.x - centerX) * scaleFactor,
+            y: centerY + (pos.y - centerY) * scaleFactor
+        });
+    });
+  }
+
+  document.getElementById('zoomInBtn').addEventListener('click', function() {
+    event.preventDefault();
+    // var zoomLevel = cy.zoom();
+    // console.log("here")
+    // cy.zoom({
+    //     level: zoomLevel * 1.2, // adjust 1.2 to your preference for zoom step
+    //     renderedPosition: { x: window.innerWidth / 2, y: window.innerHeight / 2 } // zoom in on the center of the viewport
+    // });
+    fakeZoomIn(cy)
+  });
+
+  document.getElementById('zoomOutBtn').addEventListener('click', function() {
+    event.preventDefault();
+    // var zoomLevel = cy.zoom();
+    // cy.zoom({
+    //     level: zoomLevel * 0.8, // adjust 0.8 to your preference for zoom step
+    //     renderedPosition: { x: window.innerWidth / 2, y: window.innerHeight / 2 } // zoom out from the center of the viewport
+    // });
+    fakeZoomOut(cy)
+  });
 });
