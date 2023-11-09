@@ -221,6 +221,7 @@ $(function () {
     $("#label").val("");
   });
 
+  var originalFlowNetwork = [];
   // change state between modifying and practicing
   $("#change-mode").on("click", function (event) {
     event.preventDefault();
@@ -234,6 +235,7 @@ $(function () {
       $("#state").text("State: Select Path");
       $("#proceed-step").text("Confirm Path");
       showElement("#proceed-step");
+      showElement("#applied-capacity");
 
       $("#source-label").text("S=" + $("#source").val());
       hideElement("#source");
@@ -245,6 +247,15 @@ $(function () {
       hideElement(".change-capacity");
       hideElement("#add-graph");
       hideElement("#clear");
+
+      var edges = cy.edges();
+
+      edges.forEach(function (edge) {
+        var label = edge.css("label");
+        originalFlowNetwork.push(
+          new Edge(edge.source().id(), edge.target().id(), label)
+        );
+      });
 
       var instruction =
         '<ul><b>Select Path: </b><li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn\'t matter).</li><li>To let the algorithm choose an augmenting path, click one of the "Choose Shortest Path" (Edmonds-Karp), "Choose Random Path" (Ford-Fulkerson), "Choose Widest Path" (Capacity Scaling).</li><li>Once an augmenting path is chosen, click "Confirm Path". If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Whenever you think you have found the max flow, click "Confirm I Already Found the Max Flow!" on the right to input your max flow.</li></ul>';
@@ -258,6 +269,7 @@ $(function () {
 
       $("#state").text("State: Graph Creation");
       hideElement("#proceed-step");
+      hideElement("#applied-capacity");
 
       $("#source-label").text("S=");
       showElement("#source");
@@ -269,6 +281,25 @@ $(function () {
       showElement(".change-capacity");
       showElement("#add-graph");
       showElement("#clear");
+
+      var shown = false;
+
+      var edges = cy.edges();
+
+      // check if applied capacity is shown
+      edges.forEach(function (edge) {
+        if (edge.css("label").includes("/")) {
+          shown = true;
+        }
+      });
+
+      if (shown) {
+        edges.forEach(function (edge) {
+          if (edge.css("label").includes("/")) {
+            edge.remove();
+          }
+        });
+      }
 
       var instruction =
         '<ul><b>Graph Creation:</b><li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li></ul>';
@@ -394,6 +425,7 @@ $(function () {
       var edges = cy.edges();
       edges.forEach(function (edge) {
         var label = edge.css("label");
+        if (label.includes("/")) return;
         flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
       });
 
@@ -428,6 +460,7 @@ $(function () {
       var edges = cy.edges();
       edges.forEach(function (edge) {
         var label = edge.css("label");
+        if (label.includes("/")) return;
         flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
       });
 
@@ -560,7 +593,8 @@ $(function () {
 
       cy.style().fromJson(cyStyles);
 
-      var instruction = '<ul><b>Update Residual Graph: </b><li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>You can auto complete the update step by clicking "Auto Complete Residual Graph" button.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking "Undo All Updates to Residual Graph" button.</li><li>When you are done, click "Confirm Residual Graph".</li></ul>';
+      var instruction =
+        '<ul><b>Update Residual Graph: </b><li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>You can auto complete the update step by clicking "Auto Complete Residual Graph" button.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking "Undo All Updates to Residual Graph" button.</li><li>When you are done, click "Confirm Residual Graph".</li></ul>';
 
       $("#instructions").html(instruction);
     } else if (getState() === "Update Residual Graph") {
@@ -574,6 +608,7 @@ $(function () {
       var edges = cy.edges();
       edges.forEach(function (edge) {
         var label = edge.css("label");
+        if (label.includes("/")) return;
         flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
       });
       console.log(flowNetwork);
@@ -607,6 +642,60 @@ $(function () {
     }
   });
 
+  $("#applied-capacity").on("click", function (e) {
+    e.preventDefault();
+
+    var edges = cy.edges();
+
+    var shown = false;
+
+    // check if applied capacity is shown
+    edges.forEach(function (edge) {
+      if (edge.css("label").includes("/")) {
+        shown = true;
+      }
+    });
+
+    if (shown) {
+      // remove applied capacity
+      edges.forEach(function (edge) {
+        if (edge.css("label").includes("/")) {
+          edge.remove();
+        }
+      });
+    } else {
+      console.log("HERE");
+      for (const edge of originalFlowNetwork) {
+        var backward = cy
+          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
+          .css("label");
+        if (backward === undefined || backward === null || backward === "")
+          backward = "0";
+
+        cy.add({
+          group: "edges",
+          data: {
+            id: edge.source + "/" + edge.target,
+            source: edge.source,
+            target: edge.target,
+          },
+          selectable: true,
+          css: {
+            label: backward + "/" + edge.capacity,
+          },
+        });
+
+        // addEdge(
+        //   cy,
+        //   edge.source + "/" + edge.target,
+        //   backward + "/" + edge.capacity,
+        //   edge.source,
+        //   edge.target
+        // );
+      }
+    }
+  });
+
   $("#show-hide-instructions").on("click", function (e) {
     e.preventDefault();
 
@@ -628,6 +717,7 @@ $(function () {
 
     edges.forEach(function (edge) {
       var label = edge.css("label");
+      if (label.includes("/")) return;
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
@@ -670,10 +760,10 @@ $(function () {
 
     var edge = cy.edges(
       "[source='" +
-      bottleneckEdge.source +
-      "'][target='" +
-      bottleneckEdge.target +
-      "']"
+        bottleneckEdge.source +
+        "'][target='" +
+        bottleneckEdge.target +
+        "']"
     );
     edge.css("line-color", "#1ab394");
     edge.css("target-arrow-color", "#1ab394");
@@ -746,6 +836,7 @@ $(function () {
     var edges = cy.edges();
     edges.forEach(function (edge) {
       var label = edge.css("label");
+      if (label.includes("/")) return;
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
@@ -804,6 +895,7 @@ $(function () {
     var edges = cy.edges();
     edges.forEach(function (edge) {
       var label = edge.css("label");
+      if (label.includes("/")) return;
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
@@ -841,6 +933,7 @@ $(function () {
     var edges = cy.edges();
     edges.forEach(function (edge) {
       var label = edge.css("label");
+      if (label.includes("/")) return;
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
@@ -899,6 +992,7 @@ $(function () {
     var edges = cy.edges();
     edges.forEach(function (edge) {
       var label = edge.css("label");
+      if (label.includes("/")) return;
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
@@ -1143,11 +1237,11 @@ $(function () {
   function centerGraphNodes(cy) {
     // Get the bounding box of the current graph
     const boundingBox = cy.elements().boundingBox({});
-  
+
     // Calculate the center of the graph
     const centerX = (boundingBox.x1 + boundingBox.x2) / 2;
     const centerY = (boundingBox.y1 + boundingBox.y2) / 2;
-  
+
     // Calculate the center of the viewport
     const viewportCenterX = cy.width() / 2 - cy.width() / 7;
     const viewportCenterY = cy.height() / 2 - cy.height() / 12;
@@ -1155,7 +1249,7 @@ $(function () {
     // Calculate the distance to shift the graph to center it
     const deltaX = viewportCenterX - centerX;
     const deltaY = viewportCenterY - centerY;
-  
+
     // Move all nodes by the calculated delta
     cy.nodes().forEach((node) => {
       let currentPosition = node.position();
@@ -1179,6 +1273,7 @@ $(function () {
       var edges = cy.edges();
       edges.forEach(function (edge) {
         var label = edge.css("label");
+        if (label.includes("/")) return;
         flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
       });
       graph = flowNetwork.getGraph();
@@ -1197,12 +1292,10 @@ $(function () {
       download("edgelist.txt", positions + "\n" + edgelistContent);
     });
 
-  document
-    .getElementById("centering")
-    .addEventListener("click", function () {
-      event.preventDefault();
-      centerGraphNodes(cy)
-    });
+  document.getElementById("centering").addEventListener("click", function () {
+    event.preventDefault();
+    centerGraphNodes(cy);
+  });
 
   document
     .getElementById("layoutChoices")
