@@ -65,10 +65,6 @@ class FlowNetwork {
     this.sink = sink;
   }
 
-  getGraph() {
-    return this.graph;
-  }
-
   addEdge(source, target, capacity) {
     if (source == target) return;
 
@@ -110,7 +106,6 @@ class FlowNetwork {
       allNodes.add(edge.target);
       graph.get(edge.source).set(edge.target, edge);
     }
-    console.log(graph);
     // find path from source to sink
     if (!graph.has(this.source)) {
       console.log("no source");
@@ -148,7 +143,6 @@ class FlowNetwork {
   findBottleneckCapacity(path) {
     const [isValidTopology, pathFromSourceToSink] =
       this.validatePathTopology(path);
-    console.log(isValidTopology);
     if (!path || !isValidTopology) {
       return [-1, -1, "invalid topology"];
     }
@@ -402,6 +396,23 @@ class FlowNetwork {
     }
     console.log(minCut);
     return visited;
+  }
+
+  validateMinCut(sNodes, maxFlow) {
+    var tNodes = new Set(Array.from(this.graph.keys()).filter(node => !sNodes.has(node)));
+    console.log(tNodes);
+    var flowOfThisMinCut = 0;
+    for (const node of this.graph.keys()) {
+      for (const neighbor of this.graph.get(node).keys()) {
+        if (sNodes.has(node) && tNodes.has(neighbor)) {
+          console.log(node + "->" + neighbor);
+          // get the reverse edge since only the reverse edge's capacity == applied flow (we have no information from forward edge)
+          flowOfThisMinCut += this.graph.get(neighbor).get(node).capacity;
+        }
+      }
+    }
+    console.log(flowOfThisMinCut);
+    return flowOfThisMinCut == maxFlow;
   }
 
   // findMaxFlowFulkerson (paths) {

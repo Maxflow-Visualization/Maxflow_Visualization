@@ -432,7 +432,7 @@ $(function () {
       // get path expression to show in the front end and the bottleneck: -1 means invalid path
       const [bottleneck, bottleneckEdge, message] =
         flowNetwork.findBottleneckCapacity(selectedPath);
-      console.log(message);
+      // console.log(message);
       if (bottleneck === -1) {
         alert(message);
         return;
@@ -730,6 +730,7 @@ $(function () {
       return;
     } else {
       var minCutFromSource = flowNetwork.findMinCut(source);
+      console.log(flowNetwork.validateMinCut(new Set(["1", "2"]), totalflow));
 
       console.log(minCutFromSource);
 
@@ -963,12 +964,12 @@ $(function () {
     selectedPath = flowNetwork.convertNodesToEdges(path);
     const [bottleneck, bottleneckEdge, message] =
       flowNetwork.findBottleneckCapacity(selectedPath);
-    console.log(message);
+    // console.log(message);
     expectedGraph = flowNetwork.addFlow(selectedPath, bottleneck, false);
     // expectedGraph.delete("1");
-    console.log(expectedGraph);
-    console.log(flowNetwork.graph);
-    console.log(_.isEqual(expectedGraph, flowNetwork.graph));
+    // console.log(expectedGraph);
+    // console.log(flowNetwork.graph);
+    // console.log(_.isEqual(expectedGraph, flowNetwork.graph));
     selectedPath.forEach(function (edge) {
       highlightEdge(edge.source, edge.target);
     });
