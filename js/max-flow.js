@@ -398,21 +398,21 @@ class FlowNetwork {
     return visited;
   }
 
-  validateMinCut(sNodes, maxFlow) {
+  validateMinCut(sNodes) {
     var tNodes = new Set(Array.from(this.graph.keys()).filter(node => !sNodes.has(node)));
+    if (!sNodes.has(this.source) || !tNodes.has(this.sink)) {
+      return false;
+    }
     console.log(tNodes);
-    var flowOfThisMinCut = 0;
     for (const node of this.graph.keys()) {
       for (const neighbor of this.graph.get(node).keys()) {
-        if (sNodes.has(node) && tNodes.has(neighbor)) {
-          console.log(node + "->" + neighbor);
-          // get the reverse edge since only the reverse edge's capacity == applied flow (we have no information from forward edge)
-          flowOfThisMinCut += this.graph.get(neighbor).get(node).capacity;
+        if (sNodes.has(node) && tNodes.has(neighbor) && this.graph.get(node).get(neighbor).capacity > 0) {
+          // console.log(node + "->" + neighbor);
+          return false;
         }
       }
     }
-    console.log(flowOfThisMinCut);
-    return flowOfThisMinCut == maxFlow;
+    return true;
   }
 
   // findMaxFlowFulkerson (paths) {
