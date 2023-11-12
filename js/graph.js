@@ -113,11 +113,15 @@ $(function () {
       roots: "#a",
       padding: 10,
     },
-    userPanningEnabled: false,
-    zoomingEnabled: false,
-    userZoomingEnabled: false,
+    userPanningEnabled: true,
+    zoomingEnabled: true,
+    userZoomingEnabled: true,
     selectionType: "single",
     
+  });
+
+  cy.panzoom({
+    // ... options ...
   });
 
   // edge handles, which is used for creating edge interactively
@@ -1234,32 +1238,6 @@ $(function () {
     });
   }
 
-  function centerGraphNodes(cy) {
-    // Get the bounding box of the current graph
-    const boundingBox = cy.elements().boundingBox({});
-
-    // Calculate the center of the graph
-    const centerX = (boundingBox.x1 + boundingBox.x2) / 2;
-    const centerY = (boundingBox.y1 + boundingBox.y2) / 2;
-
-    // Calculate the center of the viewport
-    const viewportCenterX = cy.width() / 2 - cy.width() / 7;
-    const viewportCenterY = cy.height() / 2 - cy.height() / 12;
-  
-    // Calculate the distance to shift the graph to center it
-    const deltaX = viewportCenterX - centerX;
-    const deltaY = viewportCenterY - centerY;
-
-    // Move all nodes by the calculated delta
-    cy.nodes().forEach((node) => {
-      let currentPosition = node.position();
-      node.position({
-        x: currentPosition.x + deltaX,
-        y: currentPosition.y + deltaY
-      });
-    });
-  }
-
   document
     .getElementById("downloadButton")
     .addEventListener("click", function () {
@@ -1292,15 +1270,13 @@ $(function () {
       download("edgelist.txt", positions + "\n" + edgelistContent);
     });
 
-  document.getElementById("centering").addEventListener("click", function () {
-    event.preventDefault();
-    centerGraphNodes(cy);
-  });
-
   document
     .getElementById("layoutChoices")
     .addEventListener("change", function (event) {
       const selectedValue = event.target.value;
+      let boundingBox = cy.elements().boundingBox({});
+      let centerX = (boundingBox.x1 + boundingBox.x2) / 2;
+      let centerY = (boundingBox.y1 + boundingBox.y2) / 2;
 
       switch (selectedValue) {
         case "layered":
@@ -1312,77 +1288,29 @@ $(function () {
             spacingFactor: 1.25,
             avoidOverlap: true,
             ScreenOrientation: "horizontal",
+            // boundingBox: boundingBox,
           });
           makeLayoutHorizontal(cy);
-          centerGraphNodes(cy);
+          cy.center();
           break;
         case "spring":
           // Execute code for Spring Model layout
           console.log("Executed code for Choice 2");
-          cy.layout({
+          let scaleFactor = 1.2;
+          let expandedBoundingBox = {
+              x1: centerX + (boundingBox.x1 - centerX) * scaleFactor,
+              y1: centerY + (boundingBox.y1 - centerY) * scaleFactor,
+              x2: centerX + (boundingBox.x2 - centerX) * scaleFactor,
+              y2: centerY + (boundingBox.y2 - centerY) * scaleFactor
+          };
+          let layout = cy.layout({
             name: "cose",
+            boundingBox: expandedBoundingBox,
           });
-          setTimeout(function() {
-            // Call the function you want to run after 1 second
-            centerGraphNodes(cy);
-          }, 50); // 1000 milliseconds = 1 second
           break;
         default:
           console.log("No choice");
       }
 
     });
-
-  function fakeZoomIn(cy, scaleFactor = 1.1) {
-    // Calculate the center of the graph
-    const boundingBox = cy.elements().boundingBox({});
-    const centerX = (boundingBox.x1 + boundingBox.x2) / 2;
-    const centerY = (boundingBox.y1 + boundingBox.y2) / 2;
-
-    // Move each node
-    cy.nodes().forEach(node => {
-        let pos = node.position();
-        node.position({
-            x: centerX + (pos.x - centerX) * scaleFactor,
-            y: centerY + (pos.y - centerY) * scaleFactor
-        });
-    });
-  }
-
-  function fakeZoomOut(cy, scaleFactor = 0.9) {
-    // Calculate the center of the graph
-    const boundingBox = cy.elements().boundingBox({});
-    const centerX = (boundingBox.x1 + boundingBox.x2) / 2;
-    const centerY = (boundingBox.y1 + boundingBox.y2) / 2;
-
-    // Move each node
-    cy.nodes().forEach(node => {
-        let pos = node.position();
-        node.position({
-            x: centerX + (pos.x - centerX) * scaleFactor,
-            y: centerY + (pos.y - centerY) * scaleFactor
-        });
-    });
-  }
-
-  document.getElementById('zoomInBtn').addEventListener('click', function() {
-    event.preventDefault();
-    // var zoomLevel = cy.zoom();
-    // console.log("here")
-    // cy.zoom({
-    //     level: zoomLevel * 1.2, // adjust 1.2 to your preference for zoom step
-    //     renderedPosition: { x: window.innerWidth / 2, y: window.innerHeight / 2 } // zoom in on the center of the viewport
-    // });
-    fakeZoomIn(cy)
-  });
-
-  document.getElementById('zoomOutBtn').addEventListener('click', function() {
-    event.preventDefault();
-    // var zoomLevel = cy.zoom();
-    // cy.zoom({
-    //     level: zoomLevel * 0.8, // adjust 0.8 to your preference for zoom step
-    //     renderedPosition: { x: window.innerWidth / 2, y: window.innerHeight / 2 } // zoom out from the center of the viewport
-    // });
-    fakeZoomOut(cy)
-  });
 });
