@@ -8,6 +8,7 @@
   <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link href="css/style.css" rel="stylesheet" />
   <link rel="stylesheet" href="css/cy.css" />
+  <link rel="stylesheet" href="cytoscape.js-panzoom-master/cytoscape.js-panzoom.css">
 </head>
 
 <body class="mini-navbar">
@@ -162,13 +163,10 @@
             <div class="col-sm-2">
               <input type="file" id="fileInput" />
               <button id="downloadButton">Download Edgelist</button>
-              <button id="centering">Center The Graph</button>
               <select id="layoutChoices">
                 <option value="layered">layered layout</option>
                 <option value="spring">spring model layout</option>
               </select>
-              <button id="zoomInBtn">Zoom In</button>
-              <button id="zoomOutBtn">Zoom Out</button>
             </div>
           </form>
         </div>
@@ -183,5 +181,6 @@
     <script src="js/priority-queue.js"></script>
     <script src="js/download-file.js"></script>
     <script src="js/utils.js"></script>
+    <script src="cytoscape.js-panzoom-master/cytoscape-panzoom.js"></script>
   </body>
 </html>
