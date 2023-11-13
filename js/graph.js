@@ -118,8 +118,7 @@ $(function () {
     userZoomingEnabled: true,
     selectionType: "single",
     minZoom: 0.5, // sets the minimum zoom level
-    maxZoom: 2,   // sets the maximum zoom level
-    
+    maxZoom: 2, // sets the maximum zoom level
   });
 
   cy.panzoom({
@@ -234,7 +233,7 @@ $(function () {
     // proceed to algorithm practice
     if (allowModify()) {
       cy.edgehandles("disable");
-      
+
       hideElement(this);
       // $(this).text("Modify Network Graph");
       // $(this).css("background-color", "#ed5565");
@@ -264,14 +263,14 @@ $(function () {
         );
       });
 
-
-      $('#instructions-state').html('<b>Select Path:</b>');
+      $("#instructions-state").html("<b>Select Path:</b>");
       var instructions =
         '<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn\'t matter).</li><li>To let the algorithm choose an augmenting path, click one of the "Choose Shortest Path" (Edmonds-Karp), "Choose Random Path" (Ford-Fulkerson), "Choose Widest Path" (Capacity Scaling).</li><li>Once an augmenting path is chosen, click "Confirm Path". If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Whenever you think you have found the max flow, click "Confirm I Already Found the Max Flow!" on the right to input your max flow.</li>';
-      
-        $("#instructions").html(instructions);
+
+      $("#instructions").html(instructions);
     } else {
       cancelHighlightedElements();
+      cancelHighlightedNodes();
 
       // $(this).css("background-color", "#1ab394");
       // $(this).text("Start Practice");
@@ -310,7 +309,7 @@ $(function () {
         });
       }
 
-      $('#instructions-state').html('<b>Graph Creation:</b>');
+      $("#instructions-state").html("<b>Graph Creation:</b>");
       var instructions =
         '<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li>';
 
@@ -385,6 +384,26 @@ $(function () {
     edge.css("target-arrow-color", "lightgray");
   }
 
+  function cancelHighlightedNodes() {
+    cy.nodes().style("border-color", "black");
+  }
+
+  var selectedNodes = new Set();
+  cy.on("tap", "node", function (event) {
+    var node = event.cyTarget;
+    if (!node) return;
+    var id = node.id();
+    if (!allowModify() && getState() === "Select Path") {
+      if (node.style("border-color") === "black") {
+        selectedNodes.add(id);
+        node.style("border-color", "#ad1a66");
+      } else {
+        selectedNodes.delete(id);
+        node.style("border-color", "black");
+      }
+    }
+  });
+
   var selectedPath = [];
   // tap edge to change capacity in modifying mode or select path in practicing mode
   cy.on("tap", "edge", function (event) {
@@ -453,9 +472,12 @@ $(function () {
       hideElement(".find-path");
       showElement("#bottleneck");
 
+      cancelHighlightedNodes();
+      selectedNodes.clear();
+
       $("#proceed-step").text("Choose Flow");
 
-      $('#instructions-state').html('<b>Choose Flow:</b>');
+      $("#instructions-state").html("<b>Choose Flow:</b>");
       var instructions =
         '<li>In this step, you will choose a flow number to add to the path you have chosen in the last step.</li><li>Click "Choose Flow", a dialog box will appear.</li><li>Input a flow number in the dialog box and click "OK".</li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow number.</li><li>You can find the bottleneck edge by clicking "Find Bottleneck Edge".</li>';
 
@@ -604,7 +626,7 @@ $(function () {
 
       cy.style().fromJson(cyStyles);
 
-      $('#instructions-state').html('<b>Update Residual Graph:</b>');
+      $("#instructions-state").html("<b>Update Residual Graph:</b>");
       var instructions =
         '<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>You can auto complete the update step by clicking "Auto Complete Residual Graph" button.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking "Undo All Updates to Residual Graph" button.</li><li>When you are done, click "Confirm Residual Graph".</li>';
 
@@ -644,7 +666,7 @@ $(function () {
 
         cy.edgehandles("disable");
 
-        $('#instructions-state').html('<b>Select Path:</b>');
+        $("#instructions-state").html("<b>Select Path:</b>");
         var instructions =
           "<li>In this step, you will choose yourself or let the algorithm choose an augmenting path</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn't matter) </li><li>To let the algorithm choose an augmenting path, click one of the “Choose Shortest Path” (Edmonds-Karp), “Choose Random Path” (Ford-Fulkerson), “Choose Widest Path” (Capacity Scaling) </li><li>Once an augmenting path is chosen, click “Confirm Path”. If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid</li><li>Whenever you think you have find the max flow, click the button on the right to confirm your max flow.</li>";
 
@@ -708,6 +730,37 @@ $(function () {
         //   edge.target
         // );
       }
+    }
+  });
+
+  $("#validate-min-cut").on("click", function (e) {
+    e.preventDefault();
+
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
+
+    var flowNetwork = new FlowNetwork(source, sink);
+
+    var edges = cy.edges();
+
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      if (label.includes("/")) return;
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
+
+    if (flowNetwork.validateMinCut(selectedNodes)) {
+      alert(
+        "Congratulation! You have sccessfully find a min cut for the given network graph!"
+      );
+    } else {
+      cancelHighlightedNodes();
+      selectedNodes.clear();
+      alert(
+        "The group of node you provided is not a valid min cut for the given network graph. Please try again."
+      );
     }
   });
 
@@ -1304,10 +1357,10 @@ $(function () {
           console.log("Executed code for Choice 2");
           let scaleFactor = 1.2;
           let expandedBoundingBox = {
-              x1: centerX + (boundingBox.x1 - centerX) * scaleFactor,
-              y1: centerY + (boundingBox.y1 - centerY) * scaleFactor,
-              x2: centerX + (boundingBox.x2 - centerX) * scaleFactor,
-              y2: centerY + (boundingBox.y2 - centerY) * scaleFactor
+            x1: centerX + (boundingBox.x1 - centerX) * scaleFactor,
+            y1: centerY + (boundingBox.y1 - centerY) * scaleFactor,
+            x2: centerX + (boundingBox.x2 - centerX) * scaleFactor,
+            y2: centerY + (boundingBox.y2 - centerY) * scaleFactor,
           };
           let layout = cy.layout({
             name: "cose",
@@ -1317,6 +1370,5 @@ $(function () {
         default:
           console.log("No choice");
       }
-
     });
 });
