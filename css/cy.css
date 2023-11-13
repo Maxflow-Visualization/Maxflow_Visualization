@@ -68,3 +68,11 @@ body {
 #find-min-cut {
     margin-top: 30px;
 } */
+
+#instructions-state {
+  font-size: large;
+}
+
+#instructions {
+  font-size: medium;
+}
