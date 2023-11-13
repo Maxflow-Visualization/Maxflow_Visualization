@@ -97,97 +97,98 @@
         </div>
 
         <form method="get" class="form-horizontal">
-          <div class="col-sm-8" id="all-buttons">
-            <div class="row">
-              <div class="col-md-2">
+          <div class="col-sm-8">
+            <div class="row" id="all-buttons">
+              <div class="col-md-1">
                 <div class="form-group has-success">
                   <label class="col-sm-1 control-label" id="source-label">S=</label>
 
-                  <div class="col-sm-7" style="padding-left: 5px !important">
+                  <div class="col-sm-8" style="padding-left: 5px !important">
                     <input type="number" min="0" oninput="removeLeadingZeros(this)" id="source"
                       class="form-control input-sm text-center" />
                   </div>
                 </div>
               </div>
-              <div class="col-md-2">
+              <div class="col-md-1">
                 <div class="form-group has-success">
                   <label class="col-sm-1 control-label" id="sink-label">T=</label>
 
-                  <div class="col-sm-7" style="padding-left: 5px !important">
+                  <div class="col-sm-8" style="padding-left: 5px !important">
                     <input type="number" min="0" oninput="removeLeadingZeros(this)" id="sink"
                       class="form-control input-sm text-center" />
                   </div>
                 </div>
               </div>
               <div id="find-path-buttons">
-                <div class="col-md-3">
+                <div class="col-md-2">
                   <button class="btn btn-info btn-sm find-path" id="shortest-path" type="submit" style="display: none">
                     Compute Shortest Path
                   </button>
+                </div>
+                <div class="col-md-2">
                   <button class="btn btn-info btn-sm find-path" id="random-path" type="submit" style="display: none">
                     Compute Random Path
                   </button>
+                  <button class="btn btn-info btn-sm" style="display: none" id="auto-complete" type="submit">
+                    Auto Complete
+                  </button>
+                </div>
+                <div class="col-md-2">
                   <button class="btn btn-info btn-sm find-path" id="widest-path" type="submit" style="display: none">
                     Compute Widest Path
                   </button>
-                  <button class="btn btn-primary btn-sm" style="display: none" id="applied-capacity" type="submit">
-                    Show Applied Flow 
+                  <button class="btn btn-info btn-sm" style="display: none" id="bottleneck" type="submit">
+                    Find Bottleneck Edge
                   </button>
+                  <button class="btn btn-info btn-sm" style="display: none" id="undo-updates" type="submit">
+                    Undo All Updates
+                  </button>
+                  <button class="btn btn-info btn-sm modification" id="add-graph" type="submit">
+                    Example
+                  </button>
+                </div>
+                <div class="col-md-2">
                   <button class="btn btn-primary btn-sm" style="display: none" id="proceed-step" type="submit">
                     Confirm Path
                   </button>
-                  <div id="residual-graph">
-                    <button class="btn btn-info btn-sm" style="display: none" id="auto-complete" type="submit">
-                      Auto Complete Residual Graph
-                    </button>
-                    <button class="btn btn-info btn-sm" style="display: none" id="undo-updates" type="submit">
-                      Undo All Updates to Residual Graph
-                    </button>
-                    <button class="btn btn-info btn-sm" style="display: none" id="bottleneck" type="submit">
-                      Find Bottleneck Edge
-                    </button>
-                  </div>
+                  <button class="btn btn-danger btn-sm modification" id="clear" type="submit">
+                    Clear
+                  </button>
+                </div>
+                <div class="col-md-2">
+                  <button class="btn btn-primary btn-sm" style="display: none" id="applied-capacity" type="submit">
+                    Show Applied Flow
+                  </button>
+                  <button class="btn btn-info btn-sm" id="change-mode" type="submit">
+                    Start Practice
+                  </button>
                 </div>
               </div>
+            </div>
+          </div>
 
-              <div class="col-md-1">
-                <button class="btn btn-info btn-sm modification" id="add-graph" type="submit">
-                  Example
-                </button>
-              </div>
-              <div class="col-md-1">
-                <button class="btn btn-danger btn-sm modification" id="clear" type="submit">
-                  Clear
-                </button>
-              </div>
-              <div class="col-md-1">
-                <button class="btn btn-info btn-sm" id="change-mode" type="submit">
-                  Start Practice
-                </button>
-              </div>
-              </div>
-            </div>
-            <div class="col-sm-2">
-              <input type="file" id="fileInput" />
-              <button id="downloadButton">Download Edgelist</button>
-              <select id="layoutChoices">
-                <option value="layered">layered layout</option>
-                <option value="spring">spring model layout</option>
-              </select>
-            </div>
-          </form>
-        </div>
+          <div class="col-sm-2">
+            <input type="file" id="fileInput" />
+            <button id="downloadButton">Download Edgelist</button>
+            <select id="layoutChoices">
+              <option value="layered">layered layout</option>
+              <option value="spring">spring model layout</option>
+            </select>
+          </div>
+        </form>
       </div>
     </div>
-    <script src="vendor/js/jquery.min.js"></script>
-    <script src="vendor/js/cytoscape.min.js"></script>
-    <script src="vendor/js/cytoscape-edgehandles.js"></script>
-    <script src="js/lodash.js"></script>
-    <script src="js/graph.js"></script>
-    <script src="js/max-flow.js"></script>
-    <script src="js/priority-queue.js"></script>
-    <script src="js/download-file.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="vendor/cytoscape.js-panzoom-master/cytoscape-panzoom.js"></script>
-  </body>
+  </div>
+  <script src="vendor/js/jquery.min.js"></script>
+  <script src="vendor/js/cytoscape.min.js"></script>
+  <script src="vendor/js/cytoscape-edgehandles.js"></script>
+  <script src="js/lodash.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/max-flow.js"></script>
+  <script src="js/priority-queue.js"></script>
+  <script src="js/download-file.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="vendor/cytoscape.js-panzoom-master/cytoscape-panzoom.js"></script>
+</body>
+
 </html>

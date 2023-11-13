@@ -234,9 +234,10 @@ $(function () {
     // proceed to algorithm practice
     if (allowModify()) {
       cy.edgehandles("disable");
-
-      $(this).text("Modify Network Graph");
-      $(this).css("background-color", "#ed5565");
+      
+      hideElement(this);
+      // $(this).text("Modify Network Graph");
+      // $(this).css("background-color", "#ed5565");
 
       $("#state").text("State: Select Path");
       $("#proceed-step").text("Confirm Path");
@@ -270,8 +271,8 @@ $(function () {
     } else {
       cancelHighlightedElements();
 
-      $(this).css("background-color", "#1ab394");
-      $(this).text("Start Practice");
+      // $(this).css("background-color", "#1ab394");
+      // $(this).text("Start Practice");
 
       $("#state").text("State: Graph Creation");
       hideElement("#proceed-step");
