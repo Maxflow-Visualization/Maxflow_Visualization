@@ -171,7 +171,7 @@ $(function () {
   // double click for creating node
   var $cy = $("#cy");
   $cy.dblclick(function (e) {
-    if (!allowModify() || e.target.id == "show-hide-instructions") {
+    if (!allowModify() || e.target.id == "show-hide-instructions" || e.target.matches(".cy-panzoom-reset")) {
       return;
     }
     var id = getId();
