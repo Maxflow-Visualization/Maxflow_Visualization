@@ -154,36 +154,36 @@ SOFTWARE.
           /////////////////////////
 
           var $zoomIn = $('<div class="cy-panzoom-zoom-in cy-panzoom-zoom-button"><span class="icon '+ options.zoomInIcon +'"></span></div>');
-          $panzoom.append( $zoomIn );
+          // $panzoom.append( $zoomIn );
 
           var $zoomOut = $('<div class="cy-panzoom-zoom-out cy-panzoom-zoom-button"><span class="icon ' + options.zoomOutIcon + '"></span></div>');
-          $panzoom.append( $zoomOut );
+          // $panzoom.append( $zoomOut );
 
-          var $reset = $('<div class="cy-panzoom-reset cy-panzoom-zoom-button"><span class="icon ' + options.resetIcon + '"></span></div>');
+          var $reset = $('<div class="cy-panzoom-reset cy-panzoom-zoom-button"><span class="icon fa fa-expand"></span></div>');
           $panzoom.append( $reset );
 
           var $slider = $('<div class="cy-panzoom-slider"></div>');
-          $panzoom.append( $slider );
+          // $panzoom.append( $slider );
 
-          $slider.append('<div class="cy-panzoom-slider-background"></div>');
+          // $slider.append('<div class="cy-panzoom-slider-background"></div>');
 
           var $sliderHandle = $('<div class="cy-panzoom-slider-handle"><span class="icon ' + options.sliderHandleIcon + '"></span></div>');
-          $slider.append( $sliderHandle );
+          // $slider.append( $sliderHandle );
 
           var $noZoomTick = $('<div class="cy-panzoom-no-zoom-tick"></div>');
-          $slider.append( $noZoomTick );
+          // $slider.append( $noZoomTick );
 
           var $panner = $('<div class="cy-panzoom-panner"></div>');
-          $panzoom.append( $panner );
+          // $panzoom.append( $panner );
 
           var $pHandle = $('<div class="cy-panzoom-panner-handle"></div>');
-          $panner.append( $pHandle );
+          // $panner.append( $pHandle );
 
-          var $pUp = $('<div class="cy-panzoom-pan-up cy-panzoom-pan-button"></div>');
-          var $pDown = $('<div class="cy-panzoom-pan-down cy-panzoom-pan-button"></div>');
-          var $pLeft = $('<div class="cy-panzoom-pan-left cy-panzoom-pan-button"></div>');
-          var $pRight = $('<div class="cy-panzoom-pan-right cy-panzoom-pan-button"></div>');
-          $panner.append( $pUp ).append( $pDown ).append( $pLeft ).append( $pRight );
+          // var $pUp = $('<div class="cy-panzoom-pan-up cy-panzoom-pan-button"></div>');
+          // var $pDown = $('<div class="cy-panzoom-pan-down cy-panzoom-pan-button"></div>');
+          // var $pLeft = $('<div class="cy-panzoom-pan-left cy-panzoom-pan-button"></div>');
+          // var $pRight = $('<div class="cy-panzoom-pan-right cy-panzoom-pan-button"></div>');
+          // $panner.append( $pUp ).append( $pDown ).append( $pLeft ).append( $pRight );
 
           var $pIndicator = $('<div class="cy-panzoom-pan-indicator"></div>');
           $panner.append( $pIndicator );

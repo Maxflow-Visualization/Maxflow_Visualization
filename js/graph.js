@@ -117,6 +117,8 @@ $(function () {
     zoomingEnabled: true,
     userZoomingEnabled: true,
     selectionType: "single",
+    minZoom: 0.5, // sets the minimum zoom level
+    maxZoom: 2,   // sets the maximum zoom level
     
   });
 
