@@ -751,6 +751,15 @@ $(function () {
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
+    var path = flowNetwork.findRandomAugmentingPath();
+
+    if (path.length > 0) {
+      alert(
+        "There is still a possible augmenting path from source to sink Please keep moving on. "
+      );
+      return;
+    }
+
     if (flowNetwork.validateMinCut(selectedNodes)) {
       alert(
         "Congratulation! You have sccessfully find a min cut for the given network graph!"
