@@ -173,7 +173,7 @@ $(function () {
   // double click for creating node
   var $cy = $("#cy");
   $cy.dblclick(function (e) {
-    if (!allowModify() || e.target.id == "show-hide-instructions") {
+    if (!allowModify() || e.target.id == "show-hide-instructions" || e.target.matches(".cy-panzoom-reset")) {
       return;
     }
     var id = getId();
@@ -686,7 +686,9 @@ $(function () {
             target: edge.target,
           },
           selectable: true,
-          css: {
+          style: {
+            "line-color": "LightSkyBlue",
+            "target-arrow-color": "LightSkyBlue",
             label: backward + "/" + edge.capacity,
           },
         });
@@ -1257,7 +1259,7 @@ $(function () {
         if (label.includes("/")) return;
         flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
       });
-      graph = flowNetwork.getGraph();
+      graph = flowNetwork.graph;
       let positions = "";
 
       // Iterate over all nodes in the Cytoscape instance and gather positions
