@@ -938,9 +938,9 @@ $(function () {
       }
       if (usermaxflow !== totalflow) {
         alert(
-          "The max flow you have entered is not correct, but there is no more augumenting path. Try again from the start."
+          "There is no more augmenting path, but the max flow you have entered is not correct. Please try again."
         );
-        window.location.reload();
+        // window.location.reload();
         // start practicing again, need original network (maybe)
       } else {
         alert(
