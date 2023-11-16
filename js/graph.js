@@ -144,13 +144,10 @@ $(function () {
 
   function showElementAndItsChildren(selector) {
     $(selector).show();
-    console.log($(selector));
     $(selector).children().show();
-    console.log($(selector).children());
   }
 
   function hideElementAndItsChildren(selector) {
-    $(selector).css("display", "none");
     $(selector).hide();
     $(selector).children().hide();
   }
@@ -235,7 +232,6 @@ $(function () {
 
       hideElementAndItsChildren(".buttons");
       state = states[index];
-      console.log(state);
       showElementAndItsChildren(".ending-actions");
       showElementAndItsChildren("#" + state);
       // $(this).text("Modify Network Graph");
@@ -413,7 +409,7 @@ $(function () {
     var target = edge.target().id();
     var capacity = edge.css("label");
     state = states[index];
-    if (!allowModify() && state === "Select Path") {
+    if (!allowModify() && state === "select-path") {
       if (selectedPath.length === 0) {
         selectedPath.push(new Edge(source, target, capacity));
         highlightEdge(source, target);
@@ -1266,19 +1262,17 @@ $(function () {
   }
 
   //draw nodes according to the input graph. Node position needs further considerations.
-  function drawNodes(graph, source, tank) {
+  function drawNodes(graph, source, sink) {
     cy.nodes().remove();
     var yPosition = 80;
     let mySet = new Set();
     var xPositionOffset = -30;
-    console.log(source);
-    console.log(tank);
     graph.forEach((edges, node) => {
       edges.forEach((edgeValue, node2) => {
         var node2val = parseInt(node2, 10);
         if (!mySet.has(node2val)) {
           mySet.add(node2val);
-          if (node2val === tank) {
+          if (node2val === sink) {
             addNode(cy, node2val, node2val, 600, 300);
           } else {
             addNode(cy, node2val, node2val, 350 + xPositionOffset, yPosition);
