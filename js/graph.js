@@ -141,20 +141,10 @@ $(function () {
 
   var states = ["select-path", "choose-flow", "update-residual-graph"];
   var index = 0;
-  // function getState() {
-  //   // if ($("#state").text().includes("State: Select Path")) {
-  //   //   return "Select Path";
-  //   // } else if ($("#state").text().includes("State: Update Residual Graph")) {
-  //   //   return "Update Residual Graph";
-  //   // } else if ($("#state").text().includes("State: Choose Flow")) {
-  //   //   return "Choose Flow";
-  //   // }
-  //   return states[index];
-  // }
 
   function showElementAndItsChildren(selector) {
-    // $(selector).css("display", "block");
     $(selector).show();
+    console.log($(selector));
     $(selector).children().show();
     console.log($(selector).children());
   }
@@ -237,7 +227,7 @@ $(function () {
 
   var originalFlowNetwork = [];
   // change state between modifying and practicing
-  $("#change-mode").on("click", function (event) {
+  $("#start-practice").on("click", function (event) {
     event.preventDefault();
     // proceed to algorithm practice
     if (allowModify()) {
@@ -245,6 +235,8 @@ $(function () {
 
       hideElementAndItsChildren(".buttons");
       state = states[index];
+      console.log(state);
+      showElementAndItsChildren(".ending-actions");
       showElementAndItsChildren("#" + state);
       // $(this).text("Modify Network Graph");
       // $(this).css("background-color", "#ed5565");
@@ -450,6 +442,7 @@ $(function () {
   $("#proceed-step").on("click", function (event) {
     event.preventDefault();
     if (state === "select-path") {
+      showElementAndItsChildren(".ending-actions");
       // check if path is valid, get max flow, -1 if not valid path
       var $source = $("#source");
       var source = $source.val();
