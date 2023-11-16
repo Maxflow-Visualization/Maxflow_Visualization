@@ -1149,9 +1149,8 @@ $(function () {
 
       if (hasPositionData) {
         const positions = lines[0].split(" ").map((data) => {
-          // Extract and process node positions here if needed
-          // Example: "1(100,200)" => { id: "1", x: 100, y: 200 }
-          const parts = data.match(/(\d+)\((\d+),(\d+)\)/);
+          // Updated regex to include negative values
+          const parts = data.match(/(\d+)\((-?\d+),(-?\d+)\)/);
           if (parts) {
             addNode(
               cy,
@@ -1162,10 +1161,8 @@ $(function () {
             );
           }
         });
-
-        // Use the positions data as required
-        // console.log(positions);
-        // Remove the first line so that the edgelist processing doesn't consider it
+    
+        // Rest of the code
         lines.shift();
       }
 
@@ -1248,8 +1245,8 @@ $(function () {
     cy.nodes().forEach((node) => {
       let currentPosition = node.position();
       node.position({
-        x: (currentPosition.y / height) * 800,
-        y: (currentPosition.x / width) * 500,
+        x: (currentPosition.y ),
+        y: (currentPosition.x / 2.5),
       });
     });
   }
