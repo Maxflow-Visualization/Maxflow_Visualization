@@ -62,14 +62,14 @@
               <div class="ibox-content">
                 <h2>Selected Path(s)</h2>
                 <div id="history"></div>
-                <button class="btn btn-primary btn-sm find-path" id="confirm-max-flow" type="submit"
+                <button class="btn btn-primary btn-sm select-path" id="confirm-max-flow" type="submit"
                   style="display: none">
                   Confirm Max Flow Found!
-                  <button class="btn btn-primary btn-sm find-path" id="validate-min-cut" type="submit"
+                  <button class="btn btn-primary btn-sm select-path" id="validate-min-cut" type="submit"
                     style="display: none">
                     Validate Seleted Min Cut
                   </button>
-                  <button class="btn btn-primary btn-sm find-path" id="find-min-cut" type="submit"
+                  <button class="btn btn-primary btn-sm select-path" id="find-min-cut" type="submit"
                     style="display: none">
                     Find Min Cut
                   </button>
@@ -97,68 +97,70 @@
         <form method="get" class="form-horizontal">
           <div class="col-sm-8">
             <div class="row" id="all-buttons">
-              <div class="col-md-1" style="padding-left: 5px !important; padding-right: 15px !important">
+              <div class="col-md-2" style="padding-left: 5px !important; padding-right: 15px !important">
                 <div class="form-group has-success">
-                  <label class="col-sm-1 control-label" id="source-label">S=</label>
+                  <label class="col-sm-1 control-label" id="source-label">Source=</label>
 
-                  <div class="col-sm-8" style="padding-left: 5px !important; padding-right: 0px !important">
+                  <div class="col-sm-8" style="margin-left: 27px !important; padding-right: 0px !important">
                     <input type="number" min="0" oninput="removeLeadingZeros(this)" id="source"
                       class="form-control input-sm text-center" />
                   </div>
                 </div>
               </div>
-              <div class="col-md-1" style="padding-left: 5px !important; padding-right: 15px !important">
+              <div class="col-md-2" style="padding-left: 5px !important; padding-right: 15px !important">
                 <div class="form-group has-success">
-                  <label class="col-sm-1 control-label" id="sink-label">T=</label>
+                  <label class="col-sm-1 control-label" id="sink-label">Sink=</label>
 
-                  <div class="col-sm-8" style="padding-left: 5px !important; padding-right: 0px !important">
+                  <div class="col-sm-8" style="margin-left: 10px !important; padding-right: 0px !important">
                     <input type="number" min="0" oninput="removeLeadingZeros(this)" id="sink"
                       class="form-control input-sm text-center" />
                   </div>
                 </div>
               </div>
-              <div id="find-path-buttons">
-                <div class="col-md-2">
-                  <button class="btn btn-info btn-sm find-path" id="shortest-path" type="submit" style="display: none">
+              <div>
+                <div class="col-md-3 buttons" id="graph-creation">
+                  <button class="btn btn-info btn-sm modification" id="add-graph" type="submit">
+                    Example
+                  </button>
+                  <button class="btn btn-danger btn-sm modification" id="clear" type="submit">
+                    Clear
+                  </button>
+                  <button class="btn btn-info btn-sm" id="change-mode" type="submit">
+                    Start Practice
+                  </button>
+                </div>
+                <div class="col-md-5 btn-group buttons" id="select-path">
+                  <button class="btn btn-info btn-sm" id="shortest-path" type="submit" style="display: none">
                     Compute Shortest Path
                   </button>
-                </div>
-                <div class="col-md-2">
-                  <button class="btn btn-info btn-sm find-path" id="random-path" type="submit" style="display: none">
+                  <button class="btn btn-info btn-sm" id="random-path" type="submit" style="display: none">
                     Compute Random Path
                   </button>
-                  <button class="btn btn-info btn-sm" style="display: none" id="auto-complete" type="submit">
-                    Auto Complete
-                  </button>
-                </div>
-                <div class="col-md-2">
-                  <button class="btn btn-info btn-sm find-path" id="widest-path" type="submit" style="display: none">
+                  <button class="btn btn-info btn-sm" id="widest-path" type="submit" style="display: none">
                     Compute Widest Path
                   </button>
+                </div>
+                <div class="col-md-3 btn-group buttons" id="choose-flow">
                   <button class="btn btn-info btn-sm" style="display: none" id="bottleneck" type="submit">
                     Find Bottleneck Edge
                   </button>
+                </div>
+                <div class="col-md-3 btn-group buttons" id="update-residual-graph">
+                  <button class="btn btn-info btn-sm" style="display: none" id="auto-complete" type="submit">
+                    Auto Complete
+                  </button>
                   <button class="btn btn-info btn-sm" style="display: none" id="undo-updates" type="submit">
                     Undo All Updates
-                  </button>
-                  <button class="btn btn-info btn-sm modification" id="add-graph" type="submit">
-                    Example
                   </button>
                 </div>
                 <div class="col-md-2">
                   <button class="btn btn-primary btn-sm" style="display: none" id="proceed-step" type="submit">
                     Confirm Path
                   </button>
-                  <button class="btn btn-danger btn-sm modification" id="clear" type="submit">
-                    Clear
-                  </button>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                   <button class="btn btn-primary btn-sm" style="display: none" id="applied-capacity" type="submit">
                     Show Applied Flow
-                  </button>
-                  <button class="btn btn-info btn-sm" id="change-mode" type="submit">
-                    Start Practice
                   </button>
                 </div>
               </div>

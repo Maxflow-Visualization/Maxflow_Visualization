@@ -139,22 +139,30 @@ $(function () {
     return $("#state").text().includes("State: Graph Creation");
   }
 
-  function getState() {
-    if ($("#state").text().includes("State: Select Path")) {
-      return "Select Path";
-    } else if ($("#state").text().includes("State: Update Residual Graph")) {
-      return "Update Residual Graph";
-    } else if ($("#state").text().includes("State: Choose Flow")) {
-      return "Choose Flow";
-    }
+  var states = ["select-path", "choose-flow", "update-residual-graph"];
+  var index = 0;
+  // function getState() {
+  //   // if ($("#state").text().includes("State: Select Path")) {
+  //   //   return "Select Path";
+  //   // } else if ($("#state").text().includes("State: Update Residual Graph")) {
+  //   //   return "Update Residual Graph";
+  //   // } else if ($("#state").text().includes("State: Choose Flow")) {
+  //   //   return "Choose Flow";
+  //   // }
+  //   return states[index];
+  // }
+
+  function showElementAndItsChildren(selector) {
+    // $(selector).css("display", "block");
+    $(selector).show();
+    $(selector).children().show();
+    console.log($(selector).children());
   }
 
-  function showElement(selector) {
-    $(selector).css("display", "block");
-  }
-
-  function hideElement(selector) {
+  function hideElementAndItsChildren(selector) {
     $(selector).css("display", "none");
+    $(selector).hide();
+    $(selector).children().hide();
   }
 
   function getId() {
@@ -184,8 +192,9 @@ $(function () {
   });
 
   // delete a node with backspace or delete button
+  state = states[index];
   $("html").keyup(function (e) {
-    if (!allowModify() && getState() !== "Update Residual Graph") {
+    if (!allowModify() && state !== "update-residual-graph") {
       return;
     }
     if (e.key == "Delete") {
@@ -234,25 +243,23 @@ $(function () {
     if (allowModify()) {
       cy.edgehandles("disable");
 
-      hideElement(this);
+      hideElementAndItsChildren(".buttons");
+      state = states[index];
+      showElementAndItsChildren("#" + state);
       // $(this).text("Modify Network Graph");
       // $(this).css("background-color", "#ed5565");
 
       $("#state").text("State: Select Path");
       $("#proceed-step").text("Confirm Path");
-      showElement("#proceed-step");
-      showElement("#applied-capacity");
+      showElementAndItsChildren("#proceed-step");
+      showElementAndItsChildren("#applied-capacity");
 
-      $("#source-label").text("S=" + $("#source").val());
-      hideElement("#source");
-      $("#sink-label").text("T=" + $("#sink").val());
-      hideElement("#sink");
+      $("#source-label").text("Source=" + $("#source").val());
+      hideElementAndItsChildren("#source");
+      $("#sink-label").text("Sink=" + $("#sink").val());
+      hideElementAndItsChildren("#sink");
 
-      showElement(".find-path");
-
-      hideElement(".change-capacity");
-      hideElement("#add-graph");
-      hideElement("#clear");
+      hideElementAndItsChildren(".change-capacity");
 
       var edges = cy.edges();
 
@@ -276,19 +283,17 @@ $(function () {
       // $(this).text("Start Practice");
 
       $("#state").text("State: Graph Creation");
-      hideElement("#proceed-step");
-      hideElement("#applied-capacity");
+      hideElementAndItsChildren("#proceed-step");
+      hideElementAndItsChildren("#applied-capacity");
 
       $("#source-label").text("S=");
-      showElement("#source");
+      showElementAndItsChildren("#source");
       $("#sink-label").text("T=");
-      showElement("#sink");
+      showElementAndItsChildren("#sink");
 
-      hideElement(".find-path");
-
-      showElement(".change-capacity");
-      showElement("#add-graph");
-      showElement("#clear");
+      showElementAndItsChildren(".change-capacity");
+      showElementAndItsChildren("#add-graph");
+      showElementAndItsChildren("#clear");
 
       var shown = false;
 
@@ -393,7 +398,8 @@ $(function () {
     var node = event.cyTarget;
     if (!node) return;
     var id = node.id();
-    if (!allowModify() && getState() === "Select Path") {
+    state = states[index];
+    if (!allowModify() && state === "select-path") {
       if (node.style("border-color") === "black") {
         selectedNodes.add(id);
         node.style("border-color", "#ad1a66");
@@ -414,19 +420,20 @@ $(function () {
     var source = edge.source().id();
     var target = edge.target().id();
     var capacity = edge.css("label");
-    if (!allowModify() && getState() === "Select Path") {
+    state = states[index];
+    if (!allowModify() && state === "Select Path") {
       if (selectedPath.length === 0) {
         selectedPath.push(new Edge(source, target, capacity));
         highlightEdge(source, target);
         return;
       }
-      var index = selectedPath.findIndex(
+      var index2 = selectedPath.findIndex(
         (edge) => edge.source === source && edge.target === target
       );
-      if (index !== -1) {
+      if (index2 !== -1) {
         console.log("highlighted");
         cancelHighlightedEdge(source, target);
-        selectedPath.splice(index, 1);
+        selectedPath.splice(index2, 1);
       } else {
         console.log("unhighlighted");
         highlightEdge(source, target);
@@ -442,7 +449,7 @@ $(function () {
   // proceed in steps in pracitcing mode
   $("#proceed-step").on("click", function (event) {
     event.preventDefault();
-    if (getState() === "Select Path") {
+    if (state === "select-path") {
       // check if path is valid, get max flow, -1 if not valid path
       var $source = $("#source");
       var source = $source.val();
@@ -469,8 +476,8 @@ $(function () {
 
       $("#state").text("State: Choose Flow");
 
-      hideElement(".find-path");
-      showElement("#bottleneck");
+      // hideElementAndItsChildren(".find-path");
+      // showElementAndItsChildren("#bottleneck");
 
       cancelHighlightedNodes();
       selectedNodes.clear();
@@ -479,10 +486,12 @@ $(function () {
 
       $("#instructions-state").html("<b>Choose Flow:</b>");
       var instructions =
-        '<li>In this step, you will choose a flow number to add to the path you have chosen in the last step.</li><li>Click "Choose Flow", a dialog box will appear.</li><li>Input a flow number in the dialog box and click "OK".</li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow number.</li><li>You can find the bottleneck edge by clicking "Find Bottleneck Edge".</li>';
+        '<li>In this step, you will choose a flow amount to add to the path you have chosen in the last step.</li><li>Click "Choose Flow", a dialog box will appear.</li><li>Input a flow amount in the dialog box and click "OK".</li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow amount.</li><li>You can find the bottleneck edge by clicking "Find Bottleneck Edge".</li>';
 
       $("#instructions").html(instructions);
-    } else if (getState() === "Choose Flow") {
+      index = (index + 1) % states.length;
+    } else if (state === "choose-flow") {
+      showElementAndItsChildren(".change-capacity");
       var $source = $("#source");
       var source = $source.val();
       var $sink = $("#sink");
@@ -502,7 +511,7 @@ $(function () {
 
       // tell user the range he can choose from
       var prompt = window.prompt(
-        "Enter a flow you want to apply to the edge. "
+        "Enter a flow you want to apply to the path. "
       );
 
       console.log(prompt);
@@ -529,10 +538,6 @@ $(function () {
 
       $("#state").text("State: Update Residual Graph");
       oldFlowNetwork = flowNetwork;
-      showElement(".change-capacity");
-      hideElement("#bottleneck");
-      showElement("#auto-complete");
-      showElement("#undo-updates");
       $("#proceed-step").text("Confirm Residual Graph");
       cy.edgehandles("enable");
 
@@ -631,7 +636,8 @@ $(function () {
         '<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>You can auto complete the update step by clicking "Auto Complete Residual Graph" button.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking "Undo All Updates to Residual Graph" button.</li><li>When you are done, click "Confirm Residual Graph".</li>';
 
       $("#instructions").html(instructions);
-    } else if (getState() === "Update Residual Graph") {
+      index = (index + 1) % states.length;
+    } else if (state === "update-residual-graph") {
       var $source = $("#source");
       var source = $source.val();
       var $sink = $("#sink");
@@ -656,11 +662,6 @@ $(function () {
         totalflow += flow;
         selectedPath = [];
 
-        hideElement(".change-capacity");
-        showElement(".find-path");
-        hideElement("#auto-complete");
-        hideElement("#undo-updates");
-
         $("#state").text("State: Select Path");
         $("#proceed-step").text("Confirm Path");
 
@@ -671,10 +672,14 @@ $(function () {
           "<li>In this step, you will choose yourself or let the algorithm choose an augmenting path</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn't matter) </li><li>To let the algorithm choose an augmenting path, click one of the “Choose Shortest Path” (Edmonds-Karp), “Choose Random Path” (Ford-Fulkerson), “Choose Widest Path” (Capacity Scaling) </li><li>Once an augmenting path is chosen, click “Confirm Path”. If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid</li><li>Whenever you think you have find the max flow, click the button on the right to confirm your max flow.</li>";
 
         $("#instructions").html(instructions);
+        index = (index + 1) % states.length;
       } else {
         alert("Residual graph not yet completed, please keep trying.");
       }
     }
+    hideElementAndItsChildren(".buttons");
+    state = states[index];
+    showElementAndItsChildren("#" + state);
   });
 
   $("#applied-capacity").on("click", function (e) {
@@ -920,7 +925,7 @@ $(function () {
       );
       return;
     } else {
-      var usermaxflow = window.prompt("Please enter the max flow: ");
+      var usermaxflow = window.prompt("Please enter the value of the max flow: ");
 
       if (usermaxflow === null) {
         // cancel button
@@ -944,7 +949,7 @@ $(function () {
         // start practicing again, need original network (maybe)
       } else {
         alert(
-          "Congratulation! You have sccessfully find the max flow for the given network graph!"
+          "Congratulation! You have successfully find the max flow for the given network graph!"
         );
         // window.location.reload();
       }
