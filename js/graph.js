@@ -121,6 +121,19 @@ $(function () {
     maxZoom: 2, // sets the maximum zoom level
   });
 
+  // Right-click event listener
+  cy.on('cxttap', 'edge', function(event) {
+    var edge = event.target;
+    var pos = event.renderedPosition;
+    var inputBox = document.getElementById('edgeCapacityInput');
+
+    // Position and show the input box
+    inputBox.style.left = pos.x + 'px';
+    inputBox.style.top = pos.y + 'px';
+    inputBox.style.display = 'block';
+    inputBox.focus();
+});
+
   cy.panzoom({
     // ... options ...
   });
