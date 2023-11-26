@@ -510,10 +510,21 @@ $(function () {
       }
       // check if the user entered a proper flow: check int and should be within valid range
       flow = parseFloat(prompt);
-      while (isNaN(flow) || flow < 0 || flow > bottleneck) {
-        prompt = window.prompt(
-          "Enter a valid flow you want to apply to the edge. "
-        );
+      while (isNaN(flow) || flow <= 0 || flow > bottleneck) {
+        prompt = null;
+        if (isNaN(flow)) {
+          prompt = window.prompt(
+            "The flow entered is not a number. Please enter a valid flow amount."
+          );
+        } else if (flow > bottleneck) {
+          prompt = window.prompt(
+            "The flow amount entered is too high. Please try again."
+          );
+        } else if (flow <= 0) {
+          prompt = window.prompt(
+            "The flow amount must be positive. Please try again. "
+          );
+        }
         if (prompt === null) {
           return;
         }
@@ -645,7 +656,8 @@ $(function () {
       // if not, let user redo it.
 
       var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
-      if (isSameGraphSkipFlowComparison(flowNetwork.graph, expectedGraph)) {
+      [message, isCorrectResidualGraph] = isSameGraphSkipFlowComparison(flowNetwork.graph, expectedGraph);
+      if (isCorrectResidualGraph) {
         cancelHighlightedElements();
 
         totalflow += flow;
@@ -663,7 +675,7 @@ $(function () {
         $("#instructions").html(instructions);
         index = (index + 1) % states.length;
       } else {
-        alert("Residual graph not yet completed, please keep trying.");
+        alert(message + " Please try again.");
       }
     }
     hideElementAndItsChildren(".buttons");
@@ -886,7 +898,11 @@ $(function () {
     $label.css("border", "1px solid #18a689");
     if (!selectedEdge) return;
 
-    selectedEdge.css("label", label);
+    if (parseFloat(label) === 0) {
+      selectedEdge.remove();
+    } else {
+      selectedEdge.css("label", label);
+    }
   });
 
   $("#confirm-max-flow").on("click", function (e) {
