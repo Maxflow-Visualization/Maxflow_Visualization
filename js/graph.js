@@ -122,17 +122,17 @@ $(function () {
   });
 
   // Right-click event listener
-  cy.on('cxttap', 'edge', function(event) {
+  cy.on("cxttap", "edge", function (event) {
     var edge = event.target;
     var pos = event.renderedPosition;
-    var inputBox = document.getElementById('edgeCapacityInput');
+    var inputBox = document.getElementById("edgeCapacityInput");
 
     // Position and show the input box
-    inputBox.style.left = pos.x + 'px';
-    inputBox.style.top = pos.y + 'px';
-    inputBox.style.display = 'block';
+    inputBox.style.left = pos.x + "px";
+    inputBox.style.top = pos.y + "px";
+    inputBox.style.display = "block";
     inputBox.focus();
-});
+  });
 
   cy.panzoom({
     // ... options ...
@@ -320,6 +320,21 @@ $(function () {
         '<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li>';
 
       $("#instructions").html(instructions);
+
+      cy.edges().remove();
+      for (const [_, neighborsMap] of oldFlowNetwork.graph) {
+        for (const [_, edge] of neighborsMap) {
+          if (edge.capacity !== 0) {
+            addEdge(
+              cy,
+              edge.source + "-" + edge.target,
+              edge.capacity,
+              edge.source,
+              edge.target
+            );
+          }
+        }
+      }
     }
   });
 
@@ -669,7 +684,10 @@ $(function () {
       // if not, let user redo it.
 
       var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
-      [message, isCorrectResidualGraph] = isSameGraphSkipFlowComparison(flowNetwork.graph, expectedGraph);
+      [message, isCorrectResidualGraph] = isSameGraphSkipFlowComparison(
+        flowNetwork.graph,
+        expectedGraph
+      );
       if (isCorrectResidualGraph) {
         cancelHighlightedElements();
 
@@ -943,7 +961,9 @@ $(function () {
       );
       return;
     } else {
-      var usermaxflow = window.prompt("Please enter the value of the max flow: ");
+      var usermaxflow = window.prompt(
+        "Please enter the value of the max flow: "
+      );
 
       if (usermaxflow === null) {
         // cancel button
@@ -1184,7 +1204,7 @@ $(function () {
             );
           }
         });
-    
+
         // Rest of the code
         lines.shift();
       }
@@ -1268,8 +1288,8 @@ $(function () {
     cy.nodes().forEach((node) => {
       let currentPosition = node.position();
       node.position({
-        x: (currentPosition.y ),
-        y: (currentPosition.x / 2.5),
+        x: currentPosition.y,
+        y: currentPosition.x / 2.5,
       });
     });
   }
