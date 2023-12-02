@@ -121,19 +121,6 @@ $(function () {
     maxZoom: 2, // sets the maximum zoom level
   });
 
-  // Right-click event listener
-  cy.on('cxttap', 'edge', function(event) {
-    var edge = event.target;
-    var pos = event.renderedPosition;
-    var inputBox = document.getElementById('edgeCapacityInput');
-
-    // Position and show the input box
-    inputBox.style.left = pos.x + 'px';
-    inputBox.style.top = pos.y + 'px';
-    inputBox.style.display = 'block';
-    inputBox.focus();
-});
-
   cy.panzoom({
     // ... options ...
   });
@@ -245,6 +232,7 @@ $(function () {
 
       hideElementAndItsChildren(".buttons");
       state = states[index];
+      canRightClick = false
       showElementAndItsChildren(".ending-actions");
       showElementAndItsChildren("#" + state);
       // $(this).text("Modify Network Graph");
@@ -1313,6 +1301,10 @@ $(function () {
     .addEventListener("click", function () {
       // Assuming the graph is globally accessible or you can pass it as an argument
       event.preventDefault();
+      // var tooltip = document.getElementById('edgeTooltip');
+      // if (!event.target.matches('.edge')) {
+      //     tooltip.style.display = 'none';
+      // }
       var $source = $("#source");
       var source = $source.val();
       var $sink = $("#sink");
@@ -1382,4 +1374,61 @@ $(function () {
           console.log("No choice");
       }
     });
+
+    rightClickedEdge = null
+  canRightClick = true
+
+  //right click on an edge brings up a div for update capacity
+  cy.on('cxttap', 'edge', function(event) {
+    if(!canRightClick) return;
+    var mouseX = event.originalEvent.clientX;
+    var mouseY = event.originalEvent.clientY;
+    rightClickedEdge = event.cyTarget;
+    $("#mouse-label").val(rightClickedEdge.css("label"));
+
+    // Set the text and position of the floating div
+    // console.log(mouseX)
+    // console.log(mouseY)
+    var floatingText = document.getElementById('floatingText');
+    // floatingText.textContent = capacity; // Change this to whatever text you want
+    floatingText.style.display = 'block';
+    floatingText.style.left = mouseX + 'px';
+    floatingText.style.top = mouseY + 'px';
+  });
+
+  //if not clicking the div near the mouse, make the div disappear
+  document.addEventListener('click', function(event) {
+    var floatingText = document.getElementById('floatingText');
+    function clickInsideElement(event, element) {
+      var target = event.target;
+      do {
+          if (target === element) {
+              return true;
+          }
+          target = target.parentNode;
+      } while (target);
+
+      return false;
+    }
+    var isClickInsideFloatingText = clickInsideElement(event, floatingText);
+    if (!isClickInsideFloatingText) {
+      floatingText.style.display = 'none';
+    }
+  });
+
+  // update capacity using the input box near the mouse
+  $("#mouse-update").on("click", function (event) {
+    event.preventDefault();
+    var $mouseLabel = $("#mouse-label");
+    var label = $mouseLabel.val();
+    console.log(rightClickedEdge)
+    if (isNaN(parseFloat(label)) || parseFloat(label) < 0) {
+      $mouseLabel.css("border", "1px solid red");
+      return;
+    }
+    $mouseLabel.css("border", "1px solid #18a689");
+    if (!rightClickedEdge) return;
+
+    rightClickedEdge.css("label", label);
+  });
 });

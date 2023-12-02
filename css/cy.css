@@ -80,3 +80,16 @@ body {
 .btn-info, .btn-danger {
   margin-right: 10px;
 }
+
+/* for right click */
+
+#floatingText {
+  background-color: white;
+  border: 1px solid black;
+  padding: 5px;
+  border-radius: 5px;
+  position: absolute;
+  display: none;
+  z-index: 1000; /* High z-index to ensure it appears on top */
+  /* Additional styling as needed */
+}

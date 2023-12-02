@@ -177,14 +177,18 @@
             </div>
           </div>
 
-          <!-- <div class="col-sm-2">
-            <input type="file" id="fileInput" />
-            <button id="downloadButton">Download Edgelist</button>
-            <select id="layoutChoices">
-              <option value="layered">layered layout</option>
-              <option value="spring">spring model layout</option>
-            </select>
-          </div> -->
+          <div id="floatingText" id="graph-creation">
+            <div class="col-md-6">
+              <input type="number" min="1" oninput="removeLeadingZeros(this)" id="mouse-label"
+                class="form-control input-sm text-center change-capacity" />
+            </div>
+            <div class="col-md-6">
+              <button type="button" id="mouse-update" class="btn btn-primary btn-sm change-capacity">
+                Update
+              </button>
+            </div>
+          </div>
+
         </form>
       </div>
     </div>
