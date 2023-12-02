@@ -308,6 +308,21 @@ $(function () {
         '<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li>';
 
       $("#instructions").html(instructions);
+
+      cy.edges().remove();
+      for (const [_, neighborsMap] of oldFlowNetwork.graph) {
+        for (const [_, edge] of neighborsMap) {
+          if (edge.capacity !== 0) {
+            addEdge(
+              cy,
+              edge.source + "-" + edge.target,
+              edge.capacity,
+              edge.source,
+              edge.target
+            );
+          }
+        }
+      }
     }
   });
 
@@ -511,10 +526,21 @@ $(function () {
       }
       // check if the user entered a proper flow: check int and should be within valid range
       flow = parseFloat(prompt);
-      while (isNaN(flow) || flow < 0 || flow > bottleneck) {
-        prompt = window.prompt(
-          "Enter a valid flow you want to apply to the edge. "
-        );
+      while (isNaN(flow) || flow <= 0 || flow > bottleneck) {
+        prompt = null;
+        if (isNaN(flow)) {
+          prompt = window.prompt(
+            "The flow entered is not a number. Please enter a valid flow amount."
+          );
+        } else if (flow > bottleneck) {
+          prompt = window.prompt(
+            "The flow amount entered is too high. Please try again."
+          );
+        } else if (flow <= 0) {
+          prompt = window.prompt(
+            "The flow amount must be positive. Please try again. "
+          );
+        }
         if (prompt === null) {
           return;
         }
@@ -646,7 +672,11 @@ $(function () {
       // if not, let user redo it.
 
       var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
-      if (isSameGraphSkipFlowComparison(flowNetwork.graph, expectedGraph)) {
+      [message, isCorrectResidualGraph] = isSameGraphSkipFlowComparison(
+        flowNetwork.graph,
+        expectedGraph
+      );
+      if (isCorrectResidualGraph) {
         cancelHighlightedElements();
 
         totalflow += flow;
@@ -664,7 +694,7 @@ $(function () {
         $("#instructions").html(instructions);
         index = (index + 1) % states.length;
       } else {
-        alert("Residual graph not yet completed, please keep trying.");
+        alert(message + " Please try again.");
       }
     }
     hideElementAndItsChildren(".buttons");
@@ -694,7 +724,6 @@ $(function () {
         }
       });
     } else {
-      console.log("HERE");
       for (const edge of originalFlowNetwork) {
         var backward = cy
           .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
@@ -726,6 +755,55 @@ $(function () {
         // );
       }
     }
+  });
+
+  cy.on("cyedgehandles.complete", function(e) {
+    e.preventDefault();
+
+    var edges = cy.edges();
+
+    var shown = false;
+
+    // check if applied capacity is shown
+    edges.forEach(function (edge) {
+      if (edge.css("label").includes("/")) {
+        shown = true;
+      }
+    });
+
+    if (shown) {
+      // first remove all old applied flows
+      edges.forEach(function (edge) {
+        if (edge.css("label").includes("/")) {
+          edge.remove();
+        }
+      });
+
+      // then add them into cy again with new ones
+      for (const edge of originalFlowNetwork) {
+        var backward = cy
+          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
+          .css("label");
+        if (backward === undefined || backward === null || backward === "")
+          backward = "0";
+
+        cy.add({
+          group: "edges",
+          data: {
+            id: edge.source + "/" + edge.target,
+            source: edge.source,
+            target: edge.target,
+          },
+          selectable: true,
+          style: {
+            "line-color": "LightSkyBlue",
+            "target-arrow-color": "LightSkyBlue",
+            label: backward + "/" + edge.capacity,
+          },
+        });
+      }
+    }
+
   });
 
   $("#validate-min-cut").on("click", function (e) {
@@ -887,7 +965,55 @@ $(function () {
     $label.css("border", "1px solid #18a689");
     if (!selectedEdge) return;
 
-    selectedEdge.css("label", label);
+    if (parseFloat(label) === 0) {
+      selectedEdge.remove();
+    } else {
+      selectedEdge.css("label", label);
+    }
+
+    var edges = cy.edges();
+
+    var shown = false;
+
+    // check if applied capacity is shown
+    edges.forEach(function (edge) {
+      if (edge.css("label").includes("/")) {
+        shown = true;
+      }
+    });
+
+    if (shown) {
+      // first remove all old applied flows
+      edges.forEach(function (edge) {
+        if (edge.css("label").includes("/")) {
+          edge.remove();
+        }
+      });
+
+      // then add them into cy again with new ones
+      for (const edge of originalFlowNetwork) {
+        var backward = cy
+          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
+          .css("label");
+        if (backward === undefined || backward === null || backward === "")
+          backward = "0";
+
+        cy.add({
+          group: "edges",
+          data: {
+            id: edge.source + "/" + edge.target,
+            source: edge.source,
+            target: edge.target,
+          },
+          selectable: true,
+          style: {
+            "line-color": "LightSkyBlue",
+            "target-arrow-color": "LightSkyBlue",
+            label: backward + "/" + edge.capacity,
+          },
+        });
+      }
+    }
   });
 
   $("#confirm-max-flow").on("click", function (e) {
@@ -915,7 +1041,9 @@ $(function () {
       );
       return;
     } else {
-      var usermaxflow = window.prompt("Please enter the value of the max flow: ");
+      var usermaxflow = window.prompt(
+        "Please enter the value of the max flow: "
+      );
 
       if (usermaxflow === null) {
         // cancel button
@@ -1156,7 +1284,7 @@ $(function () {
             );
           }
         });
-    
+
         // Rest of the code
         lines.shift();
       }
@@ -1240,8 +1368,8 @@ $(function () {
     cy.nodes().forEach((node) => {
       let currentPosition = node.position();
       node.position({
-        x: (currentPosition.y ),
-        y: (currentPosition.x / 2.5),
+        x: currentPosition.y,
+        y: currentPosition.x / 2.5,
       });
     });
   }

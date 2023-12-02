@@ -25,27 +25,25 @@ function isSameGraphSkipFlowComparison(graph1, graph2) {
     JSON.stringify([...graph1.keys()].sort()) !=
     JSON.stringify([...graph2.keys()].sort())
   ) {
-    console.log("here1");
-    return false;
+    return ["Add/Delete nodes when updating residual graph is not allowed.", false];
   }
   for (const source of graph1.keys()) {
     if (
       JSON.stringify([...graph1.get(source).keys()].sort()) !=
       JSON.stringify([...graph2.get(source).keys()].sort())
     ) {
-      console.log("here2");
-      return false;
+      return ["Some edges that are not yet saturated in the residual graph are deleted/There are extra edges that should not be added in the residual graph.", false];
     }
     for (const neighbor of graph1.get(source).keys()) {
       if (
         graph1.get(source).get(neighbor).capacity !=
         graph2.get(source).get(neighbor).capacity
       ) {
-        return false;
+        return ["Some edges in the residual graph have wrong capacity. For example, " + source + "->" + neighbor + ".", false];
       }
     }
   }
-  return true;
+  return ["", true];
 }
 
 class Edge {
