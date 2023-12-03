@@ -454,7 +454,7 @@ $(function () {
   $("#proceed-step").on("click", function (event) {
     event.preventDefault();
     if (state === "select-path") {
-      showElementAndItsChildren(".ending-actions");
+      hideElementAndItsChildren(".ending-actions");
       // check if path is valid, get max flow, -1 if not valid path
       var $source = $("#source");
       var source = $source.val();
@@ -654,6 +654,7 @@ $(function () {
       $("#instructions").html(instructions);
       index = (index + 1) % states.length;
     } else if (state === "update-residual-graph") {
+      showElementAndItsChildren(".ending-actions");
       var $source = $("#source");
       var source = $source.val();
       var $sink = $("#sink");
@@ -1558,5 +1559,49 @@ $(function () {
     if (!rightClickedEdge) return;
 
     rightClickedEdge.css("label", label);
+
+    var edges = cy.edges();
+
+    var shown = false;
+
+    // check if applied capacity is shown
+    edges.forEach(function (edge) {
+      if (edge.css("label").includes("/")) {
+        shown = true;
+      }
+    });
+
+    if (shown) {
+      // first remove all old applied flows
+      edges.forEach(function (edge) {
+        if (edge.css("label").includes("/")) {
+          edge.remove();
+        }
+      });
+
+      // then add them into cy again with new ones
+      for (const edge of originalFlowNetwork) {
+        var backward = cy
+          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
+          .css("label");
+        if (backward === undefined || backward === null || backward === "")
+          backward = "0";
+
+        cy.add({
+          group: "edges",
+          data: {
+            id: edge.source + "/" + edge.target,
+            source: edge.source,
+            target: edge.target,
+          },
+          selectable: true,
+          style: {
+            "line-color": "LightSkyBlue",
+            "target-arrow-color": "LightSkyBlue",
+            label: backward + "/" + edge.capacity,
+          },
+        });
+      }
+    }
   });
 });
