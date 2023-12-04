@@ -25,50 +25,6 @@ body {
   display: block;
 }
 
-/* #all-buttons {
-    padding-right: 80px;
-}
-
-#find-path-buttons {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-right: 50px;
-}
-
-#find-path-buttons btn-sm {
-    flex: 1;
-    margin-left: 10px;
-    margin-right: 10px;
-    margin-bottom: 10px;
-} */
-
-/* #residual-graph {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-right: 50px;
-} */
-
-/* #residual-graph btn-sm {
-    flex: 1;
-    margin-left: 10px;
-    margin-right: 10px;
-    margin-bottom: 10px;
-} */
-/* 
-#proceed-step {
-    margin-top: 10px;
-}
-
-#confirm-max-flow {
-    margin-top: 30px;
-}
-
-#find-min-cut {
-    margin-top: 30px;
-} */
-
 #instructions-state {
   font-size: large;
 }
