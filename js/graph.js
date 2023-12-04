@@ -470,7 +470,7 @@ $(function () {
   $("#proceed-step").on("click", function (event) {
     event.preventDefault();
     if (state === "select-path") {
-      showElementAndItsChildren(".ending-actions");
+      hideElementAndItsChildren(".ending-actions");
       // check if path is valid, get max flow, -1 if not valid path
       var $source = $("#source");
       var source = $source.val();
@@ -670,6 +670,7 @@ $(function () {
       $("#instructions").html(instructions);
       index = (index + 1) % states.length;
     } else if (state === "update-residual-graph") {
+      showElementAndItsChildren(".ending-actions");
       var $source = $("#source");
       var source = $source.val();
       var $sink = $("#sink");
