@@ -25,9 +25,10 @@ Visit the [Maxflow Visualization Website](https://maxflow-visualization.github.i
 ## Supported Algorithms
 
 - **Ford-Fulkerson**
-- **Edmonds-Karp**
   - Random path
+- **Edmonds-Karp**
   - Shortest path
+- **Capacity Scaling**
   - Widest path
 - **Min-cut**
 

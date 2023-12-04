@@ -294,6 +294,7 @@ $(function () {
       var shown = false;
 
       var edges = cy.edges();
+      console.log(edges);
 
       // check if applied capacity is shown
       edges.forEach(function (edge) {
@@ -319,13 +320,14 @@ $(function () {
       var oldFlowNetwork = new FlowNetwork(source, sink);
 
       var edges = cy.edges();
+      cy.edges().remove();
       edges.forEach(function (edge) {
         var label = edge.css("label");
         if (label.includes("/")) return;
         oldFlowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
       });
 
-      cy.edges().remove();
+
       for (const [_, neighborsMap] of oldFlowNetwork.graph) {
         for (const [_, edge] of neighborsMap) {
           if (edge.capacity !== 0) {
