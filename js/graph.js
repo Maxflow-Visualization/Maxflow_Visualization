@@ -261,7 +261,7 @@ $(function () {
 
       $("#instructions-state").html("<b>Select Path:</b>");
       var instructions =
-        '<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn\'t matter).</li><li>To let the algorithm choose an augmenting path, click one of the "Choose Shortest Path" (Edmonds-Karp), "Choose Random Path" (Ford-Fulkerson), "Choose Widest Path" (Capacity Scaling).</li><li>Once an augmenting path is chosen, click "Confirm Path". If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Whenever you think you have found the max flow, click "Confirm I Already Found the Max Flow!" on the right to input your max flow.</li>';
+        '<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn\'t matter).</li><li>To let the algorithm choose an augmenting path, click one of the "Choose Shortest Path" (Edmonds-Karp), "Choose Random Path" (Ford-Fulkerson), "Choose Widest Path" (Capacity Scaling).</li><li>Once an augmenting path is chosen, click "Confirm Path". If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Whenever you think you have found the max flow, click "Confirm Max Flow Found!" on the right to input your max flow.</li>';
 
       $("#instructions").html(instructions);
     } else {
@@ -564,7 +564,7 @@ $(function () {
       }
 
       $("#history").append(
-        "Path: " + message + " \nChosen Flow: " + flow + "<br>"
+        "Path: " + message + " \n<br>Chosen Flow: " + flow + "<br>"
       );
       console.log(flow);
 
