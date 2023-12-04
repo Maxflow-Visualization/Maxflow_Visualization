@@ -235,8 +235,8 @@ $(function () {
       canRightClick = false
       showElementAndItsChildren(".ending-actions");
       showElementAndItsChildren("#" + state);
-      // $(this).text("Modify Network Graph");
-      // $(this).css("background-color", "#ed5565");
+      $(this).text("Start Over from the Beginning");
+      $(this).css("background-color", "#ed5565");
 
       $("#state").text("State: Select Path");
       $("#proceed-step").text("Confirm Path");
@@ -265,24 +265,31 @@ $(function () {
 
       $("#instructions").html(instructions);
     } else {
+      index = 0;
+      canRightClick = true;
       cancelHighlightedElements();
       cancelHighlightedNodes();
 
-      // $(this).css("background-color", "#1ab394");
-      // $(this).text("Start Practice");
+      $(this).css("background-color", "#1ab394");
+      $(this).text("Start Practice");
 
       $("#state").text("State: Graph Creation");
       hideElementAndItsChildren("#proceed-step");
       hideElementAndItsChildren("#applied-capacity");
+      hideElementAndItsChildren("#select-path");
+      hideElementAndItsChildren("#choose-flow");
+      hideElementAndItsChildren("#update-residual-graph");
 
-      $("#source-label").text("S=");
+      $("#source-label").text("Source=");
       showElementAndItsChildren("#source");
-      $("#sink-label").text("T=");
+      $("#sink-label").text("Sink=");
       showElementAndItsChildren("#sink");
 
-      showElementAndItsChildren(".change-capacity");
-      showElementAndItsChildren("#add-graph");
+      showElementAndItsChildren("#graph-creation");
+      showElementAndItsChildren("#update-capacity");
       showElementAndItsChildren("#clear");
+      showElementAndItsChildren("#mouse-label");
+      showElementAndItsChildren("#mouse-update");
 
       var shown = false;
 
@@ -305,9 +312,18 @@ $(function () {
 
       $("#instructions-state").html("<b>Graph Creation:</b>");
       var instructions =
-        '<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li>';
+        '<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li>';
 
       $("#instructions").html(instructions);
+
+      var oldFlowNetwork = new FlowNetwork(source, sink);
+
+      var edges = cy.edges();
+      edges.forEach(function (edge) {
+        var label = edge.css("label");
+        if (label.includes("/")) return;
+        oldFlowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+      });
 
       cy.edges().remove();
       for (const [_, neighborsMap] of oldFlowNetwork.graph) {
@@ -971,49 +987,7 @@ $(function () {
       selectedEdge.css("label", label);
     }
 
-    var edges = cy.edges();
-
-    var shown = false;
-
-    // check if applied capacity is shown
-    edges.forEach(function (edge) {
-      if (edge.css("label").includes("/")) {
-        shown = true;
-      }
-    });
-
-    if (shown) {
-      // first remove all old applied flows
-      edges.forEach(function (edge) {
-        if (edge.css("label").includes("/")) {
-          edge.remove();
-        }
-      });
-
-      // then add them into cy again with new ones
-      for (const edge of originalFlowNetwork) {
-        var backward = cy
-          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
-          .css("label");
-        if (backward === undefined || backward === null || backward === "")
-          backward = "0";
-
-        cy.add({
-          group: "edges",
-          data: {
-            id: edge.source + "/" + edge.target,
-            source: edge.source,
-            target: edge.target,
-          },
-          selectable: true,
-          style: {
-            "line-color": "LightSkyBlue",
-            "target-arrow-color": "LightSkyBlue",
-            label: backward + "/" + edge.capacity,
-          },
-        });
-      }
-    }
+    
   });
 
   $("#confirm-max-flow").on("click", function (e) {
@@ -1503,12 +1477,13 @@ $(function () {
       }
     });
 
-    rightClickedEdge = null
+  rightClickedEdge = null
   canRightClick = true
 
   //right click on an edge brings up a div for update capacity
   cy.on('cxttap', 'edge', function(event) {
-    if(!canRightClick) return;
+    if(state != "update-residual-graph" && !canRightClick) return;
+    console.log("here");
     var mouseX = event.originalEvent.clientX;
     var mouseY = event.originalEvent.clientY;
     rightClickedEdge = event.cyTarget;
@@ -1549,14 +1524,62 @@ $(function () {
     event.preventDefault();
     var $mouseLabel = $("#mouse-label");
     var label = $mouseLabel.val();
-    console.log(rightClickedEdge)
     if (isNaN(parseFloat(label)) || parseFloat(label) < 0) {
       $mouseLabel.css("border", "1px solid red");
       return;
+    }
+    if (parseFloat(label) === 0) {
+      rightClickedEdge.remove();
+    } else {
+      rightClickedEdge.css("label", label);
     }
     $mouseLabel.css("border", "1px solid #18a689");
     if (!rightClickedEdge) return;
 
     rightClickedEdge.css("label", label);
+
+    var edges = cy.edges();
+
+    var shown = false;
+
+    // check if applied capacity is shown
+    edges.forEach(function (edge) {
+      if (edge.css("label").includes("/")) {
+        shown = true;
+      }
+    });
+
+    if (shown) {
+      // first remove all old applied flows
+      edges.forEach(function (edge) {
+        if (edge.css("label").includes("/")) {
+          edge.remove();
+        }
+      });
+
+      // then add them into cy again with new ones
+      for (const edge of originalFlowNetwork) {
+        var backward = cy
+          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
+          .css("label");
+        if (backward === undefined || backward === null || backward === "")
+          backward = "0";
+
+        cy.add({
+          group: "edges",
+          data: {
+            id: edge.source + "/" + edge.target,
+            source: edge.source,
+            target: edge.target,
+          },
+          selectable: true,
+          style: {
+            "line-color": "LightSkyBlue",
+            "target-arrow-color": "LightSkyBlue",
+            label: backward + "/" + edge.capacity,
+          },
+        });
+      }
+    }
   });
 });

@@ -40,7 +40,7 @@
                     <li>Click a node and press "Delete" to remove it.</li>
                     <li>Hover/click a node (n1) to generate a dot on top. Drag from the dot to another node (n2) to create an edge from n1 to n2.</li>
                     <li>Click an edge and press "Delete" to remove it.</li>
-                    <li>Click an edge to view its capacity in the bottom left input box. Input a number and click "Update" to set the edge's capacity.</li>
+                    <li>Right click an edge to change its capacity.</li>
                     <li>Click "Clear" to remove the entire graph. Click "Example" to view an example graph.</li>
                     <li>Download the current graph by clicking "Download Edgelist." To import a graph (edgelist/csv format), click "Choose File."</li>
                     <li>Set source and sink. When ready, click "Start Practice."</li>
@@ -81,108 +81,97 @@
       </div>
 
       <div class="row">
-        <div class="col-sm-2">
-          <div class="row">
-            <div class="col-md-6">
-              <input type="number" min="0" oninput="removeLeadingZeros(this)" id="label"
-                class="form-control input-sm text-center change-capacity" />
-            </div>
-            <div class="col-md-6">
-              <button type="button" id="label-btn" class="btn btn-primary btn-sm change-capacity">
-                Update
-              </button>
-            </div>
-          </div>
-        </div>
 
         <form method="get" class="form-horizontal">
-          <div class="col-sm-8">
+          <div class="col-sm-1"></div>
+          <div class="col-sm-10">
             <div class="row" id="all-buttons">
-              <div class="col-md-2" style="padding-left: 5px !important; padding-right: 15px !important">
+              <div class="col-md-2">
                 <div class="form-group has-success">
                   <label class="col-sm-1 control-label" id="source-label">Source=</label>
 
-                  <div class="col-sm-8" style="margin-left: 27px !important; padding-right: 0px !important">
+                  <div class="col-sm-4" style="margin-left: 27px !important; padding-right: 0px !important">
                     <input type="number" min="0" oninput="removeLeadingZeros(this)" id="source"
                       class="form-control input-sm text-center" />
                   </div>
                 </div>
               </div>
-              <div class="col-md-2" style="padding-left: 5px !important; padding-right: 15px !important">
+              <div class="col-md-2">
                 <div class="form-group has-success">
                   <label class="col-sm-1 control-label" id="sink-label">Sink=</label>
 
-                  <div class="col-sm-8" style="margin-left: 10px !important; padding-right: 0px !important">
+                  <div class="col-sm-4" style="margin-left: 10px !important; padding-right: 0px !important">
                     <input type="number" min="0" oninput="removeLeadingZeros(this)" id="sink"
                       class="form-control input-sm text-center" />
                   </div>
                 </div>
               </div>
-              <div>
-                <div class="col-md-7 buttons" id="graph-creation">
-                  <button class="btn btn-info btn-sm modification" id="add-graph" type="submit">
-                    Example
-                  </button>
-                  <button class="btn btn-danger btn-sm modification" id="clear" type="submit">
-                    Clear
-                  </button>
-                  <button class="btn btn-info btn-sm" id="start-practice" type="submit">
-                    Start Practice
-                  </button>
-                  <label for="fileInput" class="btn btn-sm btn-info">Choose File</label>
-                  <input type="file" id="fileInput" style="display: none;" /> 
-                  <button id="downloadButton" class="btn btn-sm btn-info">
-                    <i class="fa fa-download"></i> Download
-                  </button>
-                  <select id="layoutChoices" class="btn">
-                    <option value="layered">layered layout</option>
-                    <option value="spring">spring model layout</option>
-                  </select>
-                </div>
-                <div class="col-md-5 btn-group buttons" id="select-path">
-                  <button class="btn btn-info btn-sm" id="shortest-path" type="submit" style="display: none">
-                    Compute Shortest Path
-                  </button>
-                  <button class="btn btn-info btn-sm" id="random-path" type="submit" style="display: none">
-                    Compute Random Path
-                  </button>
-                  <button class="btn btn-info btn-sm" id="widest-path" type="submit" style="display: none">
-                    Compute Widest Path
-                  </button>
-                </div>
-                <div class="col-md-3 btn-group buttons" id="choose-flow">
-                  <button class="btn btn-info btn-sm" style="display: none" id="bottleneck" type="submit">
-                    Find Bottleneck Edge
-                  </button>
-                </div>
-                <div class="col-md-3 btn-group buttons" id="update-residual-graph">
-                  <button class="btn btn-info btn-sm" style="display: none" id="auto-complete" type="submit">
-                    Auto Complete
-                  </button>
-                  <button class="btn btn-info btn-sm" style="display: none" id="undo-updates" type="submit">
-                    Undo All Updates
-                  </button>
-                </div>
-                <div class="col-md-2">
-                  <button class="btn btn-primary btn-sm" style="display: none" id="proceed-step" type="submit">
-                    Confirm Path
-                  </button>
-                </div>
-                <div class="col-md-1">
-                  <button class="btn btn-primary btn-sm" style="display: none" id="applied-capacity" type="submit">
-                    Show Original Capacities and Current Flow
-                  </button>
-                </div>
+              <div class="col-md-2">
+                <button class="btn btn-info btn-sm" id="start-practice" type="submit">
+                  Start Practice
+                </button>
+              </div>
+              <div class="col-md-6 buttons" id="graph-creation">
+                <button class="btn btn-info btn-sm modification" id="add-graph" type="submit">
+                  Example
+                </button>
+                <button class="btn btn-danger btn-sm modification" id="clear" type="submit">
+                  Clear
+                </button>
+                <label for="fileInput" class="btn btn-sm btn-info">Choose File</label>
+                <input type="file" id="fileInput" style="display: none;" /> 
+                <button id="downloadButton" class="btn btn-sm btn-info">
+                  <i class="fa fa-download"></i> Download
+                </button>
+                <select id="layoutChoices" class="btn">
+                  <option value="layered">layered layout</option>
+                  <option value="spring">spring model layout</option>
+                </select>
+              </div>
+              <div class="col-md-4 btn-group buttons" id="select-path">
+                <button class="btn btn-info btn-sm" id="shortest-path" type="submit" style="display: none;">
+                  Compute Shortest Path
+                </button>
+                <button class="btn btn-info btn-sm" id="random-path" type="submit" style="display: none;">
+                  Compute Random Path
+                </button>
+                <button class="btn btn-info btn-sm" id="widest-path" type="submit" style="display: none;">
+                  Compute Widest Path
+                </button>
+              </div>
+              <div class="col-md-2 btn-group buttons" id="choose-flow">
+                <button class="btn btn-info btn-sm" style="display: none;" id="bottleneck" type="submit">
+                  Find Bottleneck Edge
+                </button>
+              </div>
+              <div class="col-md-2 btn-group buttons" id="update-residual-graph">
+                <button class="btn btn-info btn-sm" style="display: none;" id="auto-complete" type="submit">
+                  Auto Complete
+                </button>
+                <button class="btn btn-info btn-sm" style="display: none;" id="undo-updates" type="submit">
+                  Undo All Updates
+                </button>
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-primary btn-sm" style="display: none;" id="proceed-step" type="submit">
+                  Confirm Path
+                </button>
+              </div>
+              <div class="col-md-1">
+                <button class="btn btn-primary btn-sm" style="display: none;" id="applied-capacity" type="submit">
+                  Show Original Capacities and Current Flow
+                </button>
               </div>
             </div>
           </div>
+          <div class="col-sm-1"></div>
 
-          <div id="floatingText" id="graph-creation">
-            <div class="col-md-6">
-              <input type="number" min="1" oninput="removeLeadingZeros(this)" id="mouse-label"
+          <div id="floatingText" id="update-capacity">
+            <div class="col-md-3">
+              <input type="number" min="0" oninput="removeLeadingZeros(this)" id="mouse-label"
                 class="form-control input-sm text-center change-capacity" />
             </div>
-            <div class="col-md-6">
+            <div class="col-md-3">
               <button type="button" id="mouse-update" class="btn btn-primary btn-sm change-capacity">
                 Update
               </button>
