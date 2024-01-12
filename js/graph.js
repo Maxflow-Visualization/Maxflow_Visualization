@@ -1,21 +1,4 @@
 $(function () {
-  // function loop(count, callback, done) {
-  //   var counter = 0;
-  //   var next = function () {
-  //     setTimeout(iteration, 1000);
-  //   };
-  //   var iteration = function () {
-  //     if (counter < count) {
-  //       callback(counter, next);
-  //     } else {
-  //       done && done();
-  //     }
-  //     counter++;
-  //   };
-  //   iteration();
-  // }
-
-  console.log("Starting...");
 
   // initialize style of cy
   var cy = cytoscape({
@@ -121,19 +104,6 @@ $(function () {
     maxZoom: 2, // sets the maximum zoom level
   });
 
-  cy.panzoom({
-    // ... options ...
-  });
-
-  // edge handles, which is used for creating edge interactively
-  cy.edgehandles({
-    handleColor: "grey",
-    handleSize: 15,
-    handleLineWidth: 10,
-    handleNodes: "node",
-    toggleOffOnLeave: true,
-  });
-
   // check which state we are in: modifying or practicing
   function allowModify() {
     return $("#state").text().includes("State: Graph Creation");
@@ -164,6 +134,68 @@ $(function () {
     return ids.length + 1;
   }
 
+  // add node with given args
+  function addNode(cy, id, name, posX, posY) {
+    cy.add({
+      group: "nodes",
+      data: {
+        id: id,
+        name: name,
+      },
+      position: {
+        x: posX,
+        y: posY,
+      },
+      selectable: true,
+    });
+  }
+
+  // add edge with given args
+  function addEdge(cy, id, style, source, target, removeOriginalEdge = true) {
+    // TODO: THIS IF CONDITION SEEMS USELESS, CAN SOMEONE CONFIRM?
+    if (removeOriginalEdge) {
+      var edge = cy.edges("[source='" + source + "'][target='" + target + "']");
+      // if there's already an edge, remove it
+      if (edge.css("label")) {
+        edge.remove();
+      }
+    }
+    cy.add({
+      group: "edges",
+      data: {
+        id: id,
+        source: source,
+        target: target,
+      },
+      selectable: true,
+      style: style,
+    });
+  }
+
+  // make edge highlighted with given args
+  function highlightEdge(source, target) {
+    cy.edges("[source='" + source + "'][target='" + target + "']").addClass(
+      "highlighted"
+    );
+  }
+
+  // cancel all highlights
+  function cancelHighlightedElements() {
+    cy.elements().removeClass("highlighted");
+  }
+
+  // cancel one edge's highlight
+  function cancelHighlightedEdge(source, target) {
+    edge = cy.edges("[source='" + source + "'][target='" + target + "']");
+    edge.removeClass("highlighted");
+    edge.css("line-color", "lightgray");
+    edge.css("target-arrow-color", "lightgray");
+  }
+
+  function cancelHighlightedNodes() {
+    cy.nodes().style("border-color", "black");
+  }
+
   // double click for creating node
   var $cy = $("#cy");
   $cy.dblclick(function (e) {
@@ -176,6 +208,19 @@ $(function () {
     addNode(cy, id, id, posX, posY);
     if (id > 1) $("#sink").val(id);
     if (id == 1) $("#source").val(id);
+  });
+
+  cy.panzoom({
+    // ... options ...
+  });
+
+  // edge handles, which is used for creating edge interactively
+  cy.edgehandles({
+    handleColor: "grey",
+    handleSize: 15,
+    handleLineWidth: 10,
+    handleNodes: "node",
+    toggleOffOnLeave: true,
   });
 
   // delete a node with backspace or delete button
@@ -334,7 +379,7 @@ $(function () {
             addEdge(
               cy,
               edge.source + "-" + edge.target,
-              edge.capacity,
+              { label: edge.capacity },
               edge.source,
               edge.target
             );
@@ -343,43 +388,6 @@ $(function () {
       }
     }
   });
-
-  // add node with given args
-  function addNode(cy, id, name, posX, posY) {
-    cy.add({
-      group: "nodes",
-      data: {
-        id: id,
-        name: name,
-      },
-      position: {
-        x: posX,
-        y: posY,
-      },
-      selectable: true,
-    });
-  }
-
-  // add edge with given args
-  function addEdge(cy, id, label, source, target) {
-    var edge = cy.edges("[source='" + source + "'][target='" + target + "']");
-    //if there's already an edge, remove it
-    if (edge.css("label")) {
-      edge.remove();
-    }
-    cy.add({
-      group: "edges",
-      data: {
-        id: id,
-        source: source,
-        target: target,
-      },
-      selectable: true,
-      css: {
-        label: label,
-      },
-    });
-  }
 
   // allow edge label to show and disappear
   var selectedEdge = null;
@@ -390,30 +398,6 @@ $(function () {
       $("#label").val("");
     }
   });
-
-  // make edge highlighted with given args
-  function highlightEdge(source, target) {
-    cy.edges("[source='" + source + "'][target='" + target + "']").addClass(
-      "highlighted"
-    );
-  }
-
-  // cancel all highlights
-  function cancelHighlightedElements() {
-    cy.elements().removeClass("highlighted");
-  }
-
-  // cancel one edge's highlight
-  function cancelHighlightedEdge(source, target) {
-    edge = cy.edges("[source='" + source + "'][target='" + target + "']");
-    edge.removeClass("highlighted");
-    edge.css("line-color", "lightgray");
-    edge.css("target-arrow-color", "lightgray");
-  }
-
-  function cancelHighlightedNodes() {
-    cy.nodes().style("border-color", "black");
-  }
 
   var selectedNodes = new Set();
   cy.on("tap", "node", function (event) {
@@ -750,28 +734,14 @@ $(function () {
         if (backward === undefined || backward === null || backward === "")
           backward = "0";
 
-        cy.add({
-          group: "edges",
-          data: {
-            id: edge.source + "/" + edge.target,
-            source: edge.source,
-            target: edge.target,
-          },
-          selectable: true,
-          style: {
-            "line-color": "LightSkyBlue",
-            "target-arrow-color": "LightSkyBlue",
-            label: backward + "/" + edge.capacity,
-          },
-        });
-
-        // addEdge(
-        //   cy,
-        //   edge.source + "/" + edge.target,
-        //   backward + "/" + edge.capacity,
-        //   edge.source,
-        //   edge.target
-        // );
+        addEdge(
+          cy,
+          edge.source + "/" + edge.target,
+          { "line-color": "LightSkyBlue", "target-arrow-color": "LightSkyBlue", label: backward + "/" + edge.capacity },
+          edge.source,
+          edge.target,
+          false
+        );
       }
     }
   });
@@ -806,20 +776,14 @@ $(function () {
         if (backward === undefined || backward === null || backward === "")
           backward = "0";
 
-        cy.add({
-          group: "edges",
-          data: {
-            id: edge.source + "/" + edge.target,
-            source: edge.source,
-            target: edge.target,
-          },
-          selectable: true,
-          style: {
-            "line-color": "LightSkyBlue",
-            "target-arrow-color": "LightSkyBlue",
-            label: backward + "/" + edge.capacity,
-          },
-        });
+        addEdge(
+          cy,
+          edge.source + "/" + edge.target,
+          { "line-color": "LightSkyBlue", "target-arrow-color": "LightSkyBlue", label: backward + "/" + edge.capacity },
+          edge.source,
+          edge.target,
+          false
+        );
       }
     }
 
@@ -945,7 +909,7 @@ $(function () {
           addEdge(
             cy,
             edge.source + "-" + edge.target,
-            edge.capacity,
+            { label: edge.capacity },
             edge.source,
             edge.target
           );
@@ -964,7 +928,7 @@ $(function () {
           addEdge(
             cy,
             edge.source + "-" + edge.target,
-            edge.capacity,
+            { label: edge.capacity },
             edge.source,
             edge.target
           );
@@ -1109,22 +1073,6 @@ $(function () {
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
-    // p1 = [new Edge("1", "3", 0), new Edge("1", "2", 0)];
-    // p2 = [
-    //   new Edge("1", "2", 0),
-    //   new Edge("2", "3", 0),
-    //   new Edge("3", "1", 0),
-    //   new Edge("2", "4", 0),
-    // ];
-    // p3 = [
-    //   new Edge("1", "2", 0),
-    //   new Edge("2", "3", 0),
-    //   new Edge("2", "4", 0),
-    //   new Edge("3", "5", 0),
-    //   new Edge("4", "5", 0),
-    // ];
-    // console.log(flowNetwork.validatePathTopology(p3));
-
     var path = flowNetwork.findShortestAugmentingPath();
 
     if (path.length === 0) {
@@ -1137,10 +1085,6 @@ $(function () {
       flowNetwork.findBottleneckCapacity(selectedPath);
     // console.log(message);
     expectedGraph = flowNetwork.addFlow(selectedPath, bottleneck, false);
-    // expectedGraph.delete("1");
-    // console.log(expectedGraph);
-    // console.log(flowNetwork.graph);
-    // console.log(_.isEqual(expectedGraph, flowNetwork.graph));
     selectedPath.forEach(function (edge) {
       highlightEdge(edge.source, edge.target);
     });
@@ -1222,7 +1166,7 @@ $(function () {
       addNode(cy, node.id, node.name, node.x, node.y);
     });
     edges.forEach(function (edge) {
-      addEdge(cy, edge.id, edge.label, edge.source, edge.target);
+      addEdge(cy, edge.id, { label: edge.label }, edge.source, edge.target);
     });
   });
   $add.trigger("click");
@@ -1322,15 +1266,6 @@ $(function () {
         });
         makeLayoutHorizontal(cy);
       }
-
-      // // Apply the "spring model" layout
-      // cy.layout({
-      //   name: 'cose'
-      // })
-
-      // let layout = cy.layout({
-      //   name: 'circle'
-      // });
     };
 
     reader.readAsText(file);
@@ -1359,7 +1294,7 @@ $(function () {
         addEdge(
           cy,
           node1 + "-" + node2,
-          parseFloat(edgeValue, 10),
+          { label: parseFloat(edgeValue, 10) },
           parseInt(node1, 10),
           parseInt(node2, 10)
         );
@@ -1493,8 +1428,6 @@ $(function () {
     $("#mouse-label").val(rightClickedEdge.css("label"));
 
     // Set the text and position of the floating div
-    // console.log(mouseX)
-    // console.log(mouseY)
     var floatingText = document.getElementById('floatingText');
     // floatingText.textContent = capacity; // Change this to whatever text you want
     floatingText.style.display = 'block';
@@ -1568,20 +1501,14 @@ $(function () {
         if (backward === undefined || backward === null || backward === "")
           backward = "0";
 
-        cy.add({
-          group: "edges",
-          data: {
-            id: edge.source + "/" + edge.target,
-            source: edge.source,
-            target: edge.target,
-          },
-          selectable: true,
-          style: {
-            "line-color": "LightSkyBlue",
-            "target-arrow-color": "LightSkyBlue",
-            label: backward + "/" + edge.capacity,
-          },
-        });
+        addEdge(
+          cy,
+          edge.source + "/" + edge.target,
+          { "line-color": "LightSkyBlue", "target-arrow-color": "LightSkyBlue", label: backward + "/" + edge.capacity },
+          edge.source,
+          edge.target,
+          false
+        );
       }
     }
   });
