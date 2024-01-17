@@ -1,116 +1,20 @@
 $(function () {
 
-  // initialize style of cy
-  var cy = cytoscape({
-    container: document.getElementById("cy"),
-    style: [
-      {
-        selector: "node",
-        css: {
-          content: "data(id)",
-          "text-valign": "center",
-          "text-halign": "center",
-          "background-color": "white",
-          "line-color": "red",
-          "target-arrow-color": "#61bffc",
-          "transition-property":
-            "background-color, line-color, target-arrow-color",
-          "transition-duration": "0.5s",
-          "padding-top": "5px",
-          "padding-right": "5px",
-          "padding-bottom": "5px",
-          "padding-left": "5px",
-          "border-width": 2,
-          "border-color": "black",
-        },
-      },
-      {
-        selector: "edge",
-        css: {
-          "target-arrow-shape": "triangle",
-          width: 4,
-          "line-color": "lightgray",
-          "target-arrow-color": "lightgray",
-          label: "4",
-          "text-valign": "right",
-        },
-      },
-      {
-        selector: ".edgehandles-hover",
-        css: {
-          "border-width": 3,
-          "border-color": "black",
-        },
-      },
-      {
-        selector: ".edgehandles-source",
-        css: {
-          "border-width": 3,
-          "border-color": "black",
-        },
-      },
-      {
-        selector: ".edgehandles-target",
-        css: {
-          "border-width": 3,
-          "border-color": "black",
-        },
-      },
-      {
-        selector: ".edgehandles-preview",
-        css: {
-          "line-color": "darkgray",
-          "target-arrow-color": "darkgray",
-          "source-arrow-color": "darkgray",
-        },
-      },
-      {
-        selector: "node:selected",
-        css: {
-          "border-width": 3,
-          "border-color": "#000000",
-        },
-      },
-      {
-        selector: "edge:selected",
-        css: {
-          "line-color": "darkgray",
-          "target-arrow-color": "darkgray",
-        },
-      },
-      {
-        selector: ".highlighted",
-        css: {
-          "background-color": "#ad1a66",
-          "line-color": "#ad1a66",
-          "target-arrow-color": "#ad1a66",
-          "transition-property":
-            "background-color, line-color, target-arrow-color",
-          "transition-duration": "0.5s",
-        },
-      },
-    ],
-    layout: {
-      name: "preset",
-      directed: true,
-      roots: "#a",
-      padding: 10,
-    },
-    userPanningEnabled: true,
-    zoomingEnabled: true,
-    userZoomingEnabled: true,
-    selectionType: "single",
-    minZoom: 0.5, // sets the minimum zoom level
-    maxZoom: 2, // sets the maximum zoom level
-  });
+  var states = ["select-path", "choose-flow", "update-residual-graph"];
+  var index = 0;
+
+  const GRAPH_CREATION_INSTRUCTIONS = '<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li>';
+  const SELECT_PATH_INSTRUCTIONS = '<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn\'t matter).</li><li>To let the algorithm choose an augmenting path, click one of the "Choose Shortest Path" (Edmonds-Karp), "Choose Random Path" (Ford-Fulkerson), "Choose Widest Path" (Capacity Scaling).</li><li>Once an augmenting path is chosen, click "Confirm Path". If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Whenever you think you have found the max flow, click "Confirm Max Flow Found!" on the right to input your max flow.</li>';
+  const CHOOSE_FLOW_INSTRUCTIONS = '<li>In this step, you will choose a flow amount to add to the path you have chosen in the last step.</li><li>Click "Choose Flow", a dialog box will appear.</li><li>Input a flow amount in the dialog box and click "OK".</li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow amount.</li><li>You can find the bottleneck edge by clicking "Find Bottleneck Edge".</li>';
+  const UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS = '<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>You can auto complete the update step by clicking "Auto Complete Residual Graph" button.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking "Undo All Updates to Residual Graph" button.</li><li>When you are done, click "Confirm Residual Graph".</li>';
+
+  // initialize cytoscape, cytoscapeSettings is in "cytoscape-settings.js"
+  var cy = cytoscape(cytoscapeSettings);
 
   // check which state we are in: modifying or practicing
   function allowModify() {
     return $("#state").text().includes("State: Graph Creation");
   }
-
-  var states = ["select-path", "choose-flow", "update-residual-graph"];
-  var index = 0;
 
   function showElementAndItsChildren(selector) {
     $(selector).show();
@@ -151,15 +55,7 @@ $(function () {
   }
 
   // add edge with given args
-  function addEdge(cy, id, style, source, target, removeOriginalEdge = true) {
-    // TODO: THIS IF CONDITION SEEMS USELESS, CAN SOMEONE CONFIRM?
-    if (removeOriginalEdge) {
-      var edge = cy.edges("[source='" + source + "'][target='" + target + "']");
-      // if there's already an edge, remove it
-      if (edge.css("label")) {
-        edge.remove();
-      }
-    }
+  function addEdge(cy, id, style, source, target) {
     cy.add({
       group: "edges",
       data: {
@@ -305,10 +201,7 @@ $(function () {
       });
 
       $("#instructions-state").html("<b>Select Path:</b>");
-      var instructions =
-        '<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn\'t matter).</li><li>To let the algorithm choose an augmenting path, click one of the "Choose Shortest Path" (Edmonds-Karp), "Choose Random Path" (Ford-Fulkerson), "Choose Widest Path" (Capacity Scaling).</li><li>Once an augmenting path is chosen, click "Confirm Path". If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Whenever you think you have found the max flow, click "Confirm Max Flow Found!" on the right to input your max flow.</li>';
-
-      $("#instructions").html(instructions);
+      $("#instructions").html(SELECT_PATH_INSTRUCTIONS);
     } else {
       index = 0;
       canRightClick = true;
@@ -357,10 +250,7 @@ $(function () {
       }
 
       $("#instructions-state").html("<b>Graph Creation:</b>");
-      var instructions =
-        '<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li>';
-
-      $("#instructions").html(instructions);
+      $("#instructions").html(GRAPH_CREATION_INSTRUCTIONS);
 
       var oldFlowNetwork = new FlowNetwork(source, sink);
 
@@ -492,10 +382,7 @@ $(function () {
       $("#proceed-step").text("Choose Flow");
 
       $("#instructions-state").html("<b>Choose Flow:</b>");
-      var instructions =
-        '<li>In this step, you will choose a flow amount to add to the path you have chosen in the last step.</li><li>Click "Choose Flow", a dialog box will appear.</li><li>Input a flow amount in the dialog box and click "OK".</li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow amount.</li><li>You can find the bottleneck edge by clicking "Find Bottleneck Edge".</li>';
-
-      $("#instructions").html(instructions);
+      $("#instructions").html(CHOOSE_FLOW_INSTRUCTIONS);
       index = (index + 1) % states.length;
     } else if (state === "choose-flow") {
       showElementAndItsChildren(".change-capacity");
@@ -558,102 +445,14 @@ $(function () {
       oldFlowNetwork = flowNetwork;
       $("#proceed-step").text("Confirm Residual Graph");
       cy.edgehandles("enable");
-
-      var cyStyles = [
-        {
-          selector: "node",
-          css: {
-            content: "data(id)",
-            "text-valign": "center",
-            "text-halign": "center",
-            "background-color": "white",
-            "line-color": "red",
-            "target-arrow-color": "#61bffc",
-            "transition-property":
-              "background-color, line-color, target-arrow-color",
-            "transition-duration": "0.5s",
-            "padding-top": "5px",
-            "padding-right": "5px",
-            "padding-bottom": "5px",
-            "padding-left": "5px",
-            "border-width": 2,
-            "border-color": "black",
-          },
-        },
-        {
-          selector: "edge",
-          css: {
-            "target-arrow-shape": "triangle",
-            width: 4,
-            "line-color": "lightgray",
-            "target-arrow-color": "lightgray",
-            label: flow.toString(),
-            "text-valign": "right",
-          },
-        },
-        {
-          selector: ".edgehandles-hover",
-          css: {
-            "border-width": 3,
-            "border-color": "black",
-          },
-        },
-        {
-          selector: ".edgehandles-source",
-          css: {
-            "border-width": 3,
-            "border-color": "black",
-          },
-        },
-        {
-          selector: ".edgehandles-target",
-          css: {
-            "border-width": 3,
-            "border-color": "black",
-          },
-        },
-        {
-          selector: ".edgehandles-preview",
-          css: {
-            "line-color": "darkgray",
-            "target-arrow-color": "darkgray",
-            "source-arrow-color": "darkgray",
-          },
-        },
-        {
-          selector: "node:selected",
-          css: {
-            "border-width": 3,
-            "border-color": "#000000",
-          },
-        },
-        {
-          selector: "edge:selected",
-          css: {
-            "line-color": "darkgray",
-            "target-arrow-color": "darkgray",
-          },
-        },
-        {
-          selector: ".highlighted",
-          css: {
-            "background-color": "#ad1a66",
-            "line-color": "#ad1a66",
-            "target-arrow-color": "#ad1a66",
-            "transition-property":
-              "background-color, line-color, target-arrow-color",
-            "transition-duration": "0.5s",
-          },
-        },
-      ];
-
-      cy.style().fromJson(cyStyles);
+      
+      // Set default label of edge to applied flow
+      var cytoscapeStyle = cytoscapeSettings["style"];
+      cytoscapeStyle[1]["css"]["label"] = flow.toString();
+      cy.style().fromJson(cytoscapeStyle);
 
       $("#instructions-state").html("<b>Update Residual Graph:</b>");
-      var instructions =
-        '<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>You can auto complete the update step by clicking "Auto Complete Residual Graph" button.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking "Undo All Updates to Residual Graph" button.</li><li>When you are done, click "Confirm Residual Graph".</li>';
-
-      $("#instructions").html(instructions);
+      $("#instructions").html(UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS);
       index = (index + 1) % states.length;
     } else if (state === "update-residual-graph") {
       showElementAndItsChildren(".ending-actions");
@@ -671,9 +470,9 @@ $(function () {
         flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
       });
       console.log(flowNetwork);
+
       // check if the current graph is the same network after applying the flow
       // if not, let user redo it.
-
       var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
       [message, isCorrectResidualGraph] = isSameGraphSkipFlowComparison(
         flowNetwork.graph,
@@ -691,10 +490,7 @@ $(function () {
         cy.edgehandles("disable");
 
         $("#instructions-state").html("<b>Select Path:</b>");
-        var instructions =
-          "<li>In this step, you will choose yourself or let the algorithm choose an augmenting path</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn't matter) </li><li>To let the algorithm choose an augmenting path, click one of the “Choose Shortest Path” (Edmonds-Karp), “Choose Random Path” (Ford-Fulkerson), “Choose Widest Path” (Capacity Scaling) </li><li>Once an augmenting path is chosen, click “Confirm Path”. If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid</li><li>Whenever you think you have find the max flow, click the button on the right to confirm your max flow.</li>";
-
-        $("#instructions").html(instructions);
+        $("#instructions").html(SELECT_PATH_INSTRUCTIONS);
         index = (index + 1) % states.length;
       } else {
         alert(message + " Please try again.");
@@ -739,8 +535,7 @@ $(function () {
           edge.source + "/" + edge.target,
           { "line-color": "LightSkyBlue", "target-arrow-color": "LightSkyBlue", label: backward + "/" + edge.capacity },
           edge.source,
-          edge.target,
-          false
+          edge.target
         );
       }
     }
@@ -781,8 +576,7 @@ $(function () {
           edge.source + "/" + edge.target,
           { "line-color": "LightSkyBlue", "target-arrow-color": "LightSkyBlue", label: backward + "/" + edge.capacity },
           edge.source,
-          edge.target,
-          false
+          edge.target
         );
       }
     }
@@ -1506,8 +1300,7 @@ $(function () {
           edge.source + "/" + edge.target,
           { "line-color": "LightSkyBlue", "target-arrow-color": "LightSkyBlue", label: backward + "/" + edge.capacity },
           edge.source,
-          edge.target,
-          false
+          edge.target
         );
       }
     }
