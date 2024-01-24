@@ -37,15 +37,15 @@ Visit the [Maxflow Visualization Website](https://maxflow-visualization.github.i
 The code is organized as follows:
 
     .
-    ├── css                     # Customized css scripts
+    ├── css                       # CSS styles
     │   └── ...         
-    ├── js                      # Customized js scripts
-    │   ├── download-file.js    # Support user upload and download of customized graphs
-    │   ├── graph.js            # Interface to visualize graph and bridge between user interaction and algorithmic processing
-    │   ├── max-flow.js         # Provides algorithmic implementation, i.e. Ford-Fulkerson, Min-cut
-    │   ├── priority-queue.js   # Helper function that implements a priority queue functionality
-    │   └── utils.js            # Contains helper functions              
-    ├── vendor                  # Contains third-party libraries, i.e. Cytoscpape
+    ├── js                        # Javascript scripts
+    │   ├── file-layout-utils.js  # Enables user to download and upload customized graphs, also contains helper functions for graph layout
+    │   ├── app.js                # Interface to visualize graph and bridge between user interaction and algorithmic processing
+    │   ├── max-flow.js           # Provides algorithmic implementation, i.e. Ford-Fulkerson, Min-cut
+    │   ├── priority-queue.js     # Helper function that implements a priority queue functionality
+    │   └── utils.js              # Contains helper functions              
+    ├── vendor                    # Contains third-party libraries, i.e. Cytoscpape
     │   └── ...     
     ├── index.html              # Main and only html file to be rendered and executed          
     └── ... 
@@ -57,8 +57,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-The initial styling and the choice of Cytoscape framework were inspired by [this project](https://github.com/isabek/isabek.github.io). We followed the same styling and modified the entire backend to account for interactive visualization. We will not make our project for commercial use in accordance with the license.
+The initial styling and the choice of Cytoscape framework were inspired by [this project](https://github.com/isabek/isabek.github.io). We consulted professor [David Kempe](https://www.david-kempe.com/) at University of Southern California and [this slide](https://www.cs.cmu.edu/~avrim/451f11/lectures/lects12-14.pdf) from Carnegie Mellon University on algorithms. We appreciate their work.
 
 ## Contact
 
-For questions or support, please contact [Maxflow Visualization Team](mailto:pwang649@usc.edu).
+For questions or support, please contact [Maxflow Visualization Team](mailto:ymy@apache.org).
