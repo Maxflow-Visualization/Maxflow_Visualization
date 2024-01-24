@@ -1,14 +1,20 @@
 $(function () {
 
-  var states = ["select-path", "choose-flow", "update-residual-graph"];
-  var index = 0;
+  const GRAPH_CREATION = "graph-creation";
+  const SELECT_PATH = "select-path";
+  const CHOOSE_FLOW = "choose-flow";
+  const UPDATE_RESIDUAL_GRAPH = "update-residual-graph";
 
   const GRAPH_CREATION_INSTRUCTIONS = '<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li>';
   const SELECT_PATH_INSTRUCTIONS = '<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn\'t matter).</li><li>To let the algorithm choose an augmenting path, click one of the "Choose Shortest Path" (Edmonds-Karp), "Choose Random Path" (Ford-Fulkerson), "Choose Widest Path" (Capacity Scaling).</li><li>Once an augmenting path is chosen, click "Confirm Path". If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Whenever you think you have found the max flow, click "Confirm Max Flow Found!" on the right to input your max flow.</li>';
   const CHOOSE_FLOW_INSTRUCTIONS = '<li>In this step, you will choose a flow amount to add to the path you have chosen in the last step.</li><li>Click "Choose Flow", a dialog box will appear.</li><li>Input a flow amount in the dialog box and click "OK".</li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow amount.</li><li>You can find the bottleneck edge by clicking "Find Bottleneck Edge".</li>';
   const UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS = '<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>You can auto complete the update step by clicking "Auto Complete Residual Graph" button.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking "Undo All Updates to Residual Graph" button.</li><li>When you are done, click "Confirm Residual Graph".</li>';
+  
+  // Note: states don't include graph creation since that state is only run once
+  var states = [SELECT_PATH, CHOOSE_FLOW, UPDATE_RESIDUAL_GRAPH];
+  var index = 0;
 
-  // initialize cytoscape, cytoscapeSettings is in "cytoscape-settings.js"
+  // Initialize cytoscape, cytoscapeSettings is in "cytoscape-settings.js"
   var cy = cytoscape(cytoscapeSettings);
 
   // check which state we are in: modifying or practicing
@@ -16,6 +22,7 @@ $(function () {
     return $("#state").text().includes("State: Graph Creation");
   }
 
+  // 
   function showElementAndItsChildren(selector) {
     $(selector).show();
     $(selector).children().show();
@@ -92,6 +99,173 @@ $(function () {
     cy.nodes().style("border-color", "black");
   }
 
+  // When state changes and previous state has no errors, disable all buttons and only show buttons of the next state
+  function onStateChange(prevStateOk) {
+    if (prevStateOk) {
+      index = (index + 1) % states.length;
+      hideElementAndItsChildren(".buttons");
+      state = states[index];
+      showElementAndItsChildren("#" + state);
+    }
+  }
+
+  // SELECT PATH IMPLEMENTATION
+  function selectPath() {
+    hideElementAndItsChildren(".ending-actions");
+    // check if path is valid, get max flow, -1 if not valid path
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
+
+    var flowNetwork = new FlowNetwork(source, sink);
+
+    var edges = cy.edges();
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      if (label.includes("/")) return;
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
+
+    // get path expression to show in the front end and the bottleneck: -1 means invalid path
+    const [bottleneck, bottleneckEdge, message] =
+      flowNetwork.findBottleneckCapacity(selectedPath);
+    if (bottleneck === -1) {
+      alert(message);
+      return false;
+    }
+
+    $("#state").text("State: Choose Flow");
+
+    cancelHighlightedNodes();
+    selectedNodes.clear();
+
+    $(".proceed-step").text("Choose Flow");
+
+    $("#instructions-state").html("<b>Choose Flow:</b>");
+    $("#instructions").html(CHOOSE_FLOW_INSTRUCTIONS);
+    return true;
+  }
+
+  // CHOOSE FLOW IMPLEMENTATION
+  function chooseFlow() {
+    showElementAndItsChildren("#" + state);
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
+
+    var flowNetwork = new FlowNetwork(source, sink);
+
+    var edges = cy.edges();
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      if (label.includes("/")) return;
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
+
+    const [bottleneck, bottleneckEdge, message] =
+      flowNetwork.findBottleneckCapacity(selectedPath);
+
+    // tell user the range he can choose from
+    var prompt = window.prompt(
+      "Enter a flow you want to apply to the path. "
+    );
+
+    console.log(prompt);
+    // User pressed cancel
+    if (prompt === null) {
+      return false;
+    }
+    // check if the user entered a proper flow: check int and should be within valid range
+    flow = parseFloat(prompt);
+    while (isNaN(flow) || flow <= 0 || flow > bottleneck) {
+      prompt = null;
+      if (isNaN(flow)) {
+        prompt = window.prompt(
+          "The flow entered is not a number. Please enter a valid flow amount."
+        );
+      } else if (flow > bottleneck) {
+        prompt = window.prompt(
+          "The flow amount entered is too high. Please try again."
+        );
+      } else if (flow <= 0) {
+        prompt = window.prompt(
+          "The flow amount must be positive. Please try again. "
+        );
+      }
+      if (prompt === null) {
+        return false;
+      }
+      flow = parseFloat(prompt);
+    }
+
+    $("#history").append(
+      "Path: " + message + " \n<br>Chosen Flow: " + flow + "<br>"
+    );
+    console.log(flow);
+
+    $("#state").text("State: Update Residual Graph");
+    oldFlowNetwork = flowNetwork;
+    $(".proceed-step").text("Confirm Residual Graph");
+    cy.edgehandles("enable");
+    
+    // Set default label of edge to applied flow
+    var cytoscapeStyle = cytoscapeSettings["style"];
+    cytoscapeStyle[1]["css"]["label"] = flow.toString();
+    cy.style().fromJson(cytoscapeStyle);
+
+    $("#instructions-state").html("<b>Update Residual Graph:</b>");
+    $("#instructions").html(UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS);
+    return true;
+  }
+
+  // UPDATE RESIDUAL GRAPH IMPLEMENTATION
+  function updateResidualGraph() {
+    showElementAndItsChildren("#" + state);
+    showElementAndItsChildren(".ending-actions");
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
+
+    var flowNetwork = new FlowNetwork(source, sink);
+
+    var edges = cy.edges();
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      if (label.includes("/")) return;
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
+    console.log(flowNetwork);
+
+    // check if the current graph is the same network after applying the flow
+    // if not, let user redo it.
+    var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
+    [message, isCorrectResidualGraph] = isSameGraphSkipFlowComparison(
+      flowNetwork.graph,
+      expectedGraph
+    );
+    if (isCorrectResidualGraph) {
+      cancelHighlightedElements();
+
+      totalflow += flow;
+      selectedPath = [];
+
+      $("#state").text("State: Select Path");
+      $(".proceed-step").text("Confirm Path");
+
+      cy.edgehandles("disable");
+
+      $("#instructions-state").html("<b>Select Path:</b>");
+      $("#instructions").html(SELECT_PATH_INSTRUCTIONS);
+      return true;
+    } else {
+      alert(message + " Please try again.");
+      return false;
+    }
+  }
+
   // double click for creating node
   var $cy = $("#cy");
   $cy.dblclick(function (e) {
@@ -122,7 +296,7 @@ $(function () {
   // delete a node with backspace or delete button
   state = states[index];
   $("html").keyup(function (e) {
-    if (!allowModify() && state !== "update-residual-graph") {
+    if (!allowModify() && state !== UPDATE_RESIDUAL_GRAPH) {
       return;
     }
     if (e.key == "Delete") {
@@ -164,7 +338,7 @@ $(function () {
   });
 
   var originalFlowNetwork = [];
-  // change state between modifying and practicing
+  // Graph creation completed, disable graph modification and enter practice mode
   $("#start-practice").on("click", function (event) {
     event.preventDefault();
     // proceed to algorithm practice
@@ -173,15 +347,15 @@ $(function () {
 
       hideElementAndItsChildren(".buttons");
       state = states[index];
-      canRightClick = false
+      canRightClick = false;
       showElementAndItsChildren(".ending-actions");
       showElementAndItsChildren("#" + state);
       $(this).text("Start Over from the Beginning");
       $(this).css("background-color", "#ed5565");
 
       $("#state").text("State: Select Path");
-      $("#proceed-step").text("Confirm Path");
-      showElementAndItsChildren("#proceed-step");
+      $(".proceed-step").text("Confirm Path");
+      showElementAndItsChildren(".proceed-step");
       showElementAndItsChildren("#applied-capacity");
 
       $("#source-label").text("Source=" + $("#source").val());
@@ -212,7 +386,7 @@ $(function () {
       $(this).text("Start Practice");
 
       $("#state").text("State: Graph Creation");
-      hideElementAndItsChildren("#proceed-step");
+      hideElementAndItsChildren(".proceed-step");
       hideElementAndItsChildren("#applied-capacity");
       hideElementAndItsChildren("#select-path");
       hideElementAndItsChildren("#choose-flow");
@@ -223,7 +397,7 @@ $(function () {
       $("#sink-label").text("Sink=");
       showElementAndItsChildren("#sink");
 
-      showElementAndItsChildren("#graph-creation");
+      showElementAndItsChildren(GRAPH_CREATION);
       showElementAndItsChildren("#update-capacity");
       showElementAndItsChildren("#clear");
       showElementAndItsChildren("#mouse-label");
@@ -295,7 +469,7 @@ $(function () {
     if (!node) return;
     var id = node.id();
     state = states[index];
-    if (!allowModify() && state === "select-path") {
+    if (!allowModify() && state === SELECT_PATH) {
       if (node.style("border-color") === "black") {
         selectedNodes.add(id);
         node.style("border-color", "#ad1a66");
@@ -317,7 +491,7 @@ $(function () {
     var target = edge.target().id();
     var capacity = edge.css("label");
     state = states[index];
-    if (!allowModify() && state === "select-path") {
+    if (!allowModify() && state === SELECT_PATH) {
       if (selectedPath.length === 0) {
         selectedPath.push(new Edge(source, target, capacity));
         highlightEdge(source, target);
@@ -343,162 +517,21 @@ $(function () {
   var totalflow = 0;
   var flow = 0;
   // proceed in steps in pracitcing mode
-  $("#proceed-step").on("click", function (event) {
+  $(".proceed-step").on("click", function (event) {
     event.preventDefault();
-    if (state === "select-path") {
-      hideElementAndItsChildren(".ending-actions");
-      // check if path is valid, get max flow, -1 if not valid path
-      var $source = $("#source");
-      var source = $source.val();
-      var $sink = $("#sink");
-      var sink = $sink.val();
-
-      var flowNetwork = new FlowNetwork(source, sink);
-
-      var edges = cy.edges();
-      edges.forEach(function (edge) {
-        var label = edge.css("label");
-        if (label.includes("/")) return;
-        flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-      });
-
-      // get path expression to show in the front end and the bottleneck: -1 means invalid path
-      const [bottleneck, bottleneckEdge, message] =
-        flowNetwork.findBottleneckCapacity(selectedPath);
-      // console.log(message);
-      if (bottleneck === -1) {
-        alert(message);
-        return;
-      }
-
-      $("#state").text("State: Choose Flow");
-
-      // hideElementAndItsChildren(".find-path");
-      // showElementAndItsChildren("#bottleneck");
-
-      cancelHighlightedNodes();
-      selectedNodes.clear();
-
-      $("#proceed-step").text("Choose Flow");
-
-      $("#instructions-state").html("<b>Choose Flow:</b>");
-      $("#instructions").html(CHOOSE_FLOW_INSTRUCTIONS);
-      index = (index + 1) % states.length;
-    } else if (state === "choose-flow") {
-      showElementAndItsChildren(".change-capacity");
-      var $source = $("#source");
-      var source = $source.val();
-      var $sink = $("#sink");
-      var sink = $sink.val();
-
-      var flowNetwork = new FlowNetwork(source, sink);
-
-      var edges = cy.edges();
-      edges.forEach(function (edge) {
-        var label = edge.css("label");
-        if (label.includes("/")) return;
-        flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-      });
-
-      const [bottleneck, bottleneckEdge, message] =
-        flowNetwork.findBottleneckCapacity(selectedPath);
-
-      // tell user the range he can choose from
-      var prompt = window.prompt(
-        "Enter a flow you want to apply to the path. "
-      );
-
-      console.log(prompt);
-      // User pressed cancel
-      if (prompt === null) {
-        return;
-      }
-      // check if the user entered a proper flow: check int and should be within valid range
-      flow = parseFloat(prompt);
-      while (isNaN(flow) || flow <= 0 || flow > bottleneck) {
-        prompt = null;
-        if (isNaN(flow)) {
-          prompt = window.prompt(
-            "The flow entered is not a number. Please enter a valid flow amount."
-          );
-        } else if (flow > bottleneck) {
-          prompt = window.prompt(
-            "The flow amount entered is too high. Please try again."
-          );
-        } else if (flow <= 0) {
-          prompt = window.prompt(
-            "The flow amount must be positive. Please try again. "
-          );
-        }
-        if (prompt === null) {
-          return;
-        }
-        flow = parseFloat(prompt);
-      }
-
-      $("#history").append(
-        "Path: " + message + " \n<br>Chosen Flow: " + flow + "<br>"
-      );
-      console.log(flow);
-
-      $("#state").text("State: Update Residual Graph");
-      oldFlowNetwork = flowNetwork;
-      $("#proceed-step").text("Confirm Residual Graph");
-      cy.edgehandles("enable");
-      
-      // Set default label of edge to applied flow
-      var cytoscapeStyle = cytoscapeSettings["style"];
-      cytoscapeStyle[1]["css"]["label"] = flow.toString();
-      cy.style().fromJson(cytoscapeStyle);
-
-      $("#instructions-state").html("<b>Update Residual Graph:</b>");
-      $("#instructions").html(UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS);
-      index = (index + 1) % states.length;
-    } else if (state === "update-residual-graph") {
-      showElementAndItsChildren(".ending-actions");
-      var $source = $("#source");
-      var source = $source.val();
-      var $sink = $("#sink");
-      var sink = $sink.val();
-
-      var flowNetwork = new FlowNetwork(source, sink);
-
-      var edges = cy.edges();
-      edges.forEach(function (edge) {
-        var label = edge.css("label");
-        if (label.includes("/")) return;
-        flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-      });
-      console.log(flowNetwork);
-
-      // check if the current graph is the same network after applying the flow
-      // if not, let user redo it.
-      var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
-      [message, isCorrectResidualGraph] = isSameGraphSkipFlowComparison(
-        flowNetwork.graph,
-        expectedGraph
-      );
-      if (isCorrectResidualGraph) {
-        cancelHighlightedElements();
-
-        totalflow += flow;
-        selectedPath = [];
-
-        $("#state").text("State: Select Path");
-        $("#proceed-step").text("Confirm Path");
-
-        cy.edgehandles("disable");
-
-        $("#instructions-state").html("<b>Select Path:</b>");
-        $("#instructions").html(SELECT_PATH_INSTRUCTIONS);
-        index = (index + 1) % states.length;
-      } else {
-        alert(message + " Please try again.");
-      }
+    prevStateOk = false;
+    switch (state) {
+      case SELECT_PATH:
+        prevStateOk = selectPath();
+        break;
+      case CHOOSE_FLOW:
+        prevStateOk = chooseFlow();
+        break;
+      case UPDATE_RESIDUAL_GRAPH:
+        prevStateOk = updateResidualGraph();
+        break;
     }
-    hideElementAndItsChildren(".buttons");
-    state = states[index];
-    showElementAndItsChildren("#" + state);
+    onStateChange(prevStateOk);
   });
 
   $("#applied-capacity").on("click", function (e) {
@@ -618,7 +651,7 @@ $(function () {
       cancelHighlightedNodes();
       selectedNodes.clear();
       alert(
-        "The group of node you provided is not a valid min cut for the given network graph. Please try again."
+        "The group of nodes you provided is not a valid min cut for the given flow network. Please try again."
       );
     }
   });
@@ -651,7 +684,6 @@ $(function () {
       return;
     } else {
       var minCutFromSource = flowNetwork.findMinCut(source);
-      console.log(flowNetwork.validateMinCut(new Set(["1", "2"]), totalflow));
 
       console.log(minCutFromSource);
 
@@ -965,256 +997,94 @@ $(function () {
   });
   $add.trigger("click");
 
-  // read file and load it to cy drawboard
+  // readFile() is defined in file-layout-utils.js
   document.getElementById("fileInput").addEventListener("change", readFile);
-  function readFile(event) {
-    if (!event.target.files.length) {
-      // User clicked "Cancel" in the file selection dialog
-      return;
-    }
-    $("#clear").triggerHandler("click");
-    const file = event.target.files[0];
-    const reader = new FileReader();
 
-    reader.onload = function (e) {
-      const content = e.target.result;
-      const lines = content.split("\n");
-      var graph = new Map();
-      var smallest = 10000000;
-      var largest = 0;
+  document
+  .getElementById("downloadButton")
+  .addEventListener("click", function () {
+    // Assuming the graph is globally accessible or you can pass it as an argument
+    event.preventDefault();
+    // var tooltip = document.getElementById('edgeTooltip');
+    // if (!event.target.matches('.edge')) {
+    //     tooltip.style.display = 'none';
+    // }
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
+    var flowNetwork = new FlowNetwork(source, sink);
+    var edges = cy.edges();
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      if (label.includes("/")) return;
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
+    graph = flowNetwork.graph;
+    let positions = "";
 
-      const hasPositionData = lines[0].includes("(") && lines[0].includes(")");
+    // Iterate over all nodes in the Cytoscape instance and gather positions
+    cy.nodes().forEach((node) => {
+      const id = node.id();
+      const pos = node.position();
 
-      if (hasPositionData) {
-        const positions = lines[0].split(" ").map((data) => {
-          // Updated regex to include negative values
-          const parts = data.match(/(\d+)\((-?\d+),(-?\d+)\)/);
-          if (parts) {
-            addNode(
-              cy,
-              parts[1],
-              parts[1],
-              parseInt(parts[2], 10),
-              parseInt(parts[3], 10)
-            );
-          }
-        });
+      positions += `${id}(${parseInt(pos.x)},${parseInt(pos.y)}) `;
+    });
 
-        // Rest of the code
-        lines.shift();
-      }
+    const edgelistContent = graphToEdgelist(graph);
+    console.log(edgelistContent);
+    download("edgelist.txt", positions + "\n" + edgelistContent);
+  });
 
-      lines.forEach((line) => {
-        var parts = "";
-        if (file.name.endsWith(".csv")) {
-          parts = line.trim().split(","); // Splitting on commas for CSV
-        } else {
-          parts = line.trim().split(" "); // assuming space-separated values
-        }
-        if (parts.length !== 3) return;
+  document
+  .getElementById("layoutChoices")
+  .addEventListener("change", function (event) {
+    const selectedValue = event.target.value;
+    let boundingBox = cy.elements().boundingBox({});
+    let centerX = (boundingBox.x1 + boundingBox.x2) / 2;
+    let centerY = (boundingBox.y1 + boundingBox.y2) / 2;
 
-        const node1 = parts[0];
-        const node2 = parts[1];
-        const edgeValue = parts[2];
-
-        var node1val = parseInt(node1, 10);
-        var node2val = parseInt(node2, 10);
-
-        // find smallest and largest node
-        if (node1val < smallest) {
-          smallest = node1val;
-        }
-        if (node2val < smallest) {
-          smallest = node2val;
-        }
-        if (node1val > largest) {
-          largest = node1val;
-        }
-        if (node2val > largest) {
-          largest = node2val;
-        }
-
-        // Adding to graph
-        if (!graph.has(node1)) {
-          graph.set(node1, new Map());
-        }
-
-        graph.get(node1).set(node2, edgeValue);
-      });
-
-      $("#source").val(smallest);
-      $("#sink").val(largest);
-      if (!hasPositionData) {
-        drawNodes(graph, smallest, largest);
-      }
-
-      drawEdges(graph);
-
-      if (!hasPositionData) {
+    switch (selectedValue) {
+      case "layered":
+        // Execute code for layered layout
+        console.log("Executed code for Choice 1");
         cy.layout({
           name: "breadthfirst",
           directed: true, // because max-flow problems are typically directed
           spacingFactor: 1.25,
           avoidOverlap: true,
           ScreenOrientation: "horizontal",
+          // boundingBox: boundingBox,
         });
         makeLayoutHorizontal(cy);
-      }
-    };
-
-    reader.readAsText(file);
-  }
-
-  function makeLayoutHorizontal(cy) {
-    //get the width and height
-    let width = cy.width();
-    let height = cy.height();
-
-    //rotate correspondingly
-    cy.nodes().forEach((node) => {
-      let currentPosition = node.position();
-      node.position({
-        x: currentPosition.y,
-        y: currentPosition.x / 2.5,
-      });
-    });
-  }
-
-  //draw edges according to the input graph. There might be memory issue about the remove()
-  function drawEdges(graph) {
-    cy.edges().remove();
-    graph.forEach((edges, node1) => {
-      edges.forEach((edgeValue, node2) => {
-        addEdge(
-          cy,
-          node1 + "-" + node2,
-          { label: parseFloat(edgeValue, 10) },
-          parseInt(node1, 10),
-          parseInt(node2, 10)
-        );
-      });
-    });
-  }
-
-  //draw nodes according to the input graph. Node position needs further considerations.
-  function drawNodes(graph, source, sink) {
-    cy.nodes().remove();
-    var yPosition = 80;
-    let mySet = new Set();
-    var xPositionOffset = -30;
-    graph.forEach((edges, node) => {
-      edges.forEach((edgeValue, node2) => {
-        var node2val = parseInt(node2, 10);
-        if (!mySet.has(node2val)) {
-          mySet.add(node2val);
-          if (node2val === sink) {
-            addNode(cy, node2val, node2val, 600, 300);
-          } else {
-            addNode(cy, node2val, node2val, 350 + xPositionOffset, yPosition);
-            yPosition += 80;
-            xPositionOffset = -xPositionOffset;
-          }
-        }
-      });
-      var nodeVal = parseInt(node, 10);
-      if (!mySet.has(nodeVal)) {
-        mySet.add(nodeVal);
-        if (nodeVal === source) {
-          addNode(cy, nodeVal, nodeVal, 100, 300);
-        } else {
-          addNode(cy, nodeVal, nodeVal, 350 + xPositionOffset, yPosition);
-          yPosition += 80;
-          xPositionOffset = -xPositionOffset;
-        }
-      }
-    });
-  }
-
-  document
-    .getElementById("downloadButton")
-    .addEventListener("click", function () {
-      // Assuming the graph is globally accessible or you can pass it as an argument
-      event.preventDefault();
-      // var tooltip = document.getElementById('edgeTooltip');
-      // if (!event.target.matches('.edge')) {
-      //     tooltip.style.display = 'none';
-      // }
-      var $source = $("#source");
-      var source = $source.val();
-      var $sink = $("#sink");
-      var sink = $sink.val();
-      var flowNetwork = new FlowNetwork(source, sink);
-      var edges = cy.edges();
-      edges.forEach(function (edge) {
-        var label = edge.css("label");
-        if (label.includes("/")) return;
-        flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-      });
-      graph = flowNetwork.graph;
-      let positions = "";
-
-      // Iterate over all nodes in the Cytoscape instance and gather positions
-      cy.nodes().forEach((node) => {
-        const id = node.id();
-        const pos = node.position();
-
-        positions += `${id}(${parseInt(pos.x)},${parseInt(pos.y)}) `;
-      });
-
-      const edgelistContent = graphToEdgelist(graph);
-      console.log(edgelistContent);
-      download("edgelist.txt", positions + "\n" + edgelistContent);
-    });
-
-  document
-    .getElementById("layoutChoices")
-    .addEventListener("change", function (event) {
-      const selectedValue = event.target.value;
-      let boundingBox = cy.elements().boundingBox({});
-      let centerX = (boundingBox.x1 + boundingBox.x2) / 2;
-      let centerY = (boundingBox.y1 + boundingBox.y2) / 2;
-
-      switch (selectedValue) {
-        case "layered":
-          // Execute code for layered layout
-          console.log("Executed code for Choice 1");
-          cy.layout({
-            name: "breadthfirst",
-            directed: true, // because max-flow problems are typically directed
-            spacingFactor: 1.25,
-            avoidOverlap: true,
-            ScreenOrientation: "horizontal",
-            // boundingBox: boundingBox,
-          });
-          makeLayoutHorizontal(cy);
-          cy.center();
-          break;
-        case "spring":
-          // Execute code for Spring Model layout
-          console.log("Executed code for Choice 2");
-          let scaleFactor = 1.2;
-          let expandedBoundingBox = {
-            x1: centerX + (boundingBox.x1 - centerX) * scaleFactor,
-            y1: centerY + (boundingBox.y1 - centerY) * scaleFactor,
-            x2: centerX + (boundingBox.x2 - centerX) * scaleFactor,
-            y2: centerY + (boundingBox.y2 - centerY) * scaleFactor,
-          };
-          let layout = cy.layout({
-            name: "cose",
-            boundingBox: expandedBoundingBox,
-          });
-          break;
-        default:
-          console.log("No choice");
-      }
-    });
+        cy.center();
+        break;
+      case "spring":
+        // Execute code for Spring Model layout
+        console.log("Executed code for Choice 2");
+        let scaleFactor = 1.2;
+        let expandedBoundingBox = {
+          x1: centerX + (boundingBox.x1 - centerX) * scaleFactor,
+          y1: centerY + (boundingBox.y1 - centerY) * scaleFactor,
+          x2: centerX + (boundingBox.x2 - centerX) * scaleFactor,
+          y2: centerY + (boundingBox.y2 - centerY) * scaleFactor,
+        };
+        let layout = cy.layout({
+          name: "cose",
+          boundingBox: expandedBoundingBox,
+        });
+        break;
+      default:
+        console.log("No choice");
+    }
+  });
 
   rightClickedEdge = null
   canRightClick = true
 
-  //right click on an edge brings up a div for update capacity
+  // right click on an edge brings up a div for update capacity
   cy.on('cxttap', 'edge', function(event) {
-    if(state != "update-residual-graph" && !canRightClick) return;
+    if(state != UPDATE_RESIDUAL_GRAPH && !canRightClick) return;
     console.log("here");
     var mouseX = event.originalEvent.clientX;
     var mouseY = event.originalEvent.clientY;
@@ -1229,7 +1099,7 @@ $(function () {
     floatingText.style.top = mouseY + 'px';
   });
 
-  //if not clicking the div near the mouse, make the div disappear
+  // if not clicking the div near the mouse, make the div disappear
   document.addEventListener('click', function(event) {
     var floatingText = document.getElementById('floatingText');
     function clickInsideElement(event, element) {
