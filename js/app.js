@@ -21,6 +21,19 @@ $(function () {
   // Initialize cytoscape, cytoscapeSettings is in "cytoscape-settings.js"
   var cy = cytoscape(cytoscapeSettings);
 
+  cy.panzoom({
+    // ... options ...
+  });
+
+  // edge handles, which is used for creating edge interactively
+  cy.edgehandles({
+    handleColor: "grey",
+    handleSize: 15,
+    handleLineWidth: 10,
+    handleNodes: "node",
+    toggleOffOnLeave: true,
+  });
+
   // Check which mode are we in: modifying or practicing
   function allowModify() {
     return $("#state").text().includes("State: Graph Creation");
@@ -275,19 +288,6 @@ $(function () {
       if (id > 1) $("#sink").val(id);
       if (id == 1) $("#source").val(id);
     }
-  });
-
-  cy.panzoom({
-    // ... options ...
-  });
-
-  // edge handles, which is used for creating edge interactively
-  cy.edgehandles({
-    handleColor: "grey",
-    handleSize: 15,
-    handleLineWidth: 10,
-    handleNodes: "node",
-    toggleOffOnLeave: true,
   });
 
   // delete a node with backspace or delete button
