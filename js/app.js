@@ -14,6 +14,10 @@ $(function () {
   var states = [SELECT_PATH, CHOOSE_FLOW, UPDATE_RESIDUAL_GRAPH];
   var index = 0;
 
+  // Deleteing/adding nodes should be disallowed once the graph is created, but we allow students to do so and give them error messages,
+  // so we need to store originalNodes in order to restore original graph
+  var originalNodes;
+
   // Initialize cytoscape, cytoscapeSettings is in "cytoscape-settings.js"
   var cy = cytoscape(cytoscapeSettings);
 
@@ -99,6 +103,25 @@ $(function () {
     cy.nodes().style("border-color", "black");
   }
 
+  // Construct backend FlowNetwork data structure based on current graph
+  function constructFlowNetwork() {
+    var $source = $("#source");
+    var source = $source.val();
+    var $sink = $("#sink");
+    var sink = $sink.val();
+
+    var flowNetwork = new FlowNetwork(source, sink);
+
+    var edges = cy.edges();
+    edges.forEach(function (edge) {
+      var label = edge.css("label");
+      if (label.includes("/")) return null;
+      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+    });
+
+    return flowNetwork;
+  }
+
   // When state changes and previous state has no errors, disable all buttons and only show buttons of the next state
   function onStateChange(prevStateOk) {
     if (prevStateOk) {
@@ -115,19 +138,10 @@ $(function () {
   function selectPath() {
     hideElementAndItsChildren(".ending-actions");
     // check if path is valid, get max flow, -1 if not valid path
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-
-    var flowNetwork = new FlowNetwork(source, sink);
-
-    var edges = cy.edges();
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      if (label.includes("/")) return;
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-    });
+    var flowNetwork = constructFlowNetwork();
+    if (flowNetwork === null) {
+      return false;
+    }
 
     // get path expression to show in the front end and the bottleneck: -1 means invalid path
     const [bottleneck, bottleneckEdge, message] =
@@ -152,19 +166,10 @@ $(function () {
   // CHOOSE FLOW IMPLEMENTATION
   function chooseFlow() {
     showElementAndItsChildren("#" + state);
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-
-    var flowNetwork = new FlowNetwork(source, sink);
-
-    var edges = cy.edges();
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      if (label.includes("/")) return false;
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-    });
+    var flowNetwork = constructFlowNetwork();
+    if (flowNetwork === null) {
+      return false;
+    }
 
     const [bottleneck, bottleneckEdge, message] =
       flowNetwork.findBottleneckCapacity(selectedPath);
@@ -226,20 +231,10 @@ $(function () {
   function updateResidualGraph() {
     showElementAndItsChildren("#" + state);
     showElementAndItsChildren(".ending-actions");
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-
-    var flowNetwork = new FlowNetwork(source, sink);
-
-    var edges = cy.edges();
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      if (label.includes("/")) return;
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-    });
-    console.log(flowNetwork);
+    var flowNetwork = constructFlowNetwork();
+    if (flowNetwork === null) {
+      return false;
+    }
 
     // check if the current graph is the same network after applying the flow
     // if not, let user redo it.
@@ -271,15 +266,15 @@ $(function () {
   // double click for creating node
   var $cy = $("#cy");
   $cy.dblclick(function (e) {
-    if (!allowModify() || e.target.matches(".cy-panzoom-reset")) {
-      return;
+    // Students can only add nodes during graph creation and residual graph update (though this is clearly wrong xD)
+    if ((allowModify() || state === UPDATE_RESIDUAL_GRAPH) && !e.target.matches(".cy-panzoom-reset")) {
+      var id = getId();
+      var posX = e.pageX - $cy.offset().left;
+      var posY = e.pageY - $cy.offset().top;
+      addNode(cy, id, id, posX, posY);
+      if (id > 1) $("#sink").val(id);
+      if (id == 1) $("#source").val(id);
     }
-    var id = getId();
-    var posX = e.pageX - $cy.offset().left;
-    var posY = e.pageY - $cy.offset().top;
-    addNode(cy, id, id, posX, posY);
-    if (id > 1) $("#sink").val(id);
-    if (id == 1) $("#source").val(id);
   });
 
   cy.panzoom({
@@ -299,7 +294,7 @@ $(function () {
   state = states[index];
   $("html").keyup(function (e) {
     if (!allowModify() && state !== UPDATE_RESIDUAL_GRAPH) {
-      return;
+      return false;
     }
     if (e.key == "Delete") {
       const inputElement = document.getElementById("label");
@@ -378,6 +373,7 @@ $(function () {
 
       $("#instructions-state").html("<b>Select Path:</b>");
       $("#instructions").html(SELECT_PATH_INSTRUCTIONS);
+      originalNodes = cy.nodes();
     } else {
       index = 0;
       canRightClick = true;
@@ -621,20 +617,10 @@ $(function () {
   $("#validate-min-cut").on("click", function (e) {
     e.preventDefault();
 
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-
-    var flowNetwork = new FlowNetwork(source, sink);
-
-    var edges = cy.edges();
-
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      if (label.includes("/")) return;
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-    });
+    var flowNetwork = constructFlowNetwork();
+    if (flowNetwork === null) {
+      return false;
+    }
 
     var path = flowNetwork.findRandomAugmentingPath();
 
@@ -660,22 +646,12 @@ $(function () {
 
   $("#find-min-cut").on("click", function (e) {
     e.preventDefault();
-
     cancelHighlightedElements();
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
 
-    var flowNetwork = new FlowNetwork(source, sink);
-
-    var edges = cy.edges();
-
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      if (label.includes("/")) return;
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-    });
+    var flowNetwork = constructFlowNetwork();
+    if (flowNetwork === null) {
+      return;
+    }
 
     var path = flowNetwork.findRandomAugmentingPath();
 
@@ -710,6 +686,7 @@ $(function () {
     var sink = $sink.val();
 
     var flowNetwork = new FlowNetwork(source, sink);
+    console.log(flowNetwork);
 
     const [bottleneck, bottleneckEdge, message] =
       flowNetwork.findBottleneckCapacity(selectedPath);
@@ -727,9 +704,12 @@ $(function () {
 
   $("#auto-complete").on("click", function (event) {
     event.preventDefault();
-    // call check graph function, update the graph
+    // Call check graph function, update the graph
     var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
 
+    // Student might have added/deleted nodes, restore all nodes
+    cy.nodes().remove();
+    cy.add(originalNodes);
     cy.edges().remove();
     for (const [_, neighborsMap] of expectedGraph) {
       for (const [_, edge] of neighborsMap) {
@@ -788,19 +768,10 @@ $(function () {
   $("#confirm-max-flow").on("click", function (e) {
     e.preventDefault();
 
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-
-    var flowNetwork = new FlowNetwork(source, sink);
-
-    var edges = cy.edges();
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      if (label.includes("/")) return;
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-    });
+    var flowNetwork = constructFlowNetwork();
+    if (flowNetwork === null) {
+      return;
+    }
 
     var path = flowNetwork.findRandomAugmentingPath();
 
@@ -846,22 +817,12 @@ $(function () {
   // find random path
   $("#random-path").on("click", function (e) {
     e.preventDefault();
-
     cancelHighlightedElements();
 
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-
-    var flowNetwork = new FlowNetwork(source, sink);
-
-    var edges = cy.edges();
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      if (label.includes("/")) return;
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-    });
+    var flowNetwork = constructFlowNetwork();
+    if (flowNetwork === null) {
+      return;
+    }
 
     var path = flowNetwork.findRandomAugmentingPath();
 
@@ -884,22 +845,12 @@ $(function () {
   // find shortest path
   $("#shortest-path").on("click", function (e) {
     e.preventDefault();
-
     cancelHighlightedElements();
 
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-
-    var flowNetwork = new FlowNetwork(source, sink);
-
-    var edges = cy.edges();
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      if (label.includes("/")) return;
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-    });
+    var flowNetwork = constructFlowNetwork();
+    if (flowNetwork === null) {
+      return;
+    }
 
     var path = flowNetwork.findShortestAugmentingPath();
 
@@ -923,22 +874,12 @@ $(function () {
 
   $("#widest-path").on("click", function (e) {
     e.preventDefault();
-
     cancelHighlightedElements();
 
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-
-    var flowNetwork = new FlowNetwork(source, sink);
-
-    var edges = cy.edges();
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      if (label.includes("/")) return;
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-    });
+    var flowNetwork = constructFlowNetwork();
+    if (flowNetwork === null) {
+      return;
+    }
 
     var path = flowNetwork.findWidestAugmentingPath();
 
@@ -1011,17 +952,11 @@ $(function () {
     // if (!event.target.matches('.edge')) {
     //     tooltip.style.display = 'none';
     // }
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-    var flowNetwork = new FlowNetwork(source, sink);
-    var edges = cy.edges();
-    edges.forEach(function (edge) {
-      var label = edge.css("label");
-      if (label.includes("/")) return;
-      flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-    });
+    var flowNetwork = constructFlowNetwork();
+    if (flowNetwork === null) {
+      return;
+    }
+
     graph = flowNetwork.graph;
     let positions = "";
 
