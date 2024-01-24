@@ -162,7 +162,7 @@ $(function () {
     var edges = cy.edges();
     edges.forEach(function (edge) {
       var label = edge.css("label");
-      if (label.includes("/")) return;
+      if (label.includes("/")) return false;
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
