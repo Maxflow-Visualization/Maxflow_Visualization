@@ -17,12 +17,11 @@ $(function () {
   // Initialize cytoscape, cytoscapeSettings is in "cytoscape-settings.js"
   var cy = cytoscape(cytoscapeSettings);
 
-  // check which state we are in: modifying or practicing
+  // Check which mode are we in: modifying or practicing
   function allowModify() {
     return $("#state").text().includes("State: Graph Creation");
   }
 
-  // 
   function showElementAndItsChildren(selector) {
     $(selector).show();
     $(selector).children().show();
@@ -45,7 +44,7 @@ $(function () {
     return ids.length + 1;
   }
 
-  // add node with given args
+  // Add node with given args
   function addNode(cy, id, name, posX, posY) {
     cy.add({
       group: "nodes",
@@ -61,7 +60,7 @@ $(function () {
     });
   }
 
-  // add edge with given args
+  // Add edge with given args
   function addEdge(cy, id, style, source, target) {
     cy.add({
       group: "edges",
@@ -75,19 +74,19 @@ $(function () {
     });
   }
 
-  // make edge highlighted with given args
+  // Make edge highlighted with given args
   function highlightEdge(source, target) {
     cy.edges("[source='" + source + "'][target='" + target + "']").addClass(
       "highlighted"
     );
   }
 
-  // cancel all highlights
+  // Cancel all highlights
   function cancelHighlightedElements() {
     cy.elements().removeClass("highlighted");
   }
 
-  // cancel one edge's highlight
+  // Cancel one edge's highlight
   function cancelHighlightedEdge(source, target) {
     edge = cy.edges("[source='" + source + "'][target='" + target + "']");
     edge.removeClass("highlighted");
@@ -95,6 +94,7 @@ $(function () {
     edge.css("target-arrow-color", "lightgray");
   }
 
+  // Cancel all highlighed nodes
   function cancelHighlightedNodes() {
     cy.nodes().style("border-color", "black");
   }
@@ -108,6 +108,8 @@ $(function () {
       showElementAndItsChildren("#" + state);
     }
   }
+
+  // All of the following are implementations of logic in a specific state, returns ok to proceed or not
 
   // SELECT PATH IMPLEMENTATION
   function selectPath() {
