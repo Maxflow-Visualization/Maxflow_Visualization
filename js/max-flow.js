@@ -21,29 +21,23 @@ function shuffle(array) {
 }
 
 function isSameGraphSkipFlowComparison(graph1, graph2) {
-  if (
-    JSON.stringify([...graph1.keys()].sort()) !=
-    JSON.stringify([...graph2.keys()].sort())
-  ) {
-    return ["Add/Delete nodes when updating residual graph is not allowed.", false];
-  }
   for (const source of graph1.keys()) {
     if (
       JSON.stringify([...graph1.get(source).keys()].sort()) !=
       JSON.stringify([...graph2.get(source).keys()].sort())
     ) {
-      return ["Some edges that are not yet saturated in the residual graph are deleted/There are extra edges that should not be added in the residual graph.", false];
+      return "Some edges that are not yet saturated in the residual graph are deleted/There are extra edges that should not be added in the residual graph.";
     }
     for (const neighbor of graph1.get(source).keys()) {
       if (
         graph1.get(source).get(neighbor).capacity !=
         graph2.get(source).get(neighbor).capacity
       ) {
-        return ["Some edges in the residual graph have wrong capacity. For example, " + source + "->" + neighbor + ".", false];
+        return "Some edges in the residual graph have wrong capacity. For example, " + source + "->" + neighbor + ".";
       }
     }
   }
-  return ["", true];
+  return "";
 }
 
 class Edge {

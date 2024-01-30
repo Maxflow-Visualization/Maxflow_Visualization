@@ -119,6 +119,7 @@ $(function () {
 
   // SELECT PATH IMPLEMENTATION
   function selectPath() {
+    // TODO: Same as the other todo
     hideElementAndItsChildren(".ending-actions");
     // check if path is valid, get max flow, -1 if not valid path
     var flowNetwork = constructFlowNetwork();
@@ -213,7 +214,9 @@ $(function () {
   // UPDATE RESIDUAL GRAPH IMPLEMENTATION
   function updateResidualGraph() {
     showElementAndItsChildren("#" + state);
+    // TODO: Don't show this unless success
     showElementAndItsChildren(".ending-actions");
+    // console.log(cy.nodes());
     var flowNetwork = constructFlowNetwork();
     if (flowNetwork === null) {
       return false;
@@ -222,11 +225,11 @@ $(function () {
     // check if the current graph is the same network after applying the flow
     // if not, let user redo it.
     var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
-    [message, isCorrectResidualGraph] = isSameGraphSkipFlowComparison(
-      flowNetwork.graph,
-      expectedGraph
-    );
-    if (isCorrectResidualGraph) {
+    errorMessage = isSameGraphSkipFlowComparison(flowNetwork.graph, expectedGraph);
+    if (cy.nodes().length !== originalNodes.length) {
+      errorMessage = "Add/Delete nodes when updating residual graph is not allowed.";
+    }
+    if (errorMessage === "") {
       cancelHighlightedElements();
 
       totalflow += flow;
@@ -241,7 +244,7 @@ $(function () {
       $("#instructions").html(SELECT_PATH_INSTRUCTIONS);
       return true;
     } else {
-      alert(message + " Please try again.");
+      alert(errorMessage + " Please try again.");
       return false;
     }
   }
@@ -255,7 +258,7 @@ $(function () {
       var posX = e.pageX - $cy.offset().left;
       var posY = e.pageY - $cy.offset().top;
       addNode(cy, id, id, posX, posY);
-      if (id > 1) $("#sink").val(id);
+      if (id > 1 && state !== UPDATE_RESIDUAL_GRAPH) $("#sink").val(id);
       if (id == 1) $("#source").val(id);
     }
   });
@@ -356,16 +359,14 @@ $(function () {
       $("#state").text("State: Graph Creation");
       hideElementAndItsChildren(".proceed-step");
       hideElementAndItsChildren("#applied-capacity");
-      hideElementAndItsChildren("#select-path");
-      hideElementAndItsChildren("#choose-flow");
-      hideElementAndItsChildren("#update-residual-graph");
+      hideElementAndItsChildren(".buttons");
 
       $("#source-label").text("Source=");
       showElementAndItsChildren("#source");
       $("#sink-label").text("Sink=");
       showElementAndItsChildren("#sink");
 
-      showElementAndItsChildren("#"+GRAPH_CREATION);
+      showElementAndItsChildren("#" + GRAPH_CREATION);
       showElementAndItsChildren("#update-capacity");
       showElementAndItsChildren("#clear");
       showElementAndItsChildren("#mouse-label");
