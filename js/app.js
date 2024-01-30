@@ -1,3 +1,6 @@
+// Initialize cytoscape, cytoscapeSettings is in "cytoscape-settings.js"
+var cy = cytoscape(cytoscapeSettings);
+
 $(function () {
 
   const GRAPH_CREATION = "graph-creation";
@@ -17,9 +20,6 @@ $(function () {
   // Deleteing/adding nodes should be disallowed once the graph is created, but we allow students to do so and give them error messages,
   // so we need to store originalNodes in order to restore original graph
   var originalNodes;
-
-  // Initialize cytoscape, cytoscapeSettings is in "cytoscape-settings.js"
-  var cy = cytoscape(cytoscapeSettings);
 
   cy.panzoom({
     // ... options ...
@@ -59,36 +59,6 @@ $(function () {
       }
     }
     return ids.length + 1;
-  }
-
-  // Add node with given args
-  function addNode(cy, id, name, posX, posY) {
-    cy.add({
-      group: "nodes",
-      data: {
-        id: id,
-        name: name,
-      },
-      position: {
-        x: posX,
-        y: posY,
-      },
-      selectable: true,
-    });
-  }
-
-  // Add edge with given args
-  function addEdge(cy, id, style, source, target) {
-    cy.add({
-      group: "edges",
-      data: {
-        id: id,
-        source: source,
-        target: target,
-      },
-      selectable: true,
-      style: style,
-    });
   }
 
   // Make edge highlighted with given args
@@ -395,11 +365,12 @@ $(function () {
       $("#sink-label").text("Sink=");
       showElementAndItsChildren("#sink");
 
-      showElementAndItsChildren(GRAPH_CREATION);
+      showElementAndItsChildren("#"+GRAPH_CREATION);
       showElementAndItsChildren("#update-capacity");
       showElementAndItsChildren("#clear");
       showElementAndItsChildren("#mouse-label");
       showElementAndItsChildren("#mouse-update");
+      hideElementAndItsChildren("#fileInput");
 
       var shown = false;
 
@@ -1113,3 +1084,33 @@ $(function () {
     }
   });
 });
+
+// Add node with given args
+function addNode(cy, id, name, posX, posY) {
+  cy.add({
+    group: "nodes",
+    data: {
+      id: id,
+      name: name,
+    },
+    position: {
+      x: posX,
+      y: posY,
+    },
+    selectable: true,
+  });
+}
+
+// Add edge with given args
+function addEdge(cy, id, style, source, target) {
+  cy.add({
+    group: "edges",
+    data: {
+      id: id,
+      source: source,
+      target: target,
+    },
+    selectable: true,
+    style: style,
+  });
+}
