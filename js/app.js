@@ -1,6 +1,37 @@
 // Initialize cytoscape, cytoscapeSettings is in "cytoscape-settings.js"
 var cy = cytoscape(cytoscapeSettings);
 
+// Add node with given args
+function addNode(cy, id, name, posX, posY) {
+  cy.add({
+    group: "nodes",
+    data: {
+      id: id,
+      name: name,
+    },
+    position: {
+      x: posX,
+      y: posY,
+    },
+    selectable: true,
+  });
+}
+
+// Add edge with given args
+function addEdge(cy, id, style, source, target) {
+  cy.add({
+    group: "edges",
+    data: {
+      id: id,
+      source: source,
+      target: target,
+    },
+    selectable: true,
+    style: style,
+  });
+}
+
+
 $(function () {
 
   const GRAPH_CREATION = "graph-creation";
@@ -8,7 +39,7 @@ $(function () {
   const CHOOSE_FLOW = "choose-flow";
   const UPDATE_RESIDUAL_GRAPH = "update-residual-graph";
 
-  const GRAPH_CREATION_INSTRUCTIONS = '<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li>';
+  const GRAPH_CREATION_INSTRUCTIONS = '<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press keyboard\'s "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press keyboard\'s "Delete" will delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li>';
   const SELECT_PATH_INSTRUCTIONS = '<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn\'t matter).</li><li>To let the algorithm choose an augmenting path, click one of the "Choose Shortest Path" (Edmonds-Karp), "Choose Random Path" (Ford-Fulkerson), "Choose Widest Path" (Capacity Scaling).</li><li>Once an augmenting path is chosen, click "Confirm Path". If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Whenever you think you have found the max flow, click "Confirm Max Flow Found!" on the right to input your max flow.</li>';
   const CHOOSE_FLOW_INSTRUCTIONS = '<li>In this step, you will choose a flow amount to add to the path you have chosen in the last step.</li><li>Click "Choose Flow", a dialog box will appear.</li><li>Input a flow amount in the dialog box and click "OK".</li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow amount.</li><li>You can find the bottleneck edge by clicking "Find Bottleneck Edge".</li>';
   const UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS = '<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>You can auto complete the update step by clicking "Auto Complete Residual Graph" button.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking "Undo All Updates to Residual Graph" button.</li><li>When you are done, click "Confirm Residual Graph".</li>';
@@ -105,13 +136,25 @@ $(function () {
     return flowNetwork;
   }
 
+  function updateUIForNextState() {
+    // First hide all buttons
+    hideElementAndItsChildren(".buttons");
+    // Show next state's buttons
+    showElementAndItsChildren("#" + state);
+    // ending-actions (min cut, etc.) buttons are only shown in the select path state
+    if (state === CHOOSE_FLOW) {
+      hideElementAndItsChildren(".ending-actions");
+    } else if (state === SELECT_PATH) {
+      showElementAndItsChildren(".ending-actions");
+    }
+  }
+
   // When state changes and previous state has no errors, disable all buttons and only show buttons of the next state
   function onStateChange(prevStateOk) {
     if (prevStateOk) {
       index = (index + 1) % states.length;
-      hideElementAndItsChildren(".buttons");
       state = states[index];
-      showElementAndItsChildren("#" + state);
+      updateUIForNextState();
     }
   }
 
@@ -119,8 +162,6 @@ $(function () {
 
   // SELECT PATH IMPLEMENTATION
   function selectPath() {
-    // TODO: Same as the other todo
-    hideElementAndItsChildren(".ending-actions");
     // check if path is valid, get max flow, -1 if not valid path
     var flowNetwork = constructFlowNetwork();
     if (flowNetwork === null) {
@@ -149,7 +190,6 @@ $(function () {
 
   // CHOOSE FLOW IMPLEMENTATION
   function chooseFlow() {
-    showElementAndItsChildren("#" + state);
     var flowNetwork = constructFlowNetwork();
     if (flowNetwork === null) {
       return false;
@@ -163,7 +203,6 @@ $(function () {
       "Enter a flow you want to apply to the path. "
     );
 
-    console.log(prompt);
     // User pressed cancel
     if (prompt === null) {
       return false;
@@ -174,11 +213,11 @@ $(function () {
       prompt = null;
       if (isNaN(flow)) {
         prompt = window.prompt(
-          "The flow entered is not a number. Please enter a valid flow amount."
+          "The flow amount entered is not a number. Please enter a valid flow amount."
         );
       } else if (flow > bottleneck) {
         prompt = window.prompt(
-          "The flow amount entered is too high. Please try again."
+          "The flow amount entered is too high (HINT: the flow amount is bounded by the bottleneck edge). Please try again."
         );
       } else if (flow <= 0) {
         prompt = window.prompt(
@@ -213,10 +252,6 @@ $(function () {
 
   // UPDATE RESIDUAL GRAPH IMPLEMENTATION
   function updateResidualGraph() {
-    showElementAndItsChildren("#" + state);
-    // TODO: Don't show this unless success
-    showElementAndItsChildren(".ending-actions");
-    // console.log(cy.nodes());
     var flowNetwork = constructFlowNetwork();
     if (flowNetwork === null) {
       return false;
@@ -633,7 +668,7 @@ $(function () {
       );
       return;
     } else {
-      var minCutFromSource = flowNetwork.findMinCut(source);
+      var minCutFromSource = flowNetwork.findMinCut(flowNetwork.source);
 
       console.log(minCutFromSource);
 
@@ -1085,33 +1120,3 @@ $(function () {
     }
   });
 });
-
-// Add node with given args
-function addNode(cy, id, name, posX, posY) {
-  cy.add({
-    group: "nodes",
-    data: {
-      id: id,
-      name: name,
-    },
-    position: {
-      x: posX,
-      y: posY,
-    },
-    selectable: true,
-  });
-}
-
-// Add edge with given args
-function addEdge(cy, id, style, source, target) {
-  cy.add({
-    group: "edges",
-    data: {
-      id: id,
-      source: source,
-      target: target,
-    },
-    selectable: true,
-    style: style,
-  });
-}

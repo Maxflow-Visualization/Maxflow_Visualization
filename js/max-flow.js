@@ -355,7 +355,6 @@ class FlowNetwork {
 
   findMinCut(source) {
     let visited = new Set();
-    // console.log(this.graph)
     visited = this.DFS(source, visited, this.graph);
     console.log(visited);
 
@@ -390,6 +389,8 @@ class FlowNetwork {
     return visited;
   }
 
+  // Since this.graoph is currently a residual graph, no need to check for "min" since if there are other augmenting paths, our tool will not proceed to this step.
+  // Rather, we only check if it is not possible to reach t from s (student supplies sNodes) or reach s from t (student supplies tNodes)
   validateMinCut(sNodes) {
     var tNodes = new Set(Array.from(this.graph.keys()).filter(node => !sNodes.has(node)));
     if (!sNodes.has(this.source) || !tNodes.has(this.sink)) {
