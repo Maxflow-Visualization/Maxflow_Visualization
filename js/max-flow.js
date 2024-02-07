@@ -392,14 +392,20 @@ class FlowNetwork {
   // Since this.graoph is currently a residual graph, no need to check for "min" since if there are other augmenting paths, our tool will not proceed to this step.
   // Rather, we only check if it is not possible to reach t from s (student supplies sNodes) or reach s from t (student supplies tNodes)
   validateMinCut(sNodes) {
-    var tNodes = new Set(Array.from(this.graph.keys()).filter(node => !sNodes.has(node)));
-    if (!sNodes.has(this.source) || !tNodes.has(this.sink)) {
+    return this.doValidateMinCut(sNodes, false) || this.doValidateMinCut(sNodes, true);
+  }
+
+  // For some reason Javascript doesn't find the overloading, so have to rename the function...
+  doValidateMinCut(sNodes, isReversed) {
+    let graph = isReversed ? this.reverseGraph(this.graph) : this.graph;
+    let tNodes = new Set(Array.from(graph.keys()).filter(node => !sNodes.has(node)));
+
+    if (!isReversed && (!sNodes.has(this.source) || !tNodes.has(this.sink)) || isReversed && (!sNodes.has(this.sink) || !tNodes.has(this.source))) {
       return false;
     }
-    console.log(tNodes);
-    for (const node of this.graph.keys()) {
-      for (const neighbor of this.graph.get(node).keys()) {
-        if (sNodes.has(node) && tNodes.has(neighbor) && this.graph.get(node).get(neighbor).capacity > 0) {
+    for (const node of graph.keys()) {
+      for (const neighbor of graph.get(node).keys()) {
+        if (sNodes.has(node) && tNodes.has(neighbor) && graph.get(node).get(neighbor).capacity > 0) {
           // console.log(node + "->" + neighbor);
           return false;
         }
