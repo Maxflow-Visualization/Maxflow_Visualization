@@ -67,11 +67,7 @@ $(function () {
 
   // Check which mode are we in: modifying or practicing
   function allowModify() {
-    // In addition, check if the user is currently updating capacity
-    // let updateCapacityBox = $("#update-capacity");
-    // console.log(updateCapacityBox);
-    // console.log($("#mouse-update").is(":visible"));
-    return $("#state").text().includes("State: Graph Creation") && !$("#update-capacity").is(":visible");
+    return $("#state").text().includes("State: Graph Creation");
   }
 
   function showElementAndItsChildren(selector) {
