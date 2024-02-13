@@ -392,7 +392,8 @@ class FlowNetwork {
   // Since this.graoph is currently a residual graph, no need to check for "min" since if there are other augmenting paths, our tool will not proceed to this step.
   // Rather, we only check if it is not possible to reach t from s (student supplies sNodes) or reach s from t (student supplies tNodes)
   validateMinCut(sNodes) {
-    return this.doValidateMinCut(sNodes, false) || this.doValidateMinCut(sNodes, true);
+    return [this.doValidateMinCut(sNodes, false), this.doValidateMinCut(sNodes, true)]
+    // return this.doValidateMinCut(sNodes, false) || this.doValidateMinCut(sNodes, true);
   }
 
   // For some reason Javascript doesn't find the overloading, so have to rename the function...
@@ -400,18 +401,24 @@ class FlowNetwork {
     let graph = isReversed ? this.reverseGraph(this.graph) : this.graph;
     let tNodes = new Set(Array.from(graph.keys()).filter(node => !sNodes.has(node)));
 
-    if (!isReversed && (!sNodes.has(this.source) || !tNodes.has(this.sink)) || isReversed && (!sNodes.has(this.sink) || !tNodes.has(this.source))) {
-      return false;
+    if (!isReversed && (!sNodes.has(this.source) || !tNodes.has(this.sink))) {
+      return "Your selected cut does not contain the source or contains the sink.";
+    } else if (isReversed && (!sNodes.has(this.sink) || !tNodes.has(this.source))) {
+      return "Your selected cut does not contain the sink or contains the source.";
     }
     for (const node of graph.keys()) {
       for (const neighbor of graph.get(node).keys()) {
         if (sNodes.has(node) && tNodes.has(neighbor) && graph.get(node).get(neighbor).capacity > 0) {
-          // console.log(node + "->" + neighbor);
-          return false;
+          let reachEdge = node + "->" + neighbor;
+          if (!isReversed) {
+            return "We can still reach T from S via " + reachEdge + " so that it is not a \"cut\".";
+          } else {
+            return "We can still reach S from T via " + reachEdge + " so that it is not a \"cut\".";
+          }
         }
       }
     }
-    return true;
+    return "";
   }
 
   // findMaxFlowFulkerson (paths) {

@@ -81,7 +81,7 @@
 
       <div class="row">
 
-        <form method="get" class="form-horizontal">
+        <form method="get" class="form-horizontal" onkeydown="return event.key !== 'Enter';">
           <div class="col-sm-1"></div>
           <div class="col-sm-10">
             <div class="row" id="all-buttons">
@@ -164,7 +164,7 @@
             </div>
           </div>
           <div class="col-sm-1"></div>
-
+           
           <div id="floatingText" id="update-capacity">
             <div class="col-md-6">
               <input type="number" min="0" oninput="removeLeadingZeros(this)" id="mouse-label"

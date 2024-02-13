@@ -40,9 +40,9 @@ $(function () {
   const UPDATE_RESIDUAL_GRAPH = "update-residual-graph";
 
   const GRAPH_CREATION_INSTRUCTIONS = '<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space will add a node.</li><li>Click an existing node and then press keyboard\'s "Delete" will delete that node.</li><li>Hover on/click an existing node n1 will generate a dot on top. Click and drag from the dot to another node n2 will generate an edge from n1 to n2.</li><li>Click an existing edge and then press keyboard\'s "Delete" will delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click "Clear" at the bottom will clear the entire graph. Click "Example" will bring up the example graph.</li><li>You can download the current graph for future convenient import by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set source and sink! Once you are ready, click "Start Practice".</li>';
-  const SELECT_PATH_INSTRUCTIONS = '<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn\'t matter).</li><li>To let the algorithm choose an augmenting path, click one of the "Choose Shortest Path" (Edmonds-Karp), "Choose Random Path" (Ford-Fulkerson), "Choose Widest Path" (Capacity Scaling).</li><li>Once an augmenting path is chosen, click "Confirm Path". If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Whenever you think you have found the max flow, click "Confirm Max Flow Found!" on the right to input your max flow.</li>';
+  const SELECT_PATH_INSTRUCTIONS = '<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn\'t matter).</li><li>To let the algorithm choose an augmenting path, click one of the "Choose Shortest Path" (Edmonds-Karp), "Choose Random Path" (Ford-Fulkerson), "Choose Widest Path" (Capacity Scaling).</li><li>Once an augmenting path is chosen, click "Confirm Path". If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Once you think you have found the max flow, click "Confirm Max Flow Found!" on the right to verify your max flow.</li><li>Once you think you have found the max flow, you can click on nodes to form a min-cut, click "Validate Selected Min Cut" to verify. Note that you can provide either a S-cut or T-cut, our tool will interpret your selected cut as both S-cut and T-cut and if anyone is valid, your selected cut is a valid min cut.</li><li>Alternatively, you can click "Find Min Cut" to automatically find a min S-cut.</li>';
   const CHOOSE_FLOW_INSTRUCTIONS = '<li>In this step, you will choose a flow amount to add to the path you have chosen in the last step.</li><li>Click "Choose Flow", a dialog box will appear.</li><li>Input a flow amount in the dialog box and click "OK".</li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow amount.</li><li>You can find the bottleneck edge by clicking "Find Bottleneck Edge".</li>';
-  const UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS = '<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>You can auto complete the update step by clicking "Auto Complete Residual Graph" button.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking "Undo All Updates to Residual Graph" button.</li><li>When you are done, click "Confirm Residual Graph".</li>';
+  const UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS = '<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press "Delete" will delete that edge.</li><li>Click an existing edge, the input box on the bottom left will show the capacity of that edge, input a number and then click "Update" will update that edge\'s capacity to the number.</li><li>You can automatically complete the update step by clicking "Auto Complete Residual Graph" button.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking "Undo All Updates to Residual Graph" button.</li><li>When you are done, click "Confirm Residual Graph".</li>';
   
   // Note: states don't include graph creation since that state is only run once
   var states = [SELECT_PATH, CHOOSE_FLOW, UPDATE_RESIDUAL_GRAPH];
@@ -67,7 +67,11 @@ $(function () {
 
   // Check which mode are we in: modifying or practicing
   function allowModify() {
-    return $("#state").text().includes("State: Graph Creation");
+    // In addition, check if the user is currently updating capacity
+    // let updateCapacityBox = $("#update-capacity");
+    // console.log(updateCapacityBox);
+    // console.log($("#mouse-update").is(":visible"));
+    return $("#state").text().includes("State: Graph Creation") && !$("#update-capacity").is(":visible");
   }
 
   function showElementAndItsChildren(selector) {
@@ -304,7 +308,9 @@ $(function () {
     if (!allowModify() && state !== UPDATE_RESIDUAL_GRAPH) {
       return false;
     }
-    if (e.key == "Delete") {
+    // Delete only if user is not updating capacity, I know this !"is not hidden" is really weird. However, jQuery (F*** it for wasting 1 hour of my time!)'s "is hidden"
+    // only checks for css attributes display and visibility whereas jQuery's hide does not change those attributes but rather caches them...
+    if (e.key == "Delete" && !$("#mouse-update").is(":not(':hidden')")) {
       const inputElement = document.getElementById("label");
       // Check if there's a selection within the input
       if (document.activeElement != inputElement) {
@@ -638,7 +644,8 @@ $(function () {
       return;
     }
 
-    if (flowNetwork.validateMinCut(selectedNodes)) {
+    let [sCutErrorMessage, tCutErrorMessage] = flowNetwork.validateMinCut(selectedNodes);
+    if (sCutErrorMessage === "" || tCutErrorMessage === "") {
       alert(
         "Congratulation! You have sccessfully find a min cut for the given network graph!"
       );
@@ -646,7 +653,7 @@ $(function () {
       cancelHighlightedNodes();
       selectedNodes.clear();
       alert(
-        "The group of nodes you provided is not a valid min cut for the given flow network. Please try again."
+        "The group of nodes you provided is not a valid min cut for the given flow network. Here are the problems found if it is\n\n" + "S-cut: " + sCutErrorMessage + "\nT-cut: " + tCutErrorMessage
       );
     }
   });
@@ -1029,7 +1036,6 @@ $(function () {
   // right click on an edge brings up a div for update capacity
   cy.on('cxttap', 'edge', function(event) {
     if(state != UPDATE_RESIDUAL_GRAPH && !canRightClick) return;
-    console.log("here");
     var mouseX = event.originalEvent.clientX;
     var mouseY = event.originalEvent.clientY;
     rightClickedEdge = event.cyTarget;
