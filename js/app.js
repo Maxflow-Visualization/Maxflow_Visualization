@@ -287,11 +287,14 @@ $(function () {
   // double click for creating node
   var $cy = $("#cy");
   $cy.dblclick(function (e) {
-    // Students can only add nodes during graph creation and residual graph update (though this is clearly wrong xD)
+    // Students can only add nodes during graph creation and residual graph update
     if ((allowModify() || state === UPDATE_RESIDUAL_GRAPH) && !e.target.matches(".cy-panzoom-reset")) {
       var id = getId();
-      var posX = e.pageX - $cy.offset().left;
-      var posY = e.pageY - $cy.offset().top;
+      // Adjust position with zoom and pan
+      var zoom = cy.zoom();
+      var pan = cy.pan();
+      var posX = (e.pageX - $cy.offset().left - pan.x) / zoom;
+      var posY = (e.pageY - $cy.offset().top - pan.y) / zoom;
       addNode(cy, id, id, posX, posY);
       if (id > 1 && state !== UPDATE_RESIDUAL_GRAPH) $("#sink").val(id);
       if (id == 1) $("#source").val(id);
