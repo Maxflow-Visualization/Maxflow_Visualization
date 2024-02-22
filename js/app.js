@@ -48,9 +48,8 @@ $(function () {
   var states = [SELECT_PATH, CHOOSE_FLOW, UPDATE_RESIDUAL_GRAPH];
   var index = 0;
 
-  // Deleteing/adding nodes should be disallowed once the graph is created, but we allow students to do so and give them error messages,
-  // so we need to store originalNodes in order to restore original graph
-  var originalNodes;
+  var source;
+  var sink;
 
   cy.panzoom({
     // ... options ...
@@ -117,15 +116,25 @@ $(function () {
     cy.nodes().style("border-color", "black");
   }
 
+  function highlightSourceAndSink() {
+    cy.style()
+      .selector("#" + source)
+      .style({
+        "background-color": "#87CEEB"
+      })
+      .update();
+    cy.style()
+      .selector("#" + sink)
+      .style({
+        "background-color": "#FFCCCB"
+      })
+      .update();
+  }
+
   // Construct backend FlowNetwork data structure based on current graph
   function constructFlowNetwork() {
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-
     var flowNetwork = new FlowNetwork(source, sink);
-
+    highlightSourceAndSink();
     var edges = cy.edges();
     edges.forEach(function (edge) {
       var label = edge.css("label");
@@ -261,9 +270,6 @@ $(function () {
     // if not, let user redo it.
     var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
     errorMessage = isSameGraphSkipFlowComparison(flowNetwork.graph, expectedGraph);
-    if (cy.nodes().length !== originalNodes.length) {
-      errorMessage = "Add/Delete nodes when updating residual graph is not allowed.";
-    }
     if (errorMessage === "") {
       cancelHighlightedElements();
 
@@ -287,8 +293,8 @@ $(function () {
   // double click for creating node
   var $cy = $("#cy");
   $cy.dblclick(function (e) {
-    // Students can only add nodes during graph creation and residual graph update (though this is clearly wrong xD)
-    if ((allowModify() || state === UPDATE_RESIDUAL_GRAPH) && !e.target.matches(".cy-panzoom-reset")) {
+    // Students can only add nodes during graph creation
+    if ((allowModify()) && !e.target.matches(".cy-panzoom-reset")) {
       var id = getId();
       var posX = e.pageX - $cy.offset().left;
       var posY = e.pageY - $cy.offset().top;
@@ -301,7 +307,7 @@ $(function () {
   // delete a node with backspace or delete button
   state = states[index];
   $("html").keyup(function (e) {
-    if (!allowModify() && state !== UPDATE_RESIDUAL_GRAPH) {
+    if (!allowModify()) {
       return false;
     }
     // Delete only if user is not updating capacity, I know this !"is not hidden" is really weird. However, jQuery (F*** it for wasting 1 hour of my time!)'s "is hidden"
@@ -352,6 +358,7 @@ $(function () {
     if (allowModify()) {
       cy.edgehandles("disable");
 
+      console.log(cy.$('#1'));
       hideElementAndItsChildren(".buttons");
       state = states[index];
       canRightClick = false;
@@ -365,9 +372,12 @@ $(function () {
       showElementAndItsChildren(".proceed-step");
       showElementAndItsChildren("#applied-capacity");
 
-      $("#source-label").text("Source=" + $("#source").val());
+      source = $("#source").val();
+      $("#source-label").text("Source=" + source);
       hideElementAndItsChildren("#source");
+      sink = $("#sink").val();
       $("#sink-label").text("Sink=" + $("#sink").val());
+      highlightSourceAndSink();
       hideElementAndItsChildren("#sink");
 
       hideElementAndItsChildren(".change-capacity");
@@ -383,7 +393,6 @@ $(function () {
 
       $("#instructions-state").html("<b>Select Path:</b>");
       $("#instructions").html(SELECT_PATH_INSTRUCTIONS);
-      originalNodes = cy.nodes();
     } else {
       index = 0;
       canRightClick = true;
@@ -717,9 +726,6 @@ $(function () {
     // Call check graph function, update the graph
     var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
 
-    // Student might have added/deleted nodes, restore all nodes
-    cy.nodes().remove();
-    cy.add(originalNodes);
     cy.edges().remove();
     for (const [_, neighborsMap] of expectedGraph) {
       for (const [_, edge] of neighborsMap) {
@@ -734,6 +740,7 @@ $(function () {
         }
       }
     }
+    highlightSourceAndSink();
   });
 
   $("#undo-updates").on("click", function (event) {
@@ -753,6 +760,7 @@ $(function () {
         }
       }
     }
+    highlightSourceAndSink();
   });
 
   // change edge capacity after clicking update button
@@ -787,7 +795,7 @@ $(function () {
 
     if (path.length > 0) {
       alert(
-        "There is still a possible path from source to target. Please keep moving on. "
+        "There is still a possible path from source to sink. Please keep moving on. "
       );
       return;
     } else {
