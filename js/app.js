@@ -155,6 +155,9 @@ $(function () {
       hideElementAndItsChildren(".ending-actions");
     } else if (state === SELECT_PATH) {
       showElementAndItsChildren(".ending-actions");
+    // In UPDATE_RESIDUAL_GRAPH, bring back the right click edge change capacity
+    } else {
+      showElementAndItsChildren(".change-capacity");
     }
   }
 
@@ -361,10 +364,8 @@ $(function () {
     if (allowModify()) {
       cy.edgehandles("disable");
 
-      console.log(cy.$('#1'));
       hideElementAndItsChildren(".buttons");
       state = states[index];
-      canRightClick = false;
       showElementAndItsChildren(".ending-actions");
       showElementAndItsChildren("#" + state);
       $(this).text("Start Over from the Beginning");
@@ -398,7 +399,6 @@ $(function () {
       $("#instructions").html(SELECT_PATH_INSTRUCTIONS);
     } else {
       index = 0;
-      canRightClick = true;
       cancelHighlightedElements();
       cancelHighlightedNodes();
 
@@ -1037,12 +1037,11 @@ $(function () {
     }
   });
 
-  rightClickedEdge = null
-  canRightClick = true
+  rightClickedEdge = null;
 
-  // right click on an edge brings up a div for update capacity
+  // Right click on an edge brings up a div for update capacity, only available in GRAPH_CREATION and UPDATE_RESIDUAL_GRAPH
   cy.on('cxttap', 'edge', function(event) {
-    if(state != UPDATE_RESIDUAL_GRAPH && !canRightClick) return;
+    if(state !== UPDATE_RESIDUAL_GRAPH && !allowModify()) return;
     var mouseX = event.originalEvent.clientX;
     var mouseY = event.originalEvent.clientY;
     rightClickedEdge = event.cyTarget;
