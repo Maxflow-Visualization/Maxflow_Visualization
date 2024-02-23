@@ -116,6 +116,7 @@ $(function () {
     cy.nodes().style("border-color", "black");
   }
 
+  // For some reason this function needs to be called in multiple places that don't need to call it
   function highlightSourceAndSink() {
     cy.style()
       .selector("#" + source)
@@ -313,16 +314,15 @@ $(function () {
   // delete a node with backspace or delete button
   state = states[index];
   $("html").keyup(function (e) {
-    if (!allowModify()) {
-      return false;
-    }
-    // Delete only if user is not updating capacity, I know this !"is not hidden" is really weird. However, jQuery (F*** it for wasting 1 hour of my time!)'s "is hidden"
-    // only checks for css attributes display and visibility whereas jQuery's hide does not change those attributes but rather caches them...
-    if (e.key == "Delete" && !$("#mouse-update").is(":not(':hidden')")) {
-      const inputElement = document.getElementById("label");
-      // Check if there's a selection within the input
-      if (document.activeElement != inputElement) {
-        cy.$(":selected").remove();
+    if (allowModify() || state === UPDATE_RESIDUAL_GRAPH && cy.$(":selected").isEdge()) {
+      // Delete only if user is not updating capacity, I know this !"is not hidden" is really weird. However, jQuery (F*** it for wasting 1 hour of my time!)'s "is hidden"
+      // only checks for css attributes display and visibility whereas jQuery's hide does not change those attributes but rather caches them...
+      if (e.key == "Delete" && !$("#mouse-update").is(":not(':hidden')")) {
+        const inputElement = document.getElementById("label");
+        // Check if there's a selection within the input
+        if (document.activeElement != inputElement) {
+          cy.$(":selected").remove();
+        }
       }
     }
   });
@@ -488,6 +488,7 @@ $(function () {
     if (!node) return;
     var id = node.id();
     state = states[index];
+    highlightSourceAndSink();
     if (!allowModify() && state === SELECT_PATH) {
       if (node.style("border-color") === "black") {
         selectedNodes.add(id);
