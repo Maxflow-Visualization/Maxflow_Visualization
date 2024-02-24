@@ -39,10 +39,10 @@ $(function () {
   const CHOOSE_FLOW = "choose-flow";
   const UPDATE_RESIDUAL_GRAPH = "update-residual-graph";
 
-  const GRAPH_CREATION_INSTRUCTIONS = '<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space to add a node.</li><li>Click an existing node and then press the keyboard\'s "Delete" to delete that node.</li><li>Hover on/click an existing node n1 to generate a dot on top. Click and drag the dot to another node n2 to generate an edge from n1 to n2.</li><li>Click an existing edge and then press keyboard\'s "Delete" to delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click "Clear" at the bottom to clear the entire graph. Click "Example" to bring up the example graph.</li><li>You can download the current graph for future convenient importing by clicking "Download Edgelist". To import a graph (supports edgelist and csv format), click "Choose File".</li><li>Don\'t forget to set the source and sink! Once you are ready, click "Start Practice".</li>';
-  const SELECT_PATH_INSTRUCTIONS = '<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn\'t matter).</li><li>To let the algorithm choose an augmenting path, click one of the "Choose Shortest Path" (Edmonds-Karp), "Choose Random Path" (Ford-Fulkerson), "Choose Widest Path" (Capacity Scaling).</li><li>Once an augmenting path is chosen, click "Confirm Path". If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Once you think you have found the max flow, click "Confirm Max Flow Found!" on the right to verify your max flow.</li><li>Once you think you have found the max flow, you can click on nodes to form a min-cut, click "Validate Selected Min Cut" to verify. Note that you can provide either a S-cut or T-cut, our tool will interpret your selected cut as both S-cut and T-cut and if anyone is valid, your selected cut is a valid min cut.</li><li>Alternatively, you can click "Find Min Cut" to automatically find a min S-cut.</li>';
-  const CHOOSE_FLOW_INSTRUCTIONS = '<li>In this step, you will choose a flow amount to add to the path you have chosen in the last step.</li><li>Click "Choose Flow"; a dialog box will appear.</li><li>Input a flow amount in the dialog box and click "OK".</li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow amount.</li><li>You can find the bottleneck edge by clicking "Find Bottleneck Edge".</li>';
-  const UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS = '<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press "Delete" to delete that edge.</li><li>Right click an edge to change its capacity.</li><li>You can automatically complete the update step by clicking "Auto Complete Residual Graph" button.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking "Undo All Updates to Residual Graph" button.</li><li>When you are done, click "Confirm Residual Graph".</li>';
+  const GRAPH_CREATION_INSTRUCTIONS = "<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space to add a node.</li><li>Click an existing node and then press the keyboard's <code>Delete</code> to delete that node.</li><li>Hover on/click an existing node n1 to generate a dot on top. Click and drag the dot to another node n2 to generate an edge from n1 to n2.</li><li>Click an existing edge and then press the keyboard's <code>Delete</code> to delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click <code>Clear</code> at the bottom to clear the entire graph. Click <code>Example</code> to bring up the example graph.</li><li>You can download the current graph for future convenient importing by clicking <code>Download Edgelist</code>. To import a graph (supports edgelist and csv format), click <code>Choose File</code>.</li><li>Don't forget to set the source and sink! Once you are ready, click <code>Start Practice</code>.</li>";
+  const SELECT_PATH_INSTRUCTIONS = "<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn't matter).</li><li>To let the algorithm choose an augmenting path, click one of the <code>Choose Shortest Path</code> (Edmonds-Karp), <code>Choose Random Path</code> (Ford-Fulkerson), <code>Choose Widest Path</code> (Capacity Scaling).</li><li>Once an augmenting path is chosen, click <code>Confirm Path</code>. If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Once you think you have found the max flow, click <code>Confirm Max Flow Found!</code> on the right to verify your max flow.</li><li>Once you think you have found the max flow, you can click on nodes to form a min-cut, click <code>Validate Selected Min Cut</code> to verify. Note that you can provide either a S-cut or T-cut, our tool will interpret your selected cut as both S-cut and T-cut and if anyone is valid, your selected cut is a valid min cut.</li><li>Alternatively, you can click <code>Find Min Cut</code> to automatically find a min S-cut.</li>";
+  const CHOOSE_FLOW_INSTRUCTIONS = "<li>In this step, you will choose a flow amount to add to the path you have chosen in the last step.</li><li>Click <code>Choose Flow</code>; a dialog box will appear.</li><li>Input a flow amount in the dialog box and click <code>OK</code>.</li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow amount.</li><li>You can find the bottleneck edge by clicking <code>Find Bottleneck Edge</code>.</li>";
+  const UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS = "<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press <code>Delete</code> to delete that edge.</li><li>Right click an edge to change its capacity.</li><li>You can automatically complete the residual graph by clicking <code>Auto Complete</code>.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking <code>Undo All Updates</code>.</li><li>When you are done, click <code>Confirm Residual Graph</code>.</li>";
   
   // Note: states don't include graph creation since that state is only run once
   var states = [SELECT_PATH, CHOOSE_FLOW, UPDATE_RESIDUAL_GRAPH];
@@ -662,7 +662,7 @@ $(function () {
       cancelHighlightedNodes();
       selectedNodes.clear();
       alert(
-        "The group of nodes you provided is not a valid min cut for the given flow network. Here are the problems found if it is\n\n" + "S-cut: " + sCutErrorMessage + "\nT-cut: " + tCutErrorMessage
+        "The group of nodes you provided is not a valid min cut for the given flow network for the following reasons.\n\nLet N be the set of nodes you selected.\n\nIf you wanted N to be the source side of a cut, then the problem is:\n" + sCutErrorMessage + "\n\nIf you wanted N to be the sink side of a cut, then the problem is:\n" + tCutErrorMessage
       );
     }
   });
@@ -680,7 +680,7 @@ $(function () {
 
     if (path.length > 0) {
       alert(
-        "There is still a possible augmenting path from source to sink Please keep moving on. "
+        "There is still a possible augmenting path from the source to the sink. Please keep moving on. "
       );
       return;
     } else {
@@ -799,7 +799,7 @@ $(function () {
 
     if (path.length > 0) {
       alert(
-        "There is still a possible path from source to sink. Please keep moving on. "
+        "There is still a possible path from the source to the sink. Please keep moving on. "
       );
       return;
     } else {

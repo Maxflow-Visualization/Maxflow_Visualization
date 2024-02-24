@@ -80,7 +80,7 @@ class FlowNetwork {
   }
 
   // a path topology is valid if and only if:
-  // 1. it starts from source and ends in sink
+  // 1. it starts from the source and ends in the sink
   // 2. it does not contain any extra edges (e.g. cycle, random branch, ...)
   // to validate this, first construct a new graph from the path given
   // then use BFS (so that cycle is false later) to find the path from source to sink, if no such path exists, return false
@@ -128,7 +128,7 @@ class FlowNetwork {
     if (res.length === 0) {
       return ["Invalid topology: the selected path does not reach the sink", []];
     } else if (res.length - 1 !== path.length) {
-      return ["Invalid topology: the selected path contains extra edges than what is needed to reach sink from source (note that technically an augmenting path with cycles is okay, but the tool doesn't allow cycles)", []];
+      return ["Invalid topology: the selected path contains extra edges than what is needed to reach the sink from the source (note that technically an augmenting path with cycles is okay, but the tool doesn't allow cycles)", []];
     } else {
       return ["", res];
     }
@@ -388,36 +388,26 @@ class FlowNetwork {
         }
       }
     }
-    console.log(minCut);
     return visited;
   }
 
   // Since this.graoph is currently a residual graph, no need to check for "min" since if there are other augmenting paths, our tool will not proceed to this step.
   // Rather, we only check if it is not possible to reach t from s (student supplies sNodes) or reach s from t (student supplies tNodes)
-  validateMinCut(sNodes) {
-    return [this.doValidateMinCut(sNodes, false), this.doValidateMinCut(sNodes, true)]
-    // return this.doValidateMinCut(sNodes, false) || this.doValidateMinCut(sNodes, true);
+  validateMinCut(nodes) {
+    return [this.doValidateMinCut(nodes, true), this.doValidateMinCut(nodes, false)];
   }
 
-  // For some reason Javascript doesn't find the overloading, so have to rename the function...
-  doValidateMinCut(sNodes, isReversed) {
-    let graph = isReversed ? this.reverseGraph(this.graph) : this.graph;
-    let tNodes = new Set(Array.from(graph.keys()).filter(node => !sNodes.has(node)));
-
-    if (!isReversed && (!sNodes.has(this.source) || !tNodes.has(this.sink))) {
-      return "Your selected cut does not contain the source or contains the sink.";
-    } else if (isReversed && (!sNodes.has(this.sink) || !tNodes.has(this.source))) {
-      return "Your selected cut does not contain the sink or contains the source.";
+  doValidateMinCut(nodes, givenSNodes) {
+    let sNodes = givenSNodes ? nodes : new Set(Array.from(this.graph.keys()).filter(node => !nodes.has(node)));
+    let tNodes = givenSNodes ? new Set(Array.from(this.graph.keys()).filter(node => !nodes.has(node))) : nodes;
+    if (!sNodes.has(this.source) || !tNodes.has(this.sink)) {
+      return givenSNodes ? "N does not contain the source or contains the sink." : "N does not contain the sink or contains the source.";
     }
-    for (const node of graph.keys()) {
-      for (const neighbor of graph.get(node).keys()) {
-        if (sNodes.has(node) && tNodes.has(neighbor) && graph.get(node).get(neighbor).capacity > 0) {
+    for (const node of this.graph.keys()) {
+      for (const neighbor of this.graph.get(node).keys()) {
+        if (sNodes.has(node) && tNodes.has(neighbor) && this.graph.get(node).get(neighbor).capacity > 0) {
           let reachEdge = node + "->" + neighbor;
-          if (!isReversed) {
-            return "We can still reach T from S via " + reachEdge + " so that it is not a \"cut\".";
-          } else {
-            return "We can still reach S from T via " + reachEdge + " so that it is not a \"cut\".";
-          }
+            return "We can still reach the sink side from the source side via " + reachEdge + " so that it is not a \"cut\".";
         }
       }
     }
