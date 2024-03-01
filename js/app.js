@@ -771,6 +771,25 @@ $(function () {
         }
       }
     }
+    for (const edge of originalFlowNetwork) {
+      var backward = cy
+        .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
+        .css("label");
+      if (backward === undefined || backward === null || backward === "")
+        backward = "0";
+
+      addEdge(
+        cy,
+        edge.source + "/" + edge.target,
+        {
+          "line-color": "LightSkyBlue",
+          "target-arrow-color": "LightSkyBlue",
+          label: backward + "/" + edge.capacity,
+        },
+        edge.source,
+        edge.target
+      );
+    }
     highlightSourceAndSink();
   });
 
@@ -790,6 +809,25 @@ $(function () {
           );
         }
       }
+    }
+    for (const edge of originalFlowNetwork) {
+      var backward = cy
+        .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
+        .css("label");
+      if (backward === undefined || backward === null || backward === "")
+        backward = "0";
+
+      addEdge(
+        cy,
+        edge.source + "/" + edge.target,
+        {
+          "line-color": "LightSkyBlue",
+          "target-arrow-color": "LightSkyBlue",
+          label: backward + "/" + edge.capacity,
+        },
+        edge.source,
+        edge.target
+      );
     }
     highlightSourceAndSink();
   });
