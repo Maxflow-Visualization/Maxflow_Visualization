@@ -31,19 +31,21 @@ function addEdge(cy, id, style, source, target) {
   });
 }
 
-
 $(function () {
-
   const GRAPH_CREATION = "graph-creation";
   const SELECT_PATH = "select-path";
   const CHOOSE_FLOW = "choose-flow";
   const UPDATE_RESIDUAL_GRAPH = "update-residual-graph";
 
-  const GRAPH_CREATION_INSTRUCTIONS = "<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space to add a node.</li><li>Click an existing node and then press the keyboard's <code>Delete</code> to delete that node.</li><li>Hover on/click an existing node n1 to generate a dot on top. Click and drag the dot to another node n2 to generate an edge from n1 to n2.</li><li>Click an existing edge and then press the keyboard's <code>Delete</code> to delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click <code>Clear</code> at the bottom to clear the entire graph. Click <code>Example</code> to bring up the example graph.</li><li>You can download the current graph for future convenient importing by clicking <code>Download Edgelist</code>. To import a graph (supports edgelist and csv format), click <code>Choose File</code>.</li><li>Don't forget to set the source and sink! Once you are ready, click <code>Start Practice</code>.</li>";
-  const SELECT_PATH_INSTRUCTIONS = "<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn't matter).</li><li>To let the algorithm choose an augmenting path, click one of the <code>Choose Shortest Path</code> (Edmonds-Karp), <code>Choose Random Path</code> (Ford-Fulkerson), <code>Choose Widest Path</code> (Capacity Scaling).</li><li>Once an augmenting path is chosen, click <code>Confirm Path</code>. If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Once you think you have found the max flow, click <code>Confirm Max Flow Found!</code> on the right to verify your max flow.</li><li>Once you think you have found the max flow, you can click on nodes to form a min-cut, click <code>Validate Selected Min Cut</code> to verify. Note that you can provide either a S-cut or T-cut, our tool will interpret your selected cut as both S-cut and T-cut and if anyone is valid, your selected cut is a valid min cut.</li><li>Alternatively, you can click <code>Find Min Cut</code> to automatically find a min S-cut.</li>";
-  const CHOOSE_FLOW_INSTRUCTIONS = "<li>In this step, you will choose a flow amount to add to the path you have chosen in the last step.</li><li>Click <code>Choose Flow</code>; a dialog box will appear.</li><li>Input a flow amount in the dialog box and click <code>OK</code>.</li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow amount.</li><li>You can find the bottleneck edge by clicking <code>Find Bottleneck Edge</code>.</li>";
-  const UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS = "<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press <code>Delete</code> to delete that edge.</li><li>Right click an edge to change its capacity.</li><li>You can automatically complete the residual graph by clicking <code>Auto Complete</code>.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking <code>Undo All Updates</code>.</li><li>When you are done, click <code>Confirm Residual Graph</code>.</li>";
-  
+  const GRAPH_CREATION_INSTRUCTIONS =
+    "<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space to add a node.</li><li>Click an existing node and then press the keyboard's <code>Delete</code> to delete that node.</li><li>Hover on/click an existing node n1 to generate a dot on top. Click and drag the dot to another node n2 to generate an edge from n1 to n2.</li><li>Click an existing edge and then press the keyboard's <code>Delete</code> to delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click <code>Clear</code> at the bottom to clear the entire graph. Click <code>Example</code> to bring up the example graph.</li><li>You can download the current graph for future convenient importing by clicking <code>Download Edgelist</code>. To import a graph (supports edgelist and csv format), click <code>Choose File</code>.</li><li>Don't forget to set the source and sink! Once you are ready, click <code>Start Practice</code>.</li>";
+  const SELECT_PATH_INSTRUCTIONS =
+    "<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn't matter).</li><li>To let the algorithm choose an augmenting path, click one of the <code>Choose Shortest Path</code> (Edmonds-Karp), <code>Choose Random Path</code> (Ford-Fulkerson), <code>Choose Widest Path</code> (Capacity Scaling).</li><li>Once an augmenting path is chosen, click <code>Confirm Path</code>. If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Once you think you have found the max flow, click <code>Confirm Max Flow Found!</code> on the right to verify your max flow.</li><li>Once you think you have found the max flow, you can click on nodes to form a min-cut, click <code>Validate Selected Min Cut</code> to verify. Note that you can provide either a S-cut or T-cut, our tool will interpret your selected cut as both S-cut and T-cut and if anyone is valid, your selected cut is a valid min cut.</li><li>Alternatively, you can click <code>Find Min Cut</code> to automatically find a min S-cut.</li>";
+  const CHOOSE_FLOW_INSTRUCTIONS =
+    "<li>In this step, you will choose a flow amount to add to the path you have chosen in the last step.</li><li>Click <code>Choose Flow</code>; a dialog box will appear.</li><li>Input a flow amount in the dialog box and click <code>OK</code>.</li><li>If the flow is valid (does not exceed the bottleneck capacity), you will proceed to the next step. Otherwise you will be prompted to input another flow amount.</li><li>You can find the bottleneck edge by clicking <code>Find Bottleneck Edge</code>.</li>";
+  const UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS =
+    "<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press <code>Delete</code> to delete that edge.</li><li>Right click an edge to change its capacity.</li><li>You can automatically complete the residual graph by clicking <code>Auto Complete</code>.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking <code>Undo All Updates</code>.</li><li>When you are done, click <code>Confirm Residual Graph</code>.</li>";
+
   // Note: states don't include graph creation since that state is only run once
   var states = [SELECT_PATH, CHOOSE_FLOW, UPDATE_RESIDUAL_GRAPH];
   var index = 0;
@@ -121,13 +123,13 @@ $(function () {
     cy.style()
       .selector("#" + source)
       .style({
-        "background-color": "#87CEEB"
+        "background-color": "#87CEEB",
       })
       .update();
     cy.style()
       .selector("#" + sink)
       .style({
-        "background-color": "#FFCCCB"
+        "background-color": "#FFCCCB",
       })
       .update();
   }
@@ -156,7 +158,7 @@ $(function () {
       hideElementAndItsChildren(".ending-actions");
     } else if (state === SELECT_PATH) {
       showElementAndItsChildren(".ending-actions");
-    // In UPDATE_RESIDUAL_GRAPH, bring back the right click edge change capacity
+      // In UPDATE_RESIDUAL_GRAPH, bring back the right click edge change capacity
     } else {
       showElementAndItsChildren(".change-capacity");
     }
@@ -212,9 +214,7 @@ $(function () {
       flowNetwork.findBottleneckCapacity(selectedPath);
 
     // tell user the range he can choose from
-    var prompt = window.prompt(
-      "Enter a flow you want to apply to the path. "
-    );
+    var prompt = window.prompt("Enter a flow you want to apply to the path. ");
 
     // User pressed cancel
     if (prompt === null) {
@@ -252,7 +252,7 @@ $(function () {
     oldFlowNetwork = flowNetwork;
     $(".proceed-step").text("Confirm Residual Graph");
     cy.edgehandles("enable");
-    
+
     // Set default label of edge to applied flow
     var cytoscapeStyle = cytoscapeSettings["style"];
     cytoscapeStyle[1]["css"]["label"] = flow.toString();
@@ -273,7 +273,10 @@ $(function () {
     // check if the current graph is the same network after applying the flow
     // if not, let user redo it.
     var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
-    errorMessage = isSameGraphSkipFlowComparison(flowNetwork.graph, expectedGraph);
+    errorMessage = isSameGraphSkipFlowComparison(
+      flowNetwork.graph,
+      expectedGraph
+    );
     if (errorMessage === "") {
       cancelHighlightedElements();
 
@@ -298,7 +301,7 @@ $(function () {
   var $cy = $("#cy");
   $cy.dblclick(function (e) {
     // Students can only add nodes during graph creation
-    if ((allowModify()) && !e.target.matches(".cy-panzoom-reset")) {
+    if (allowModify() && !e.target.matches(".cy-panzoom-reset")) {
       var id = getId();
       // Adjust position with zoom and pan
       var zoom = cy.zoom();
@@ -314,7 +317,10 @@ $(function () {
   // delete a node with backspace or delete button
   state = states[index];
   $("html").keyup(function (e) {
-    if (allowModify() || state === UPDATE_RESIDUAL_GRAPH && cy.$(":selected").isEdge()) {
+    if (
+      allowModify() ||
+      (state === UPDATE_RESIDUAL_GRAPH && cy.$(":selected").isEdge())
+    ) {
       // Delete only if user is not updating capacity, I know this !"is not hidden" is really weird. However, jQuery (F*** it for wasting 1 hour of my time!)'s "is hidden"
       // only checks for css attributes display and visibility whereas jQuery's hide does not change those attributes but rather caches them...
       if (e.key == "Delete" && !$("#mouse-update").is(":not(':hidden')")) {
@@ -445,30 +451,40 @@ $(function () {
       $("#instructions-state").html("<b>Graph Creation:</b>");
       $("#instructions").html(GRAPH_CREATION_INSTRUCTIONS);
 
-      var oldFlowNetwork = new FlowNetwork(source, sink);
-
-      var edges = cy.edges();
+      // restore original graph
       cy.edges().remove();
-      edges.forEach(function (edge) {
-        var label = edge.css("label");
-        if (label.includes("/")) return;
-        oldFlowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
-      });
-
-
-      for (const [_, neighborsMap] of oldFlowNetwork.graph) {
-        for (const [_, edge] of neighborsMap) {
-          if (edge.capacity !== 0) {
-            addEdge(
-              cy,
-              edge.source + "-" + edge.target,
-              { label: edge.capacity },
-              edge.source,
-              edge.target
-            );
-          }
-        }
+      for (const edge of originalFlowNetwork) {
+        addEdge(
+          cy,
+          edge.source + "-" + edge.target,
+          { label: edge.capacity },
+          edge.source,
+          edge.target
+        );
       }
+
+      // var oldFlowNetwork = new FlowNetwork(source, sink);
+
+      // var edges = cy.edges();
+      // edges.forEach(function (edge) {
+      //   var label = edge.css("label");
+      //   if (label.includes("/")) return;
+      //   oldFlowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
+      // });
+
+      // for (const [_, neighborsMap] of originalFlowNetwork.graph) {
+      //   for (const [_, edge] of neighborsMap) {
+      //     if (edge.capacity !== 0) {
+      //       addEdge(
+      //         cy,
+      //         edge.source + "-" + edge.target,
+      //         { label: edge.capacity },
+      //         edge.source,
+      //         edge.target
+      //       );
+      //     }
+      //   }
+      // }
     }
   });
 
@@ -586,7 +602,11 @@ $(function () {
         addEdge(
           cy,
           edge.source + "/" + edge.target,
-          { "line-color": "LightSkyBlue", "target-arrow-color": "LightSkyBlue", label: backward + "/" + edge.capacity },
+          {
+            "line-color": "LightSkyBlue",
+            "target-arrow-color": "LightSkyBlue",
+            label: backward + "/" + edge.capacity,
+          },
           edge.source,
           edge.target
         );
@@ -594,7 +614,7 @@ $(function () {
     }
   });
 
-  cy.on("cyedgehandles.complete", function(e) {
+  cy.on("cyedgehandles.complete", function (e) {
     e.preventDefault();
 
     var edges = cy.edges();
@@ -627,13 +647,16 @@ $(function () {
         addEdge(
           cy,
           edge.source + "/" + edge.target,
-          { "line-color": "LightSkyBlue", "target-arrow-color": "LightSkyBlue", label: backward + "/" + edge.capacity },
+          {
+            "line-color": "LightSkyBlue",
+            "target-arrow-color": "LightSkyBlue",
+            label: backward + "/" + edge.capacity,
+          },
           edge.source,
           edge.target
         );
       }
     }
-
   });
 
   $("#validate-min-cut").on("click", function (e) {
@@ -653,7 +676,8 @@ $(function () {
       return;
     }
 
-    let [sCutErrorMessage, tCutErrorMessage] = flowNetwork.validateMinCut(selectedNodes);
+    let [sCutErrorMessage, tCutErrorMessage] =
+      flowNetwork.validateMinCut(selectedNodes);
     if (sCutErrorMessage === "" || tCutErrorMessage === "") {
       alert(
         "Congratulation! You have sccessfully find a min cut for the given network graph!"
@@ -662,7 +686,10 @@ $(function () {
       cancelHighlightedNodes();
       selectedNodes.clear();
       alert(
-        "The group of nodes you provided is not a valid min cut for the given flow network for the following reasons.\n\nLet N be the set of nodes you selected.\n\nIf you wanted N to be the source side of a cut, then the problem is:\n" + sCutErrorMessage + "\n\nIf you wanted N to be the sink side of a cut, then the problem is:\n" + tCutErrorMessage
+        "The group of nodes you provided is not a valid min cut for the given flow network for the following reasons.\n\nLet N be the set of nodes you selected.\n\nIf you wanted N to be the source side of a cut, then the problem is:\n" +
+          sCutErrorMessage +
+          "\n\nIf you wanted N to be the sink side of a cut, then the problem is:\n" +
+          tCutErrorMessage
       );
     }
   });
@@ -783,8 +810,6 @@ $(function () {
     } else {
       selectedEdge.css("label", label);
     }
-
-    
   });
 
   $("#confirm-max-flow").on("click", function (e) {
@@ -966,113 +991,113 @@ $(function () {
   document.getElementById("fileInput").addEventListener("change", readFile);
 
   document
-  .getElementById("downloadButton")
-  .addEventListener("click", function () {
-    // Assuming the graph is globally accessible or you can pass it as an argument
-    event.preventDefault();
-    // var tooltip = document.getElementById('edgeTooltip');
-    // if (!event.target.matches('.edge')) {
-    //     tooltip.style.display = 'none';
-    // }
-    var flowNetwork = constructFlowNetwork();
-    if (flowNetwork === null) {
-      return;
-    }
+    .getElementById("downloadButton")
+    .addEventListener("click", function () {
+      // Assuming the graph is globally accessible or you can pass it as an argument
+      event.preventDefault();
+      // var tooltip = document.getElementById('edgeTooltip');
+      // if (!event.target.matches('.edge')) {
+      //     tooltip.style.display = 'none';
+      // }
+      var flowNetwork = constructFlowNetwork();
+      if (flowNetwork === null) {
+        return;
+      }
 
-    graph = flowNetwork.graph;
-    let positions = "";
+      graph = flowNetwork.graph;
+      let positions = "";
 
-    // Iterate over all nodes in the Cytoscape instance and gather positions
-    cy.nodes().forEach((node) => {
-      const id = node.id();
-      const pos = node.position();
+      // Iterate over all nodes in the Cytoscape instance and gather positions
+      cy.nodes().forEach((node) => {
+        const id = node.id();
+        const pos = node.position();
 
-      positions += `${id}(${parseInt(pos.x)},${parseInt(pos.y)}) `;
+        positions += `${id}(${parseInt(pos.x)},${parseInt(pos.y)}) `;
+      });
+
+      const edgelistContent = graphToEdgelist(graph);
+      console.log(edgelistContent);
+      download("edgelist.txt", positions + "\n" + edgelistContent);
     });
 
-    const edgelistContent = graphToEdgelist(graph);
-    console.log(edgelistContent);
-    download("edgelist.txt", positions + "\n" + edgelistContent);
-  });
-
   document
-  .getElementById("layoutChoices")
-  .addEventListener("change", function (event) {
-    const selectedValue = event.target.value;
-    let boundingBox = cy.elements().boundingBox({});
-    let centerX = (boundingBox.x1 + boundingBox.x2) / 2;
-    let centerY = (boundingBox.y1 + boundingBox.y2) / 2;
+    .getElementById("layoutChoices")
+    .addEventListener("change", function (event) {
+      const selectedValue = event.target.value;
+      let boundingBox = cy.elements().boundingBox({});
+      let centerX = (boundingBox.x1 + boundingBox.x2) / 2;
+      let centerY = (boundingBox.y1 + boundingBox.y2) / 2;
 
-    switch (selectedValue) {
-      case "layered":
-        // Execute code for layered layout
-        console.log("Executed code for Choice 1");
-        cy.layout({
-          name: "breadthfirst",
-          directed: true, // because max-flow problems are typically directed
-          spacingFactor: 1.25,
-          avoidOverlap: true,
-          ScreenOrientation: "horizontal",
-          // boundingBox: boundingBox,
-        });
-        makeLayoutHorizontal(cy);
-        cy.center();
-        break;
-      case "spring":
-        // Execute code for Spring Model layout
-        console.log("Executed code for Choice 2");
-        let scaleFactor = 1.2;
-        let expandedBoundingBox = {
-          x1: centerX + (boundingBox.x1 - centerX) * scaleFactor,
-          y1: centerY + (boundingBox.y1 - centerY) * scaleFactor,
-          x2: centerX + (boundingBox.x2 - centerX) * scaleFactor,
-          y2: centerY + (boundingBox.y2 - centerY) * scaleFactor,
-        };
-        let layout = cy.layout({
-          name: "cose",
-          boundingBox: expandedBoundingBox,
-        });
-        break;
-      default:
-        console.log("No choice");
-    }
-  });
+      switch (selectedValue) {
+        case "layered":
+          // Execute code for layered layout
+          console.log("Executed code for Choice 1");
+          cy.layout({
+            name: "breadthfirst",
+            directed: true, // because max-flow problems are typically directed
+            spacingFactor: 1.25,
+            avoidOverlap: true,
+            ScreenOrientation: "horizontal",
+            // boundingBox: boundingBox,
+          });
+          makeLayoutHorizontal(cy);
+          cy.center();
+          break;
+        case "spring":
+          // Execute code for Spring Model layout
+          console.log("Executed code for Choice 2");
+          let scaleFactor = 1.2;
+          let expandedBoundingBox = {
+            x1: centerX + (boundingBox.x1 - centerX) * scaleFactor,
+            y1: centerY + (boundingBox.y1 - centerY) * scaleFactor,
+            x2: centerX + (boundingBox.x2 - centerX) * scaleFactor,
+            y2: centerY + (boundingBox.y2 - centerY) * scaleFactor,
+          };
+          let layout = cy.layout({
+            name: "cose",
+            boundingBox: expandedBoundingBox,
+          });
+          break;
+        default:
+          console.log("No choice");
+      }
+    });
 
   rightClickedEdge = null;
 
   // Right click on an edge brings up a div for update capacity, only available in GRAPH_CREATION and UPDATE_RESIDUAL_GRAPH
-  cy.on('cxttap', 'edge', function(event) {
-    if(state !== UPDATE_RESIDUAL_GRAPH && !allowModify()) return;
+  cy.on("cxttap", "edge", function (event) {
+    if (state !== UPDATE_RESIDUAL_GRAPH && !allowModify()) return;
     var mouseX = event.originalEvent.clientX;
     var mouseY = event.originalEvent.clientY;
     rightClickedEdge = event.cyTarget;
     $("#mouse-label").val(rightClickedEdge.css("label"));
 
     // Set the text and position of the floating div
-    var floatingText = document.getElementById('floatingText');
+    var floatingText = document.getElementById("floatingText");
     // floatingText.textContent = capacity; // Change this to whatever text you want
-    floatingText.style.display = 'block';
-    floatingText.style.left = mouseX + 'px';
-    floatingText.style.top = mouseY + 'px';
+    floatingText.style.display = "block";
+    floatingText.style.left = mouseX + "px";
+    floatingText.style.top = mouseY + "px";
   });
 
   // if not clicking the div near the mouse, make the div disappear
-  document.addEventListener('click', function(event) {
-    var floatingText = document.getElementById('floatingText');
+  document.addEventListener("click", function (event) {
+    var floatingText = document.getElementById("floatingText");
     function clickInsideElement(event, element) {
       var target = event.target;
       do {
-          if (target === element) {
-              return true;
-          }
-          target = target.parentNode;
+        if (target === element) {
+          return true;
+        }
+        target = target.parentNode;
       } while (target);
 
       return false;
     }
     var isClickInsideFloatingText = clickInsideElement(event, floatingText);
     if (!isClickInsideFloatingText) {
-      floatingText.style.display = 'none';
+      floatingText.style.display = "none";
     }
   });
 
@@ -1125,7 +1150,11 @@ $(function () {
         addEdge(
           cy,
           edge.source + "/" + edge.target,
-          { "line-color": "LightSkyBlue", "target-arrow-color": "LightSkyBlue", label: backward + "/" + edge.capacity },
+          {
+            "line-color": "LightSkyBlue",
+            "target-arrow-color": "LightSkyBlue",
+            label: backward + "/" + edge.capacity,
+          },
           edge.source,
           edge.target
         );
