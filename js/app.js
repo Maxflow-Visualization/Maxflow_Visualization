@@ -754,6 +754,16 @@ $(function () {
 
   $("#auto-complete").on("click", function (event) {
     event.preventDefault();
+
+    var shown = false;
+
+    // check if applied capacity is shown
+    cy.edges().forEach(function (edge) {
+      if (edge.css("label").includes("/")) {
+        shown = true;
+      }
+    });
+
     // Call check graph function, update the graph
     var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
 
@@ -771,30 +781,43 @@ $(function () {
         }
       }
     }
-    for (const edge of originalFlowNetwork) {
-      var backward = cy
-        .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
-        .css("label");
-      if (backward === undefined || backward === null || backward === "")
-        backward = "0";
 
-      addEdge(
-        cy,
-        edge.source + "/" + edge.target,
-        {
-          "line-color": "LightSkyBlue",
-          "target-arrow-color": "LightSkyBlue",
-          label: backward + "/" + edge.capacity,
-        },
-        edge.source,
-        edge.target
-      );
+    if (shown) {
+      for (const edge of originalFlowNetwork) {
+        var backward = cy
+          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
+          .css("label");
+        if (backward === undefined || backward === null || backward === "")
+          backward = "0";
+
+        addEdge(
+          cy,
+          edge.source + "/" + edge.target,
+          {
+            "line-color": "LightSkyBlue",
+            "target-arrow-color": "LightSkyBlue",
+            label: backward + "/" + edge.capacity,
+          },
+          edge.source,
+          edge.target
+        );
+      }
     }
+
     highlightSourceAndSink();
   });
 
   $("#undo-updates").on("click", function (event) {
     event.preventDefault();
+
+    var shown = false;
+
+    // check if applied capacity is shown
+    cy.edges().forEach(function (edge) {
+      if (edge.css("label").includes("/")) {
+        shown = true;
+      }
+    });
 
     cy.edges().remove();
     for (const [_, neighborsMap] of oldFlowNetwork.graph) {
@@ -810,25 +833,29 @@ $(function () {
         }
       }
     }
-    for (const edge of originalFlowNetwork) {
-      var backward = cy
-        .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
-        .css("label");
-      if (backward === undefined || backward === null || backward === "")
-        backward = "0";
 
-      addEdge(
-        cy,
-        edge.source + "/" + edge.target,
-        {
-          "line-color": "LightSkyBlue",
-          "target-arrow-color": "LightSkyBlue",
-          label: backward + "/" + edge.capacity,
-        },
-        edge.source,
-        edge.target
-      );
+    if (shown) {
+      for (const edge of originalFlowNetwork) {
+        var backward = cy
+          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
+          .css("label");
+        if (backward === undefined || backward === null || backward === "")
+          backward = "0";
+
+        addEdge(
+          cy,
+          edge.source + "/" + edge.target,
+          {
+            "line-color": "LightSkyBlue",
+            "target-arrow-color": "LightSkyBlue",
+            label: backward + "/" + edge.capacity,
+          },
+          edge.source,
+          edge.target
+        );
+      }
     }
+
     highlightSourceAndSink();
   });
 
