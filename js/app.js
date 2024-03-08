@@ -38,7 +38,7 @@ $(function () {
   const UPDATE_RESIDUAL_GRAPH = "update-residual-graph";
 
   const GRAPH_CREATION_INSTRUCTIONS =
-    "<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space to add a node.</li><li>Click an existing node and then press the keyboard's <code>Delete</code> to delete that node.</li><li>Hover on/click an existing node n1 to generate a dot on top. Click and drag the dot to another node n2 to generate an edge from n1 to n2.</li><li>Click an existing edge and then press the keyboard's <code>Delete</code> to delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click <code>Clear</code> at the bottom to clear the entire graph. Click <code>Example</code> to bring up the example graph.</li><li>You can download the current graph for future convenient importing by clicking <code>Download Edgelist</code>. To import a graph (supports edgelist and csv format), click <code>Choose File</code>.</li><li>Don't forget to set the source and sink! Once you are ready, click <code>Start Practice</code>.</li>";
+    "<li>In this step, you will construct a graph to run maxflow on.</li><li>Double click on the white space to add a node.</li><li>Click an existing node and then press the keyboard's <code>Delete</code> to delete that node.</li><li>Right click a node to set it as the source/sink.</li><li>Hover on/click an existing node n1 to generate a dot on top. Click and drag the dot to another node n2 to generate an edge from n1 to n2.</li><li>Click an existing edge and then press the keyboard's <code>Delete</code> to delete that edge.</li><li>Right click an edge to change its capacity.</li><li>Click <code>Clear</code> at the bottom to clear the entire graph. Click <code>Example</code> to bring up the example graph.</li><li>You can download the current graph for future convenient importing by clicking <code>Download Edgelist</code>. To import a graph (supports edgelist and csv format), click <code>Choose File</code>.</li><li>Don't forget to set the source and sink! Once you are ready, click <code>Start Practice</code>!</li>";
   const SELECT_PATH_INSTRUCTIONS =
     "<li>In this step, you will choose yourself or let the algorithm choose an augmenting path.</li><li>To choose an augmenting path yourself, click all the edges on your desired path (order doesn't matter).</li><li>To let the algorithm choose an augmenting path, click one of the <code>Choose Shortest Path</code> (Edmonds-Karp), <code>Choose Random Path</code> (Ford-Fulkerson), <code>Choose Widest Path</code> (Capacity Scaling).</li><li>Once an augmenting path is chosen, click <code>Confirm Path</code>. If the chosen path is valid, you will proceed to the next step. Otherwise the system will tell why the path is not valid.</li><li>Once you think you have found the max flow, click <code>Confirm Max Flow Found!</code> on the right to verify your max flow.</li><li>Once you think you have found the max flow, you can click on nodes to form a min-cut, click <code>Validate Selected Min Cut</code> to verify. Note that you can provide either a S-cut or T-cut, our tool will interpret your selected cut as both S-cut and T-cut and if anyone is valid, your selected cut is a valid min cut.</li><li>Alternatively, you can click <code>Find Min Cut</code> to automatically find a min S-cut.</li>";
   const CHOOSE_FLOW_INSTRUCTIONS =
@@ -52,6 +52,9 @@ $(function () {
 
   var source;
   var sink;
+
+  var originalFlowNetwork = [];
+  var showOriginalCapacitiesAndCurrentFlow = false;
 
   cy.panzoom({
     // ... options ...
@@ -113,9 +116,16 @@ $(function () {
     edge.css("target-arrow-color", "lightgray");
   }
 
-  // Cancel all highlighed nodes
-  function cancelHighlightedNodes() {
-    cy.nodes().style("border-color", "black");
+  // Cancel all highlighed nodes except the ones with ids in exceptNodeIdsList
+  function cancelHighlightedNodes(exceptNodeIdsList = []) {
+    let filteredNodes = cy.collection();
+    cy.nodes().forEach( function(node) {
+      if (!exceptNodeIdsList.includes(node["_private"]["data"]["id"])) {
+        filteredNodes = filteredNodes.union(node);
+      }
+    });
+    filteredNodes.style("border-color", "black");
+    filteredNodes.style("background-color", "white");
   }
 
   // For some reason this function needs to be called in multiple places that don't need to call it
@@ -146,6 +156,37 @@ $(function () {
     });
 
     return flowNetwork;
+  }
+
+  function doShowOriginalCapacitiesAndCurrentFlow() {
+    for (const edge of originalFlowNetwork) {
+      var backward = cy
+        .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
+        .css("label");
+      if (backward === undefined || backward === null || backward === "")
+        backward = "0";
+
+      addEdge(
+        cy,
+        edge.source + "/" + edge.target,
+        {
+          "line-color": "LightSkyBlue",
+          "target-arrow-color": "LightSkyBlue",
+          label: backward + "/" + edge.capacity,
+        },
+        edge.source,
+        edge.target
+      );
+    }
+  }
+
+  function removeOriginalCapacitiesAndCurrentFlow() {
+    var edges = cy.edges();
+    edges.forEach(function (edge) {
+      if (edge.css("label").includes("/")) {
+        edge.remove();
+      }
+    });
   }
 
   function updateUIForNextState() {
@@ -193,7 +234,7 @@ $(function () {
 
     $("#state").text("State: Choose Flow");
 
-    cancelHighlightedNodes();
+    cancelHighlightedNodes([source, sink]);
     selectedNodes.clear();
 
     $(".proceed-step").text("Choose Flow");
@@ -309,8 +350,8 @@ $(function () {
       var posX = (e.pageX - $cy.offset().left - pan.x) / zoom;
       var posY = (e.pageY - $cy.offset().top - pan.y) / zoom;
       addNode(cy, id, id, posX, posY);
-      if (id > 1 && state !== UPDATE_RESIDUAL_GRAPH) $("#sink").val(id);
-      if (id == 1) $("#source").val(id);
+      if (id == 1) $("#source").text("Source=" + id);
+      if (id > 1) $("#sink").text("Sink=" + id);
     }
   });
 
@@ -339,11 +380,10 @@ $(function () {
     cy.nodes().remove();
     cy.edges().remove();
 
-    $("#sink").val("");
-    $("#source").val("");
+    $("#source").text("Source=");
+    $("#sink").text("Sink=");
 
     $("#status").text("");
-    $(".log").remove();
     $("#label").val("");
   });
 
@@ -358,16 +398,24 @@ $(function () {
       edge.css("label", l);
     });
     $("#status").text("");
-    $(".log").remove();
     $("#label").val("");
   });
 
-  var originalFlowNetwork = [];
   // Graph creation completed, disable graph modification and enter practice mode
   $("#start-practice").on("click", function (event) {
     event.preventDefault();
     // proceed to algorithm practice
     if (allowModify()) {
+      source = $("#source").text();
+      source = source.substring(source.indexOf("=") + 1);
+      sink = $("#sink").text();
+      sink = sink.substring(sink.indexOf("=") + 1);
+      if (source === sink) {
+        alert("The source and the sink can not be the same node!");
+        return;
+      }
+      highlightSourceAndSink();
+
       cy.edgehandles("disable");
 
       hideElementAndItsChildren(".buttons");
@@ -381,14 +429,6 @@ $(function () {
       $(".proceed-step").text("Confirm Path");
       showElementAndItsChildren(".proceed-step");
       showElementAndItsChildren("#applied-capacity");
-
-      source = $("#source").val();
-      $("#source-label").text("Source=" + source);
-      hideElementAndItsChildren("#source");
-      sink = $("#sink").val();
-      $("#sink-label").text("Sink=" + $("#sink").val());
-      highlightSourceAndSink();
-      hideElementAndItsChildren("#sink");
 
       hideElementAndItsChildren(".change-capacity");
 
@@ -405,6 +445,8 @@ $(function () {
       $("#instructions").html(SELECT_PATH_INSTRUCTIONS);
     } else {
       index = 0;
+      source = null;
+      sink = null;
       cancelHighlightedElements();
       cancelHighlightedNodes();
 
@@ -416,36 +458,14 @@ $(function () {
       hideElementAndItsChildren("#applied-capacity");
       hideElementAndItsChildren(".buttons");
 
-      $("#source-label").text("Source=");
-      showElementAndItsChildren("#source");
-      $("#sink-label").text("Sink=");
-      showElementAndItsChildren("#sink");
-
       showElementAndItsChildren("#" + GRAPH_CREATION);
-      showElementAndItsChildren("#update-capacity");
       showElementAndItsChildren("#clear");
       showElementAndItsChildren("#mouse-label");
       showElementAndItsChildren("#mouse-update");
       hideElementAndItsChildren("#fileInput");
 
-      var shown = false;
-
-      var edges = cy.edges();
-      console.log(edges);
-
-      // check if applied capacity is shown
-      edges.forEach(function (edge) {
-        if (edge.css("label").includes("/")) {
-          shown = true;
-        }
-      });
-
-      if (shown) {
-        edges.forEach(function (edge) {
-          if (edge.css("label").includes("/")) {
-            edge.remove();
-          }
-        });
+      if (showOriginalCapacitiesAndCurrentFlow) {
+        removeOriginalCapacitiesAndCurrentFlow();
       }
 
       $("#instructions-state").html("<b>Graph Creation:</b>");
@@ -573,89 +593,22 @@ $(function () {
   $("#applied-capacity").on("click", function (e) {
     e.preventDefault();
 
-    var edges = cy.edges();
+    showOriginalCapacitiesAndCurrentFlow = !showOriginalCapacitiesAndCurrentFlow;
 
-    var shown = false;
-
-    // check if applied capacity is shown
-    edges.forEach(function (edge) {
-      if (edge.css("label").includes("/")) {
-        shown = true;
-      }
-    });
-
-    if (shown) {
-      // remove applied capacity
-      edges.forEach(function (edge) {
-        if (edge.css("label").includes("/")) {
-          edge.remove();
-        }
-      });
+    if (showOriginalCapacitiesAndCurrentFlow) {
+      doShowOriginalCapacitiesAndCurrentFlow();
     } else {
-      for (const edge of originalFlowNetwork) {
-        var backward = cy
-          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
-          .css("label");
-        if (backward === undefined || backward === null || backward === "")
-          backward = "0";
-
-        addEdge(
-          cy,
-          edge.source + "/" + edge.target,
-          {
-            "line-color": "LightSkyBlue",
-            "target-arrow-color": "LightSkyBlue",
-            label: backward + "/" + edge.capacity,
-          },
-          edge.source,
-          edge.target
-        );
-      }
+      removeOriginalCapacitiesAndCurrentFlow();
     }
   });
 
   cy.on("cyedgehandles.complete", function (e) {
     e.preventDefault();
 
-    var edges = cy.edges();
-
-    var shown = false;
-
-    // check if applied capacity is shown
-    edges.forEach(function (edge) {
-      if (edge.css("label").includes("/")) {
-        shown = true;
-      }
-    });
-
-    if (shown) {
-      // first remove all old applied flows
-      edges.forEach(function (edge) {
-        if (edge.css("label").includes("/")) {
-          edge.remove();
-        }
-      });
-
-      // then add them into cy again with new ones
-      for (const edge of originalFlowNetwork) {
-        var backward = cy
-          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
-          .css("label");
-        if (backward === undefined || backward === null || backward === "")
-          backward = "0";
-
-        addEdge(
-          cy,
-          edge.source + "/" + edge.target,
-          {
-            "line-color": "LightSkyBlue",
-            "target-arrow-color": "LightSkyBlue",
-            label: backward + "/" + edge.capacity,
-          },
-          edge.source,
-          edge.target
-        );
-      }
+    if (showOriginalCapacitiesAndCurrentFlow) {
+      doShowOriginalCapacitiesAndCurrentFlow();
+    } else {
+      removeOriginalCapacitiesAndCurrentFlow();
     }
   });
 
@@ -668,8 +621,9 @@ $(function () {
     }
 
     var path = flowNetwork.findRandomAugmentingPath();
+    console.log(path);
 
-    if (path.length > 0) {
+    if (path.length > 1) {
       alert(
         "There is still a possible augmenting path from source to sink Please keep moving on. "
       );
@@ -683,7 +637,7 @@ $(function () {
         "Congratulation! You have sccessfully find a min cut for the given network graph!"
       );
     } else {
-      cancelHighlightedNodes();
+      cancelHighlightedNodes([source, sink]);
       selectedNodes.clear();
       alert(
         "The group of nodes you provided is not a valid min cut for the given flow network for the following reasons.\n\nLet N be the set of nodes you selected.\n\nIf you wanted N to be the source side of a cut, then the problem is:\n" +
@@ -705,7 +659,7 @@ $(function () {
 
     var path = flowNetwork.findRandomAugmentingPath();
 
-    if (path.length > 0) {
+    if (path.length > 1) {
       alert(
         "There is still a possible augmenting path from the source to the sink. Please keep moving on. "
       );
@@ -729,14 +683,7 @@ $(function () {
 
   $("#bottleneck").on("click", function (event) {
     event.preventDefault();
-
-    var $source = $("#source");
-    var source = $source.val();
-    var $sink = $("#sink");
-    var sink = $sink.val();
-
     var flowNetwork = new FlowNetwork(source, sink);
-    console.log(flowNetwork);
 
     const [bottleneck, bottleneckEdge, message] =
       flowNetwork.findBottleneckCapacity(selectedPath);
@@ -754,15 +701,6 @@ $(function () {
 
   $("#auto-complete").on("click", function (event) {
     event.preventDefault();
-
-    var shown = false;
-
-    // check if applied capacity is shown
-    cy.edges().forEach(function (edge) {
-      if (edge.css("label").includes("/")) {
-        shown = true;
-      }
-    });
 
     // Call check graph function, update the graph
     var expectedGraph = oldFlowNetwork.addFlow(selectedPath, flow, false);
@@ -782,26 +720,8 @@ $(function () {
       }
     }
 
-    if (shown) {
-      for (const edge of originalFlowNetwork) {
-        var backward = cy
-          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
-          .css("label");
-        if (backward === undefined || backward === null || backward === "")
-          backward = "0";
-
-        addEdge(
-          cy,
-          edge.source + "/" + edge.target,
-          {
-            "line-color": "LightSkyBlue",
-            "target-arrow-color": "LightSkyBlue",
-            label: backward + "/" + edge.capacity,
-          },
-          edge.source,
-          edge.target
-        );
-      }
+    if (showOriginalCapacitiesAndCurrentFlow) {
+      doShowOriginalCapacitiesAndCurrentFlow();
     }
 
     highlightSourceAndSink();
@@ -809,15 +729,6 @@ $(function () {
 
   $("#undo-updates").on("click", function (event) {
     event.preventDefault();
-
-    var shown = false;
-
-    // check if applied capacity is shown
-    cy.edges().forEach(function (edge) {
-      if (edge.css("label").includes("/")) {
-        shown = true;
-      }
-    });
 
     cy.edges().remove();
     for (const [_, neighborsMap] of oldFlowNetwork.graph) {
@@ -834,26 +745,8 @@ $(function () {
       }
     }
 
-    if (shown) {
-      for (const edge of originalFlowNetwork) {
-        var backward = cy
-          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
-          .css("label");
-        if (backward === undefined || backward === null || backward === "")
-          backward = "0";
-
-        addEdge(
-          cy,
-          edge.source + "/" + edge.target,
-          {
-            "line-color": "LightSkyBlue",
-            "target-arrow-color": "LightSkyBlue",
-            label: backward + "/" + edge.capacity,
-          },
-          edge.source,
-          edge.target
-        );
-      }
+    if (showOriginalCapacitiesAndCurrentFlow) {
+      doShowOriginalCapacitiesAndCurrentFlow();
     }
 
     highlightSourceAndSink();
@@ -887,7 +780,7 @@ $(function () {
 
     var path = flowNetwork.findRandomAugmentingPath();
 
-    if (path.length > 0) {
+    if (path.length > 1) {
       alert(
         "There is still a possible path from the source to the sink. Please keep moving on. "
       );
@@ -938,7 +831,7 @@ $(function () {
 
     var path = flowNetwork.findRandomAugmentingPath();
 
-    if (path.length === 0) {
+    if (path.length === 0 || path.length === 1) {
       alert("No more augmenting path.");
       return;
     }
@@ -949,7 +842,6 @@ $(function () {
     selectedPath.forEach(function (edge) {
       highlightEdge(edge.source, edge.target);
     });
-    console.log(selectedPath);
 
     return;
   });
@@ -966,7 +858,7 @@ $(function () {
 
     var path = flowNetwork.findShortestAugmentingPath();
 
-    if (path.length === 0) {
+    if (path.length === 0 || path.length === 1) {
       alert("No more augmenting path.");
       return;
     }
@@ -979,7 +871,6 @@ $(function () {
     selectedPath.forEach(function (edge) {
       highlightEdge(edge.source, edge.target);
     });
-    console.log(selectedPath);
 
     return;
   });
@@ -995,7 +886,7 @@ $(function () {
 
     var path = flowNetwork.findWidestAugmentingPath();
 
-    if (path.length === 0) {
+    if (path.length === 0 || path.length === 1) {
       alert("No more augmenting path.");
       return;
     }
@@ -1006,7 +897,6 @@ $(function () {
     selectedPath.forEach(function (edge) {
       highlightEdge(edge.source, edge.target);
     });
-    console.log(selectedPath);
 
     return;
   });
@@ -1016,8 +906,8 @@ $(function () {
   $add.on("click", function (event) {
     $("#clear").triggerHandler("click");
     event.preventDefault();
-    $("#source").val(1);
-    $("#sink").val(8);
+    $("#source").text("Source=1");
+    $("#sink").text("Sink=8");
     var nodes = [
       { id: 1, name: 1, x: 150, y: 240 },
       { id: 2, name: 2, x: 300, y: 150 },
@@ -1146,9 +1036,26 @@ $(function () {
     floatingText.style.top = mouseY + "px";
   });
 
+  var lastRightClickedNode;
+  // Right click on an node lets users mark it as the source or the sink
+  cy.on("cxttap", "node", function(event) {
+    if (allowModify()) {
+      var markAsSourceOrSinkDiv = document.getElementById("mark-as-source-or-sink");
+
+      var mouseX = event.originalEvent.clientX;
+      var mouseY = event.originalEvent.clientY;
+      markAsSourceOrSinkDiv.style.display = "block";
+      markAsSourceOrSinkDiv.style.left = mouseX + "px";
+      markAsSourceOrSinkDiv.style.top = mouseY + "px";
+
+      lastRightClickedNode = event.cyTarget;
+    }
+  });
+
   // if not clicking the div near the mouse, make the div disappear
   document.addEventListener("click", function (event) {
     var floatingText = document.getElementById("floatingText");
+    var markAsSourceOrSinkDiv = document.getElementById("mark-as-source-or-sink");
     function clickInsideElement(event, element) {
       var target = event.target;
       do {
@@ -1163,6 +1070,10 @@ $(function () {
     var isClickInsideFloatingText = clickInsideElement(event, floatingText);
     if (!isClickInsideFloatingText) {
       floatingText.style.display = "none";
+    }
+    var isClickInsideMarkAsSourceOrSinkDiv = clickInsideElement(event, markAsSourceOrSinkDiv);
+    if (!isClickInsideMarkAsSourceOrSinkDiv) {
+      markAsSourceOrSinkDiv.style.display = "none";
     }
   });
 
@@ -1185,45 +1096,26 @@ $(function () {
 
     rightClickedEdge.css("label", label);
 
-    var edges = cy.edges();
-
-    var shown = false;
-
-    // check if applied capacity is shown
-    edges.forEach(function (edge) {
-      if (edge.css("label").includes("/")) {
-        shown = true;
-      }
-    });
-
-    if (shown) {
-      // first remove all old applied flows
-      edges.forEach(function (edge) {
-        if (edge.css("label").includes("/")) {
-          edge.remove();
-        }
-      });
-
-      // then add them into cy again with new ones
-      for (const edge of originalFlowNetwork) {
-        var backward = cy
-          .edges("[source='" + edge.target + "'][target='" + edge.source + "']")
-          .css("label");
-        if (backward === undefined || backward === null || backward === "")
-          backward = "0";
-
-        addEdge(
-          cy,
-          edge.source + "/" + edge.target,
-          {
-            "line-color": "LightSkyBlue",
-            "target-arrow-color": "LightSkyBlue",
-            label: backward + "/" + edge.capacity,
-          },
-          edge.source,
-          edge.target
-        );
-      }
+    if (showOriginalCapacitiesAndCurrentFlow) {
+      doShowOriginalCapacitiesAndCurrentFlow();
+    } else {
+      removeOriginalCapacitiesAndCurrentFlow();
     }
+  });
+
+  $("#mark-as-source").on("click", function (event) {
+    event.preventDefault();
+    source = lastRightClickedNode.id();
+    $("#source").text("Source=" + source);
+    cancelHighlightedNodes([source, sink]);
+    highlightSourceAndSink();
+  });
+
+  $("#mark-as-sink").on("click", function (event) {
+    event.preventDefault();
+    sink = lastRightClickedNode.id();
+    $("#sink").text("Sink=" + sink);
+    cancelHighlightedNodes([source, sink]);
+    highlightSourceAndSink();
   });
 });

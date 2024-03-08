@@ -39,7 +39,7 @@ body {
 
 /* for right click */
 
-#floatingText {
+#floatingText, #mark-as-source-or-sink {
   background-color: white;
   border: 1px solid black;
   padding: 5px;

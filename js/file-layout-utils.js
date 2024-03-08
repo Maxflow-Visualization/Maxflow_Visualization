@@ -100,8 +100,8 @@ function readFile(event) {
       graph.get(node1).set(node2, edgeValue);
     });
 
-    $("#source").val(smallest);
-    $("#sink").val(largest);
+    $("#source").text("Source=" + smallest);
+    $("#sink").text("Sink=" + largest);
     if (!hasPositionData) {
       drawNodes(graph, smallest, largest);
     }
