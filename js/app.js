@@ -350,8 +350,18 @@ $(function () {
       var posX = (e.pageX - $cy.offset().left - pan.x) / zoom;
       var posY = (e.pageY - $cy.offset().top - pan.y) / zoom;
       addNode(cy, id, id, posX, posY);
-      if (id == 1) $("#source").text("Source=" + id);
-      if (id > 1) $("#sink").text("Sink=" + id);
+      if (id == 1) {
+        $("#source").text("Source=" + id);
+        source = id;
+        cancelHighlightedNodes();
+        highlightSourceAndSink();
+      }
+      if (id > 1) {
+        $("#sink").text("Sink=" + id);
+        sink = id;
+        cancelHighlightedNodes();
+        highlightSourceAndSink();
+      }
     }
   });
 
@@ -941,6 +951,10 @@ $(function () {
     });
   });
   $add.trigger("click");
+
+  source = "1";
+  sink = "8";
+  highlightSourceAndSink();
 
   // readFile() is defined in file-layout-utils.js
   document.getElementById("fileInput").addEventListener("change", readFile);
