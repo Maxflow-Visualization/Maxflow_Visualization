@@ -1,6 +1,39 @@
 // Initialize cytoscape, cytoscapeSettings is in "cytoscape-settings.js"
 var cy = cytoscape(cytoscapeSettings);
 
+var source;
+var sink;
+
+// These 2 functions are global because file-layout-utils.js depends on them
+
+// For some reason this function needs to be called in multiple places that don't need to call it
+function highlightSourceAndSink() {
+  cy.style()
+    .selector("#" + source)
+    .style({
+      "background-color": "#87CEEB",
+    })
+    .update();
+  cy.style()
+    .selector("#" + sink)
+    .style({
+      "background-color": "#FFCCCB",
+    })
+    .update();
+}
+
+// Cancel all highlighed nodes except the ones with ids in exceptNodeIdsList
+function cancelHighlightedNodes(exceptNodeIdsList = []) {
+  let filteredNodes = cy.collection();
+  cy.nodes().forEach( function(node) {
+    if (!exceptNodeIdsList.includes(node["_private"]["data"]["id"])) {
+      filteredNodes = filteredNodes.union(node);
+    }
+  });
+  filteredNodes.style("border-color", "black");
+  filteredNodes.style("background-color", "white");
+}
+
 // Add node with given args
 function addNode(cy, id, name, posX, posY) {
   cy.add({
@@ -49,9 +82,6 @@ $(function () {
   // Note: states don't include graph creation since that state is only run once
   var states = [SELECT_PATH, CHOOSE_FLOW, UPDATE_RESIDUAL_GRAPH];
   var index = 0;
-
-  var source;
-  var sink;
 
   var originalFlowNetwork = [];
   var showOriginalCapacitiesAndCurrentFlow = false;
@@ -104,9 +134,10 @@ $(function () {
   }
 
   // Cancel all highlights
-  function cancelHighlightedElements() {
-    cy.elements().removeClass("highlighted");
-  }
+function cancelHighlightedElements() {
+  cy.elements().removeClass("highlighted");
+}
+
 
   // Cancel one edge's highlight
   function cancelHighlightedEdge(source, target) {
@@ -114,34 +145,6 @@ $(function () {
     edge.removeClass("highlighted");
     edge.css("line-color", "lightgray");
     edge.css("target-arrow-color", "lightgray");
-  }
-
-  // Cancel all highlighed nodes except the ones with ids in exceptNodeIdsList
-  function cancelHighlightedNodes(exceptNodeIdsList = []) {
-    let filteredNodes = cy.collection();
-    cy.nodes().forEach( function(node) {
-      if (!exceptNodeIdsList.includes(node["_private"]["data"]["id"])) {
-        filteredNodes = filteredNodes.union(node);
-      }
-    });
-    filteredNodes.style("border-color", "black");
-    filteredNodes.style("background-color", "white");
-  }
-
-  // For some reason this function needs to be called in multiple places that don't need to call it
-  function highlightSourceAndSink() {
-    cy.style()
-      .selector("#" + source)
-      .style({
-        "background-color": "#87CEEB",
-      })
-      .update();
-    cy.style()
-      .selector("#" + sink)
-      .style({
-        "background-color": "#FFCCCB",
-      })
-      .update();
   }
 
   // Construct backend FlowNetwork data structure based on current graph
@@ -178,6 +181,7 @@ $(function () {
         edge.target
       );
     }
+    highlightSourceAndSink();
   }
 
   function removeOriginalCapacitiesAndCurrentFlow() {
@@ -187,6 +191,7 @@ $(function () {
         edge.remove();
       }
     });
+    highlightSourceAndSink();
   }
 
   function updateUIForNextState() {
@@ -234,7 +239,8 @@ $(function () {
 
     $("#state").text("State: Choose Flow");
 
-    cancelHighlightedNodes([source, sink]);
+    cancelHighlightedNodes();
+    highlightSourceAndSink();
     selectedNodes.clear();
 
     $(".proceed-step").text("Choose Flow");
@@ -353,13 +359,13 @@ $(function () {
       if (id == 1) {
         $("#source").text("Source=" + id);
         source = id;
-        cancelHighlightedNodes();
+        cancelHighlightedNodes([source, sink]);
         highlightSourceAndSink();
       }
       if (id > 1) {
         $("#sink").text("Sink=" + id);
         sink = id;
-        cancelHighlightedNodes();
+        cancelHighlightedNodes([source, sink]);
         highlightSourceAndSink();
       }
     }
@@ -370,7 +376,7 @@ $(function () {
   $("html").keyup(function (e) {
     if (
       allowModify() ||
-      (state === UPDATE_RESIDUAL_GRAPH && cy.$(":selected").isEdge())
+      (state === UPDATE_RESIDUAL_GRAPH && cy.$(":selected").isEdge() && !cy.$(":selected").css("label").includes("/"))
     ) {
       // Delete only if user is not updating capacity, I know this !"is not hidden" is really weird. However, jQuery (F*** it for wasting 1 hour of my time!)'s "is hidden"
       // only checks for css attributes display and visibility whereas jQuery's hide does not change those attributes but rather caches them...
@@ -455,10 +461,7 @@ $(function () {
       $("#instructions").html(SELECT_PATH_INSTRUCTIONS);
     } else {
       index = 0;
-      source = null;
-      sink = null;
       cancelHighlightedElements();
-      cancelHighlightedNodes();
 
       $(this).css("background-color", "#1ab394");
       $(this).text("Start Practice");
@@ -647,7 +650,8 @@ $(function () {
         "Congratulation! You have sccessfully find a min cut for the given network graph!"
       );
     } else {
-      cancelHighlightedNodes([source, sink]);
+      cancelHighlightedNodes();
+      highlightSourceAndSink();
       selectedNodes.clear();
       alert(
         "The group of nodes you provided is not a valid min cut for the given flow network for the following reasons.\n\nLet N be the set of nodes you selected.\n\nIf you wanted N to be the source side of a cut, then the problem is:\n" +
@@ -1036,7 +1040,7 @@ $(function () {
 
   // Right click on an edge brings up a div for update capacity, only available in GRAPH_CREATION and UPDATE_RESIDUAL_GRAPH
   cy.on("cxttap", "edge", function (event) {
-    if (state !== UPDATE_RESIDUAL_GRAPH && !allowModify()) return;
+    if (state !== UPDATE_RESIDUAL_GRAPH && !allowModify() || event.cyTarget.css("label").includes("/")) return;
     var mouseX = event.originalEvent.clientX;
     var mouseY = event.originalEvent.clientY;
     rightClickedEdge = event.cyTarget;

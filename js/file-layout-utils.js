@@ -102,6 +102,11 @@ function readFile(event) {
 
     $("#source").text("Source=" + smallest);
     $("#sink").text("Sink=" + largest);
+    source = smallest;
+    sink = largest;
+    cancelHighlightedNodes();
+    highlightSourceAndSink();
+
     if (!hasPositionData) {
       drawNodes(graph, smallest, largest);
     }
