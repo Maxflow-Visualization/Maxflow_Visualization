@@ -183,6 +183,11 @@ function cancelHighlightedElements() {
       flowNetwork.addEdge(edge.source().id(), edge.target().id(), label);
     });
 
+    var nodes = cy.nodes();
+    nodes.forEach(function (node) {
+      flowNetwork.addNode(node.id());
+    })
+
     return flowNetwork;
   }
 
@@ -318,7 +323,6 @@ function cancelHighlightedElements() {
     $("#history").append(
       "Path: " + message + " \n<br>Chosen Flow: " + flow + "<br>"
     );
-    console.log(flow);
 
     $("#state").text("State: Update Residual Graph");
     oldFlowNetwork = flowNetwork;
@@ -596,16 +600,15 @@ function cancelHighlightedElements() {
         (edge) => edge.source === source && edge.target === target
       );
       if (index2 !== -1) {
-        console.log("highlighted");
+        // console.log("highlighted");
         cancelHighlightedEdge(source, target);
         selectedPath.splice(index2, 1);
       } else {
-        console.log("unhighlighted");
+        // console.log("unhighlighted");
         highlightEdge(source, target);
         selectedPath.push(new Edge(source, target, capacity));
       }
     }
-    console.log(selectedPath);
   });
 
   var oldFlowNetwork = null;
@@ -660,7 +663,6 @@ function cancelHighlightedElements() {
     }
 
     var path = flowNetwork.findRandomAugmentingPath();
-    console.log(path);
 
     if (path.length > 1) {
       alert(
@@ -706,8 +708,6 @@ function cancelHighlightedElements() {
       return;
     } else {
       var minCutFromSource = flowNetwork.findMinCut(flowNetwork.source);
-
-      console.log(minCutFromSource);
 
       var nodes = cy.nodes();
 
@@ -877,7 +877,6 @@ function cancelHighlightedElements() {
     }
 
     selectedPath = flowNetwork.convertNodesToEdges(path);
-    console.log(path);
 
     selectedPath.forEach(function (edge) {
       highlightEdge(edge.source, edge.target);
@@ -932,7 +931,6 @@ function cancelHighlightedElements() {
     }
 
     selectedPath = flowNetwork.convertNodesToEdges(path);
-    console.log(path);
 
     selectedPath.forEach(function (edge) {
       highlightEdge(edge.source, edge.target);

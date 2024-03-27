@@ -51,7 +51,7 @@ class Edge {
 
 class FlowNetwork {
   constructor(source, sink) {
-    // this.edges[source][target] = Edge()
+    // this.graph[source][target] = Edge()
     this.graph = new Map();
     this.source = source;
     this.sink = sink;
@@ -68,6 +68,13 @@ class FlowNetwork {
 
     if (!this.isExistEdge(target, source)) {
       this.graph.get(target).set(source, reverseEdge);
+    }
+  }
+
+  // When constructing a graph, use addEdge(), this function is only for handling edge cases where no edges are present
+  addNode(node) {
+    if (!this.graph.has(node)) {
+      this.graph.set(node, new Map());
     }
   }
 
@@ -359,7 +366,6 @@ class FlowNetwork {
   findMinCut(source) {
     let visited = new Set();
     visited = this.DFS(source, visited, this.graph);
-    console.log(visited);
 
     let minCut = [];
     for (let node of visited) {
@@ -369,7 +375,6 @@ class FlowNetwork {
         }
       }
     }
-
     return visited;
   }
 
