@@ -25,7 +25,7 @@ function highlightSourceAndSink() {
 // Cancel all highlighed nodes except the ones with ids in exceptNodeIdsList
 function cancelHighlightedNodes(exceptNodeIdsList = []) {
   let filteredNodes = cy.collection();
-  cy.nodes().forEach( function(node) {
+  cy.nodes().forEach( function (node) {
     if (!exceptNodeIdsList.includes(node["_private"]["data"]["id"])) {
       filteredNodes = filteredNodes.union(node);
     }
@@ -79,6 +79,8 @@ $(function () {
   const UPDATE_RESIDUAL_GRAPH_INSTRUCTIONS =
     "<li>In this step, you will update the residual graph by editing edges according to the flow you decided.</li><li>Click an existing edge and then press <code>Delete</code> to delete that edge.</li><li>Right click an edge to change its capacity.</li><li>You can automatically complete the residual graph by clicking <code>Auto Complete</code>.</li><li>If you forget the original graph before applying change, you can undo all your steps by clicking <code>Undo All Updates</code>.</li><li>When you are done, click <code>Confirm Residual Graph</code>.</li>";
 
+  const ENTER_KEY = 13;
+
   // Note: states don't include graph creation since that state is only run once
   var states = [SELECT_PATH, CHOOSE_FLOW, UPDATE_RESIDUAL_GRAPH];
   var index = 0;
@@ -90,14 +92,37 @@ $(function () {
     // ... options ...
   });
 
-  // edge handles, which is used for creating edge interactively
-  cy.edgehandles({
+  // Users should not be able to create an edge from x to y if an edge from x to y already exists
+  function hasEdge(source, target) {
+    var edges = cy.edges();
+    var hasEdge = false;
+    edges.forEach(function (edge) {
+      if (edge.source().id() === source.id() && edge.target().id() === target.id()) {
+        hasEdge = true;
+        return;
+      }
+    });
+    return hasEdge;
+  }
+
+  var defaults = {
     handleColor: "grey",
     handleSize: 15,
     handleLineWidth: 10,
     handleNodes: "node",
     toggleOffOnLeave: true,
-  });
+    edgeType: function (source, target) {
+      return hasEdge(source, target) ? null : 'flat';
+    },
+    edgeParams: function () {
+      return {
+        style: { label: 1 },
+      }
+    }
+  }
+
+  // edge handles, which is used for creating edge interactively
+  cy.edgehandles(defaults);
 
   // Check which mode are we in: modifying or practicing
   function allowModify() {
@@ -1056,7 +1081,7 @@ function cancelHighlightedElements() {
 
   var lastRightClickedNode;
   // Right click on an node lets users mark it as the source or the sink
-  cy.on("cxttap", "node", function(event) {
+  cy.on("cxttap", "node", function (event) {
     if (allowModify()) {
       var markAsSourceOrSinkDiv = document.getElementById("mark-as-source-or-sink");
 
@@ -1114,6 +1139,8 @@ function cancelHighlightedElements() {
 
     rightClickedEdge.css("label", label);
 
+    document.getElementById("floatingText").style.display = "none";
+
     if (showOriginalCapacitiesAndCurrentFlow) {
       doShowOriginalCapacitiesAndCurrentFlow();
     } else {
@@ -1135,5 +1162,19 @@ function cancelHighlightedElements() {
     $("#sink").text("Sink=" + sink);
     cancelHighlightedNodes([source, sink]);
     highlightSourceAndSink();
+  });
+
+  // Enter is the same as click
+  $("#floatingText").on("keydown", function (event) {
+    if (event.which === ENTER_KEY) {
+      $("#mouse-update").click();
+    }
+  });
+
+  $(document).on("keydown", function (event) {
+    var floatingText = document.getElementById("floatingText");
+    if (event.which === ENTER_KEY && floatingText.style.display === "block") {
+      $("#mouse-update").click();
+    }
   });
 });
