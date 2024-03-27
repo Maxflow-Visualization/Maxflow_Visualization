@@ -114,11 +114,6 @@ $(function () {
     edgeType: function (source, target) {
       return hasEdge(source, target) ? null : 'flat';
     },
-    edgeParams: function () {
-      return {
-        style: { label: 1 },
-      }
-    }
   }
 
   // edge handles, which is used for creating edge interactively
