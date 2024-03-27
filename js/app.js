@@ -487,7 +487,11 @@ function cancelHighlightedElements() {
       index = 0;
       cancelHighlightedElements();
       selectedPath = [];
+      selectedNodes = new Set();
       $("#history").html("");
+      totalflow = 0;
+      cancelHighlightedNodes();
+      highlightSourceAndSink();
 
       $(this).css("background-color", "#1ab394");
       $(this).text("Start Practice");
