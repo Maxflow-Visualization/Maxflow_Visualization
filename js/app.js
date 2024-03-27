@@ -462,6 +462,7 @@ function cancelHighlightedElements() {
     } else {
       index = 0;
       cancelHighlightedElements();
+      selectedPath = [];
 
       $(this).css("background-color", "#1ab394");
       $(this).text("Start Practice");
