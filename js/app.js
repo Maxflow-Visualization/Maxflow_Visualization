@@ -1150,6 +1150,7 @@ function cancelHighlightedElements() {
     $("#source").text("Source=" + source);
     cancelHighlightedNodes([source, sink]);
     highlightSourceAndSink();
+    document.getElementById("mark-as-source-or-sink").style.display = "none"
   });
 
   $("#mark-as-sink").on("click", function (event) {
@@ -1158,6 +1159,7 @@ function cancelHighlightedElements() {
     $("#sink").text("Sink=" + sink);
     cancelHighlightedNodes([source, sink]);
     highlightSourceAndSink();
+    document.getElementById("mark-as-source-or-sink").style.display = "none"
   });
 
   // Enter is the same as click
