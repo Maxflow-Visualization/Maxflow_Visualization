@@ -1119,6 +1119,7 @@ function cancelHighlightedElements() {
     } else {
       removeOriginalCapacitiesAndCurrentFlow();
     }
+    floatingText.style.display = "none";
   });
 
   $("#mark-as-source").on("click", function (event) {
