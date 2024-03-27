@@ -487,6 +487,7 @@ function cancelHighlightedElements() {
       index = 0;
       cancelHighlightedElements();
       selectedPath = [];
+      $("#history").html("");
 
       $(this).css("background-color", "#1ab394");
       $(this).text("Start Practice");
