@@ -487,6 +487,7 @@ function cancelHighlightedElements() {
     } else {
       index = 0;
       cancelHighlightedElements();
+      selectedPath = [];
 
       $(this).css("background-color", "#1ab394");
       $(this).text("Start Practice");
@@ -1146,6 +1147,7 @@ function cancelHighlightedElements() {
     } else {
       removeOriginalCapacitiesAndCurrentFlow();
     }
+    floatingText.style.display = "none";
   });
 
   $("#mark-as-source").on("click", function (event) {

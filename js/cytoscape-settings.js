@@ -27,7 +27,7 @@ cytoscapeSettings = {
                 width: 4,
                 "line-color": "lightgray",
                 "target-arrow-color": "lightgray",
-                label: "4",
+                label: "1",
                 "text-valign": "right",
             },
         },
