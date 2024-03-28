@@ -506,6 +506,7 @@ function cancelHighlightedElements() {
       showElementAndItsChildren("#mouse-label");
       showElementAndItsChildren("#mouse-update");
       hideElementAndItsChildren("#fileInput");
+      hideElementAndItsChildren(".ending-actions");
 
       if (showOriginalCapacitiesAndCurrentFlow) {
         removeOriginalCapacitiesAndCurrentFlow();
