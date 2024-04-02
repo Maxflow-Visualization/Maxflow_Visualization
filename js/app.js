@@ -490,6 +490,7 @@ function cancelHighlightedElements() {
       selectedNodes = new Set();
       $("#history").html("");
       totalflow = 0;
+      cy.edgehandles("enable");
       cancelHighlightedNodes();
       highlightSourceAndSink();
 
