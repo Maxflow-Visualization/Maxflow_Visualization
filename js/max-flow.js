@@ -66,7 +66,7 @@ class FlowNetwork {
     if (!this.graph.has(target)) this.graph.set(target, new Map());
     this.graph.get(source).set(target, edge);
 
-    if (!this.isExistEdge(target, source)) {
+    if (!this.hasEdge(target, source)) {
       this.graph.get(target).set(source, reverseEdge);
     }
   }
@@ -78,12 +78,8 @@ class FlowNetwork {
     }
   }
 
-  isExistEdge(source, target) {
+  hasEdge(source, target) {
     return this.graph.has(source) && this.graph.get(source).has(target);
-  }
-
-  isExistVertex(vertex) {
-    return this.graph.has(vertex);
   }
 
   // a path topology is valid if and only if:
