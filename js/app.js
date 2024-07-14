@@ -445,6 +445,10 @@ function cancelHighlightedElements() {
     event.preventDefault();
     // proceed to algorithm practice
     if (allowModify()) {
+      // reduce graph block's size, show finalization block
+      $("#graph-block").addClass("col-lg-8").removeClass("col-lg-10");
+      $("#finalization-block").css("display", "block");
+
       source = $("#source").text();
       source = source.substring(source.indexOf("=") + 1);
       sink = $("#sink").text();
@@ -483,7 +487,12 @@ function cancelHighlightedElements() {
       $("#instructions-state").html("<b>Select Path:</b>");
       $("#instructions").html(SELECT_PATH_INSTRUCTIONS);
     } else {
+      // increase graph block's size, hide finalization block
+      $("#graph-block").addClass("col-lg-10").removeClass("col-lg-8");
+      $("#finalization-block").css("display", "none");
+
       index = 0;
+
       cancelHighlightedElements();
       selectedPath = [];
       selectedNodes = new Set();
@@ -824,12 +833,12 @@ function cancelHighlightedElements() {
 
     if (path.length > 1) {
       alert(
-        "There is still a possible path from the source to the sink. Please keep moving on. "
+        "There is still a possible path from the source to the sink. Please keep moving on."
       );
       return;
     } else {
       var usermaxflow = window.prompt(
-        "Please enter the value of the max flow: "
+        "Please enter the value of of your flow if you believe that it is a maximum flow:"
       );
 
       if (usermaxflow === null) {
