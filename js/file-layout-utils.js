@@ -192,3 +192,13 @@ function drawNodes(graph, source, sink) {
     }
   });
 }
+
+function resizeAndCenterAccordingToCurrentGraphBlock() {
+  // change all divs' (and canvas') width under graph block except the zoom/reset button div
+  let width = cy.renderedExtent().x2 - cy.renderedExtent().x1;
+  $("#cy div").not(".cy-panzoom-reset").css("width", width);
+  $("canvas").css("width", width);
+  // resize and center nodes/edges/etc.
+  cy.resize();
+  cy.center();
+}

@@ -408,7 +408,7 @@ class FlowNetwork {
       for (const neighbor of this.graph.get(node).keys()) {
         if (sNodes.has(node) && tNodes.has(neighbor) && this.graph.get(node).get(neighbor).capacity > 0) {
           let reachEdge = node + "->" + neighbor;
-            return "We can still reach the sink side from the source side via " + reachEdge + " so that it is not a \"cut\".";
+            return "We can still reach the sink side from the source side via " + reachEdge + " so that it is not a minimum cut.";
         }
       }
     }
