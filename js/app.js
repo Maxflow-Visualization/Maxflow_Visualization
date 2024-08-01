@@ -134,16 +134,29 @@ $(function () {
     $(selector).children().hide();
   }
 
-  function getId() {
+  function getMaxId() {
     var ids = cy.nodes().map(function (node) {
-      return node.id();
+      return Number(node.id());
     });
-    for (var i = 0; i < ids.length; i++) {
-      if (ids[i] != i + 1) {
-        return i + 1;
+    return Math.max(...ids);
+  }
+
+  // Gets the next id (i.e. the first id missing in the current sorted node ids)
+  function getNextId() {
+    if (cy.nodes().length === 0) {
+      return 1;
+    }
+    var maxId = getMaxId();
+    var ids = new Set(cy.nodes().map(function (node) {
+      return Number(node.id());
+    }));
+    for (var i = 1; i < maxId; ++i)
+    {
+      if (!ids.has(i)) {
+        return i;
       }
     }
-    return ids.length + 1;
+    return maxId + 1;
   }
 
   // Make edge highlighted with given args
@@ -385,25 +398,27 @@ $(function () {
   $cy.dblclick(function (e) {
     // Students can only add nodes during graph creation
     if (allowModify() && !e.target.matches(".cy-panzoom-reset")) {
-      var id = getId();
       // Adjust position with zoom and pan
       var zoom = cy.zoom();
       var pan = cy.pan();
       var posX = (e.pageX - $cy.offset().left - pan.x) / zoom;
       var posY = (e.pageY - $cy.offset().top - pan.y) / zoom;
-      addNode(cy, id, id, posX, posY);
-      if (id == 1) {
-        $("#source").text("Source=" + id);
-        source = id;
-        cancelHighlightedNodes([source, sink]);
+
+      var nextId = getNextId();
+      if (nextId === 1) {
+        cancelHighlightedNodes([sink]);
+        $("#source").text("Source=" + nextId);
+        source = nextId;
         highlightSourceAndSink();
       }
-      if (id > 1) {
-        $("#sink").text("Sink=" + id);
-        sink = id;
-        cancelHighlightedNodes([source, sink]);
+      if (nextId > 1 && nextId === getMaxId() + 1) {
+        cancelHighlightedNodes([source]);
+        $("#sink").text("Sink=" + nextId);
+        sink = nextId;
         highlightSourceAndSink();
       }
+
+      addNode(cy, nextId, nextId, posX, posY);
     }
   });
 
