@@ -154,9 +154,9 @@ $(function () {
   }
 
   // Cancel all highlights
-function cancelHighlightedElements() {
-  cy.elements().removeClass("highlighted");
-}
+  function cancelHighlightedElements() {
+    cy.elements().removeClass("highlighted");
+  }
 
 
   // Cancel one edge's highlight
@@ -165,6 +165,19 @@ function cancelHighlightedElements() {
     edge.removeClass("highlighted");
     edge.css("line-color", "lightgray");
     edge.css("target-arrow-color", "lightgray");
+  }
+
+  // Check if users deleted a node that is source/sink, if so change the display text
+  function checkDeletedNodeIsSourceOrSink(nodeId)
+  {
+    if (nodeId == source)
+    {
+      $("#source").text("Source=");
+    }
+    if (nodeId == sink)
+    {
+      $("#sink").text("Sink=");
+    }
   }
 
   // Construct backend FlowNetwork data structure based on current graph
@@ -407,6 +420,7 @@ function cancelHighlightedElements() {
         const inputElement = document.getElementById("label");
         // Check if there's a selection within the input
         if (document.activeElement != inputElement) {
+          checkDeletedNodeIsSourceOrSink(cy.$(":selected").id());
           cy.$(":selected").remove();
         }
       }
@@ -1193,18 +1207,9 @@ function cancelHighlightedElements() {
 
   $("#delete-node").on("click", function(event) {
     event.preventDefault();
+    checkDeletedNodeIsSourceOrSink(lastRightClickedNode.id());
     lastRightClickedNode.remove();
     document.getElementById("mark-as-source-or-sink").style.display = "none";
-    // source = $("#source").text()
-    if (lastRightClickedNode.id() == source)
-    {
-      $("#source").text("Source=");
-    }
-    sink = $("#sink").text()
-    if (lastRightClickedNode.id() == sink)
-    {
-      $("#sink").text("Sink=");
-    }
   });
 
   // Enter is the same as click
