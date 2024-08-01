@@ -88,6 +88,20 @@ $(function () {
   var originalFlowNetwork = [];
   var showOriginalCapacitiesAndCurrentFlow = false;
 
+  var defaults = {
+    handleColor: "grey",
+    handleSize: 15,
+    handleLineWidth: 10,
+    handleNodes: "node",
+    toggleOffOnLeave: true,
+    edgeType: function (source, target) {
+      return hasEdge(source, target) ? null : 'flat';
+    },
+  }
+
+  // edge handles, which is used for creating edge interactively
+  cy.edgehandles(defaults);
+
   cy.panzoom({
     // ... options ...
   });
@@ -104,20 +118,6 @@ $(function () {
     });
     return hasEdge;
   }
-
-  var defaults = {
-    handleColor: "grey",
-    handleSize: 15,
-    handleLineWidth: 10,
-    handleNodes: "node",
-    toggleOffOnLeave: true,
-    edgeType: function (source, target) {
-      return hasEdge(source, target) ? null : 'flat';
-    },
-  }
-
-  // edge handles, which is used for creating edge interactively
-  cy.edgehandles(defaults);
 
   // Check which mode are we in: modifying or practicing
   function allowModify() {
@@ -401,7 +401,7 @@ function cancelHighlightedElements() {
       allowModify() ||
       (state === UPDATE_RESIDUAL_GRAPH && cy.$(":selected").isEdge() && !cy.$(":selected").css("label").includes("/"))
     ) {
-      // Delete only if user is not updating capacity, I know this !"is not hidden" is really weird. However, jQuery (F*** it for wasting 1 hour of my time!)'s "is hidden"
+      // Delete only if user is not updating capacity, I know this !"is not hidden" is really weird. However, jQuery's "is hidden"
       // only checks for css attributes display and visibility whereas jQuery's hide does not change those attributes but rather caches them...
       if (e.key == "Delete" && !$("#mouse-update").is(":not(':hidden')")) {
         const inputElement = document.getElementById("label");
@@ -454,6 +454,17 @@ function cancelHighlightedElements() {
       source = source.substring(source.indexOf("=") + 1);
       sink = $("#sink").text();
       sink = sink.substring(sink.indexOf("=") + 1);
+
+      if (source === "")
+      {
+        alert("Please specify a source!");
+        return;
+      }
+      if (sink === "")
+      {
+        alert("Please specify a sink!");
+        return;
+      }
       if (source === sink) {
         alert("The source and the sink can not be the same node!");
         return;
@@ -461,6 +472,7 @@ function cancelHighlightedElements() {
       highlightSourceAndSink();
 
       cy.edgehandles("disable");
+
 
       hideElementAndItsChildren(".buttons");
       state = states[index];
@@ -1177,6 +1189,22 @@ function cancelHighlightedElements() {
     cancelHighlightedNodes([source, sink]);
     highlightSourceAndSink();
     document.getElementById("mark-as-source-or-sink").style.display = "none"
+  });
+
+  $("#delete-node").on("click", function(event) {
+    event.preventDefault();
+    lastRightClickedNode.remove();
+    document.getElementById("mark-as-source-or-sink").style.display = "none";
+    // source = $("#source").text()
+    if (lastRightClickedNode.id() == source)
+    {
+      $("#source").text("Source=");
+    }
+    sink = $("#sink").text()
+    if (lastRightClickedNode.id() == sink)
+    {
+      $("#sink").text("Sink=");
+    }
   });
 
   // Enter is the same as click

@@ -201,4 +201,5 @@ function resizeAndCenterAccordingToCurrentGraphBlock() {
   // resize and center nodes/edges/etc.
   cy.resize();
   cy.center();
+  cy.edgehandles("resize");
 }
