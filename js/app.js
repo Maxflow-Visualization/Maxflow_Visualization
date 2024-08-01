@@ -405,12 +405,14 @@ $(function () {
       var posY = (e.pageY - $cy.offset().top - pan.y) / zoom;
 
       var nextId = getNextId();
+      // Automatically make the new node as the source if it's id is 1
       if (nextId === 1) {
         cancelHighlightedNodes([sink]);
         $("#source").text("Source=" + nextId);
         source = nextId;
         highlightSourceAndSink();
       }
+      // Automatically make the new node as the sink if it's greater than the current max id
       if (nextId > 1 && nextId === getMaxId() + 1) {
         cancelHighlightedNodes([source]);
         $("#sink").text("Sink=" + nextId);
